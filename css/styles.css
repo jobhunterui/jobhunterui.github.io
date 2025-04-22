@@ -80,7 +80,6 @@ header {
 }
 
 .install-button {
-    background-color: var(--primary-color);
     color: white;
     padding: 0.5rem 1.2rem;
     border-radius: var(--border-radius);
