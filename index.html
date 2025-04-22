@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Hunter - Find and track job opportunities</title>
+    <meta name="description" content="Find and apply to jobs with ease using multiple search platforms and automated CV/cover letter generation">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script src="js/analytics.js"></script>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <img src="images/icon-96.png" alt="Job Hunter Logo">
+                <h1>Job Hunter</h1>
+            </div>
+            <div class="cta-button">
+                <a href="#install" class="install-button">Install Extension</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Find Your Next Job Opportunity</h1>
+                <p>Supercharge your job search with intelligent tools to find, track, and apply to jobs across multiple platforms</p>
+                <div class="hero-cta">
+                    <a href="#app" class="primary-button">Start Searching</a>
+                    <a href="#install" class="secondary-button">Install Extension</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="images/screenshots/Template CV Generated Screenshot.png" alt="Job Hunter in action">
+            </div>
+        </section>
+
+        <section class="features">
+            <h2>Why Use Job Hunter?</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Search Multiple Platforms</h3>
+                    <p>Find jobs directly on Company Job Boards, LinkedIn Feed, and hidden opportunities in documents and pages</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔔</div>
+                    <h3>Save & Track Jobs</h3>
+                    <p>Keep all job listings in one place with our browser extension</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📝</div>
+                    <h3>Smart Application Tools</h3>
+                    <p>Generate AI-tailored CVs and cover letters that match job requirements</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧩</div>
+                    <h3>Find Hidden Opportunities</h3>
+                    <p>Discover jobs posted in documents, Notion pages, and online content</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="app" class="app-container">
+            <div class="tabs">
+                <button class="tab-button active" data-tab="find">Find Jobs</button>
+                <button class="tab-button" data-tab="about">About</button>
+                <button class="tab-button" data-tab="install">Extension</button>
+            </div>
+            
+            <!-- Find Jobs Tab -->
+            <div id="find" class="tab-content active">
+                <h2>Find Jobs</h2>
+                <form id="job-search-form">
+                    <div class="form-group">
+                        <label for="role">Role:</label>
+                        <input type="text" id="role" name="role" placeholder="e.g. Software Engineer">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="location">Location:</label>
+                        <input type="text" id="location" name="location" placeholder="e.g. London, UK">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="experience">Experience Level:</label>
+                        <select id="experience" name="experience">
+                            <option value="">Any Level</option>
+                            <option value="entry">Entry Level</option>
+                            <option value="mid">Mid-Level</option>
+                            <option value="senior">Senior</option>
+                            <option value="lead">Lead/Manager</option>
+                        </select>
+                    </div>
+                
+                    <div class="form-group hiring-phrases-section">
+                        <label for="hiring-phrases">Hiring Phrases to Search:</label>
+                        <div class="hiring-phrases-toggle" id="show-hiring-phrases">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                            <span>Show hiring phrases</span>
+                        </div>
+                        
+                        <div class="hiring-phrases-options hidden" id="hiring-phrases-options">
+                            <div class="phrase-option">
+                                <input type="checkbox" id="phrase-hiring" name="hiring-phrase" value="we are hiring" checked>
+                                <label for="phrase-hiring">"we are hiring"</label>
+                            </div>
+                            <div class="phrase-option">
+                                <input type="checkbox" id="phrase-team" name="hiring-phrase" value="join our team" checked>
+                                <label for="phrase-team">"join our team"</label>
+                            </div>
+                            <div class="phrase-option">
+                                <input type="checkbox" id="phrase-opening" name="hiring-phrase" value="job opening" checked>
+                                <label for="phrase-opening">"job opening"</label>
+                            </div>
+                            <div class="phrase-option">
+                                <input type="checkbox" id="phrase-position" name="hiring-phrase" value="open position" checked>
+                                <label for="phrase-position">"open position"</label>
+                            </div>
+                            <div class="phrase-option">
+                                <input type="checkbox" id="phrase-now-hiring" name="hiring-phrase" value="now hiring" checked>
+                                <label for="phrase-now-hiring">"now hiring"</label>
+                            </div>
+                            <div class="phrase-option">
+                                <input type="checkbox" id="phrase-looking" name="hiring-phrase" value="looking for" checked>
+                                <label for="phrase-looking">"looking for"</label>
+                            </div>
+                            <div class="phrase-option">
+                                <input type="checkbox" id="phrase-immediate" name="hiring-phrase" value="immediate opening" checked>
+                                <label for="phrase-immediate">"immediate opening"</label>
+                            </div>
+                            <div class="phrase-option">
+                                <input type="checkbox" id="phrase-opportunities" name="hiring-phrase" value="career opportunities" checked>
+                                <label for="phrase-opportunities">"career opportunities"</label>
+                            </div>
+                            <div class="phrase-option">
+                                <input type="checkbox" id="phrase-remote" name="hiring-phrase" value="remote opportunity" checked>
+                                <label for="phrase-remote">"remote opportunity"</label>
+                            </div>
+                            <div class="phrase-option custom-phrase">
+                                <input type="text" id="custom-phrase" placeholder="Add your own phrase">
+                                <button id="add-custom-phrase" type="button">Add</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="search-buttons">
+                        <button type="button" id="search-linkedin">Find on LinkedIn</button>
+                        <button type="button" id="search-linkedin-feed">Find on LinkedIn Feed</button>
+                        <button type="button" id="search-google">Find on Job Boards</button>
+                        <button type="button" id="search-docs">Find in Docs and Pages</button>
+                        <button type="button" id="search-ai">Find with AI</button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- About Tab -->
+            <div id="about" class="tab-content">
+                <h2>About Job Hunter</h2>
+                <div class="about-content">
+                    <p>Job Hunter is a powerful toolkit designed to help job seekers find opportunities faster and more efficiently. The web app allows you to search multiple platforms at once, while the browser extension provides additional features:</p>
+                    
+                    <h3>Web App Features</h3>
+                    <ul>
+                        <li>Search multiple job platforms with a single click</li>
+                        <li>Discover hidden job opportunities in documents and online content</li>
+                        <li>Use AI to generate tailored job search queries</li>
+                    </ul>
+                    
+                    <h3>Browser Extension Features</h3>
+                    <ul>
+                        <li>Save and track job listings from any website</li>
+                        <li>Automatically extract job details when browsing listings</li>
+                        <li>Generate tailored CVs and cover letters for specific jobs</li>
+                        <li>Manage your job application progress in one place</li>
+                    </ul>
+                    
+                    <div class="cta-box">
+                        <h3>Get the Full Experience</h3>
+                        <p>Install our browser extension to unlock all features and supercharge your job search!</p>
+                        <a href="#install" class="primary-button">Install Extension</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Extension Tab -->
+            <div id="install" class="tab-content">
+                <h2>Get the Job Hunter Extension</h2>
+                <div class="extension-content">
+                    <div class="extension-info">
+                        <p>The Job Hunter browser extension enhances your job search with powerful features:</p>
+                        
+                        <ul>
+                            <li><strong>Save jobs</strong> from any website with a single right click</li>
+                            <li><strong>Track applications</strong> and keep everything organized</li>
+                            <li><strong>Auto-extract job details</strong> from listings you browse</li>
+                            <li><strong>Generate personalized applications</strong> with AI assistance</li>
+                        </ul>
+                        
+                        <div class="installation-steps">
+                            <h3>Installation Steps:</h3>
+                            <ol>
+                                <li>Download the extension package below</li>
+                                <li>Extract the ZIP file to a folder on your computer</li>
+                                <li>Open your browser's extension management page</li>
+                                <li>Enable "Developer mode"</li>
+                                <li>Click "Load unpacked" and select the extracted folder</li>
+                                <li>The Job Hunter icon should appear in your browser toolbar</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="download-section">
+                            <a href="https://github.com/JobHunter/extension/archive/main.zip" class="download-button">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Download Extension (Firefox)
+                            </a>
+                            
+                            <p class="coming-soon">Chrome version coming soon...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="extension-screenshots">
+                        <div class="screenshot">
+                            <img src="images/screenshots/Find Jobs Screenshot.png" alt="Job Hunter Extension - Job Search">
+                            <p>Powerful search options</p>
+                        </div>
+                        <div class="screenshot">
+                            <img src="images/screenshots/Saved Job Postings Screenshot.png" alt="Job Hunter Extension - Saved Jobs">
+                            <p>Track saved job listings</p>
+                        </div>
+                        <div class="screenshot">
+                            <img src="images/screenshots/Template CV Generated Screenshot.png" alt="Job Hunter Extension - CV Generation">
+                            <p>Generate tailored CVs</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <img src="images/icon-38.png" alt="Job Hunter Logo">
+                <span>Job Hunter</span>
+            </div>
+            <div class="footer-links">
+                <a href="#app">Search Jobs</a>
+                <a href="#about">About</a>
+                <a href="#install">Extension</a>
+                <a href="https://github.com/JobHunter" target="_blank">GitHub</a>
+            </div>
+            <div class="footer-social">
+                <a href="https://github.com/JobHunter" target="_blank" aria-label="GitHub">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; <span id="current-year"></span> Job Hunter. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <div id="extension-required-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Extension Required</h2>
+            <p>This feature requires the Job Hunter browser extension to work.</p>
+            <p>Would you like to install the extension now?</p>
+            <div class="modal-buttons">
+                <button id="cancel-modal" class="secondary-button">Cancel</button>
+                <a href="#install" class="primary-button">Install Extension</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/search.js"></script>
+</body>
+</html>
