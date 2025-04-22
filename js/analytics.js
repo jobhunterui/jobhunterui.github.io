@@ -41,6 +41,47 @@ function trackEvent(eventName, eventParams = {}) {
     }
 }
 
+// Track extension install clicks with source information
+function trackExtensionInstall(source) {
+    trackEvent('extension_install_click', { source: source });
+}
+
+// Add tracking to all extension install buttons on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Track extension install button clicks with source information
+    document.querySelectorAll('a[href*="addons.mozilla.org"]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            // Get the section where the button is located
+            let source = 'unknown';
+            
+            if (this.closest('#install')) {
+                source = 'install_tab';
+            } else if (this.closest('.hero')) {
+                source = 'hero_section';
+            } else if (this.closest('.features')) {
+                source = 'features_section';
+            } else if (this.closest('.about-content')) {
+                source = 'about_tab';
+            } else if (this.closest('.modal-content')) {
+                source = 'extension_required_modal';
+            } else if (this.closest('header')) {
+                source = 'header';
+            }
+            
+            trackExtensionInstall(source);
+        });
+    });
+    
+    // Track Twitter links
+    document.querySelectorAll('a[href*="twitter.com"]').forEach(link => {
+        link.addEventListener('click', function() {
+            trackEvent('twitter_link_click', {
+                link_text: this.textContent.trim()
+            });
+        });
+    });
+});
+
 // Track time spent on page
 let pageVisitStartTime = Date.now();
 window.addEventListener('beforeunload', function() {
@@ -76,7 +117,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('a').forEach(link => {
         if (link.hostname !== window.location.hostname && 
             !link.getAttribute('href').startsWith('#') && 
-            !link.getAttribute('href').startsWith('javascript:')) {
+            !link.getAttribute('href').startsWith('javascript:') &&
+            !link.getAttribute('href').includes('addons.mozilla.org') && // Skip extension links (tracked separately)
+            !link.getAttribute('href').includes('twitter.com')) { // Skip twitter links (tracked separately)
             
             link.addEventListener('click', function(e) {
                 trackEvent('external_link_click', {
@@ -86,4 +129,41 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
+    
+    // Track pricing comparison table views (when it scrolls into view)
+    const pricingTable = document.querySelector('.pricing-comparison');
+    if (pricingTable) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    trackEvent('pricing_comparison_view');
+                    observer.unobserve(entry.target); // Track only once
+                }
+            });
+        }, { threshold: 0.5 });
+        
+        observer.observe(pricingTable);
+    }
+});
+
+// Track feature cards views 
+document.addEventListener('DOMContentLoaded', function() {
+    const featureCards = document.querySelectorAll('.feature-card');
+    
+    if (featureCards.length > 0) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const card = entry.target;
+                    const featureName = card.querySelector('h3').textContent;
+                    trackEvent('feature_card_view', { feature: featureName });
+                    observer.unobserve(card); // Track only once per card
+                }
+            });
+        }, { threshold: 0.7 });
+        
+        featureCards.forEach(card => {
+            observer.observe(card);
+        });
+    }
 });

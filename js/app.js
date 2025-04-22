@@ -118,13 +118,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Handle the "Install Extension" button clicks
-    document.querySelectorAll('.install-button, a[href="#install"]').forEach(button => {
-        button.addEventListener('click', function() {
-            trackEvent('click_install_button');
-        });
-    });
-    
     // Track when users view the site
     trackEvent('page_view', { 
         page_title: document.title,
