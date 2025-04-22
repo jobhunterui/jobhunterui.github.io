@@ -1070,3 +1070,47 @@ footer {
         background-color: rgba(52, 152, 219, 0.1);
     }
 }
+
+/* Contact link in header */
+.contact-link {
+    margin-left: 10px;
+    color: var(--primary-color);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    border-radius: 50%;
+    background-color: rgba(52, 152, 219, 0.1);
+    transition: background-color 0.3s;
+}
+
+.contact-link:hover {
+    background-color: rgba(52, 152, 219, 0.2);
+    text-decoration: none;
+}
+
+/* Contact info section in about page */
+.contact-info {
+    background-color: var(--light-gray);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    margin: 2rem 0;
+    text-align: center;
+}
+
+.contact-info h3 {
+    margin-top: 0;
+    color: var(--secondary-color);
+}
+
+.contact-info p {
+    margin-bottom: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .contact-link {
+        margin-top: 10px;
+        margin-left: 0;
+    }
+}
