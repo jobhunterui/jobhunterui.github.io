@@ -5,7 +5,38 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('search-google').addEventListener('click', searchOnGoogle);
     document.getElementById('search-docs').addEventListener('click', searchInDocsAndPages);
     document.getElementById('search-ai').addEventListener('click', searchWithAI);
+
+    // Set up toggles for job boards and doc sites
+    document.getElementById('show-job-boards').addEventListener('click', toggleJobBoardsSelection);
+    document.getElementById('show-doc-sites').addEventListener('click', toggleDocSitesSelection);
 });
+
+// Functions to show/hide the site selection panels
+function toggleJobBoardsSelection() {
+    const optionsEl = document.getElementById('job-boards-options');
+    const toggleEl = document.getElementById('show-job-boards');
+    
+    if (optionsEl.classList.contains('hidden')) {
+        optionsEl.classList.remove('hidden');
+        toggleEl.classList.add('active');
+    } else {
+        optionsEl.classList.add('hidden');
+        toggleEl.classList.remove('active');
+    }
+}
+
+function toggleDocSitesSelection() {
+    const optionsEl = document.getElementById('doc-sites-options');
+    const toggleEl = document.getElementById('show-doc-sites');
+    
+    if (optionsEl.classList.contains('hidden')) {
+        optionsEl.classList.remove('hidden');
+        toggleEl.classList.add('active');
+    } else {
+        optionsEl.classList.add('hidden');
+        toggleEl.classList.remove('active');
+    }
+}
 
 // Common functions for getting selected hiring phrases
 function getSelectedHiringPhrases() {
@@ -107,22 +138,27 @@ function searchOnGoogle() {
     const location = document.getElementById('location').value.trim();
     const experience = document.getElementById('experience').value;
     
-    // Track this search
-    trackEvent('search', {
-        platform: 'job_boards',
-        search_term: role,
-        search_location: location,
-        experience_level: experience
-    });
+    // Get selected job board sites (or use all if none selected)
+    const selectedJobSites = Array.from(document.querySelectorAll('input[name="job-board"]:checked'))
+        .map(input => input.value);
     
-    // List of specific ATS sites
-    const atsSites = [
+    // Use all sites if none are selected
+    const atsSites = selectedJobSites.length > 0 ? selectedJobSites : [
         'jobs.lever.co',
         'boards.greenhouse.io',
         'apply.workable.com',
         'ashbyhq.com',
         'jobs.smartrecruiters.com'
     ];
+    
+    // Track this search with selected sites info
+    trackEvent('search', {
+        platform: 'job_boards',
+        search_term: role,
+        search_location: location,
+        experience_level: experience,
+        selected_sites: selectedJobSites.length > 0 ? selectedJobSites.join(',') : 'all'
+    });
     
     // Construct site search query
     const siteQuery = atsSites.map(site => `site:${site}`).join(' OR ');
@@ -144,21 +180,26 @@ function searchInDocsAndPages() {
     
     if (!selectedPhrases) return;
     
-    // Track this search
+    // Get selected document sites (or use all if none selected)
+    const selectedDocSites = Array.from(document.querySelectorAll('input[name="doc-site"]:checked'))
+        .map(input => input.value);
+    
+    // Use all sites if none are selected
+    const documentSites = selectedDocSites.length > 0 ? selectedDocSites : [
+        'docs.google.com',
+        'notion.site',
+        'coda.io'
+    ];
+    
+    // Track this search with selected sites info
     trackEvent('search', {
         platform: 'docs_and_pages',
         search_term: role,
         search_location: location,
         experience_level: experience,
-        hiring_phrases: selectedPhrases.join(', ')
+        hiring_phrases: selectedPhrases.join(', '),
+        selected_sites: selectedDocSites.length > 0 ? selectedDocSites.join(',') : 'all'
     });
-    
-    // Simplified document sites list
-    const documentSites = [
-        'docs.google.com',
-        'notion.so',
-        'coda.io'
-    ];
     
     // Construct the site search query
     const siteQuery = documentSites.map(site => `site:${site}`).join(' OR ');
