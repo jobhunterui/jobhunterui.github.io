@@ -44,8 +44,14 @@ function setupToggleSections() {
     
     if (hiringPhrasesToggle && hiringPhrasesOptions) {
         hiringPhrasesToggle.addEventListener('click', () => {
-            hiringPhrasesOptions.classList.toggle('hidden');
+            hiringPhrasesOptions.classList.toggle('active');
             hiringPhrasesToggle.classList.toggle('active');
+            
+            // Update toggle icon
+            const toggleIcon = hiringPhrasesToggle.querySelector('.toggle-icon');
+            if (toggleIcon) {
+                toggleIcon.textContent = hiringPhrasesToggle.classList.contains('active') ? '▼' : '▶';
+            }
         });
     }
     
@@ -55,8 +61,14 @@ function setupToggleSections() {
     
     if (jobBoardsToggle && jobBoardsOptions) {
         jobBoardsToggle.addEventListener('click', () => {
-            jobBoardsOptions.classList.toggle('hidden');
+            jobBoardsOptions.classList.toggle('active');
             jobBoardsToggle.classList.toggle('active');
+            
+            // Update toggle icon
+            const toggleIcon = jobBoardsToggle.querySelector('.toggle-icon');
+            if (toggleIcon) {
+                toggleIcon.textContent = jobBoardsToggle.classList.contains('active') ? '▼' : '▶';
+            }
         });
     }
     
@@ -66,8 +78,14 @@ function setupToggleSections() {
     
     if (docSitesToggle && docSitesOptions) {
         docSitesToggle.addEventListener('click', () => {
-            docSitesOptions.classList.toggle('hidden');
+            docSitesOptions.classList.toggle('active');
             docSitesToggle.classList.toggle('active');
+            
+            // Update toggle icon
+            const toggleIcon = docSitesToggle.querySelector('.toggle-icon');
+            if (toggleIcon) {
+                toggleIcon.textContent = docSitesToggle.classList.contains('active') ? '▼' : '▶';
+            }
         });
     }
 }

@@ -786,13 +786,16 @@ select:focus {
 /* Toggle Sections Styling */
 .toggle-section {
     margin-bottom: 15px;
+    border: 1px solid #eaeaea;
+    border-radius: 5px;
+    overflow: hidden;
 }
 
 .toggle-header {
     display: flex;
     align-items: center;
-    padding: 10px;
-    background-color: #f5f7fa;
+    background-color: #f8f9fa;
+    padding: 10px 15px;
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s;
@@ -801,7 +804,12 @@ select:focus {
 }
 
 .toggle-header:hover {
-    background-color: #eaeff5;
+    background-color: #e9ecef;
+}
+
+.toggle-icon {
+    margin-right: 10px;
+    transition: transform 0.2s;
 }
 
 .toggle-header .toggle-icon {
@@ -819,6 +827,7 @@ select:focus {
     transition: max-height 0.3s ease-out;
     background-color: #f9f9f9;
     border-radius: 0 0 4px 4px;
+    display: none;
 }
 
 .toggle-content.active {
@@ -826,6 +835,7 @@ select:focus {
     padding: 15px;
     border: 1px solid #eee;
     border-top: none;
+    display: block;
 }
 
 .toggle-option {
