@@ -86,6 +86,15 @@ function showWelcomeTour() {
         const step = steps[currentStep];
         const targetElement = document.querySelector(step.target);
         
+        // First ensure the relevant tab is active if the target is in a different tab
+        if (step.target.includes('#profile') || step.target.includes('#apply') || step.target.includes('#find')) {
+            const tabId = step.target.split(' ')[0].replace('#', '');
+            const tabButton = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+            if (tabButton && !tabButton.classList.contains('active')) {
+                tabButton.click();
+            }
+        }
+        
         if (!targetElement) {
             nextStep();
             return;
@@ -162,6 +171,15 @@ function showWelcomeTour() {
         if (skipButton) {
             skipButton.addEventListener('click', skipTour);
         }
+        
+        // Add timeout for safety - IMPORTANT ADDITION HERE
+        setTimeout(() => {
+            // If tooltip doesn't load within 1 second, move to next step
+            if (!document.querySelector('.tour-tooltip')) {
+                console.log('Tour tooltip not found, moving to next step');
+                nextStep();
+            }
+        }, 1000);
     }
     
     // Navigation functions
@@ -405,6 +423,12 @@ function showExtensionPromo(location) {
         return;
     }
     
+    // Only show one promo per page view in each tab
+    const existingPromo = document.querySelector(`#extension-promo-${location}`);
+    if (existingPromo) {
+        return;
+    }
+    
     let message = '';
     let id = `extension-promo-${location}`;
     
@@ -431,10 +455,12 @@ function showExtensionPromo(location) {
     promoDiv.id = id;
     
     promoDiv.innerHTML = `
-        <p>${message}</p>
-        <div class="promo-actions">
-            <a href="https://addons.mozilla.org/en-US/firefox/addon/job-hunter-assistant/" target="_blank" class="install-button">Install Extension</a>
-            <button class="dismiss-promo" data-location="${location}">&times;</button>
+        <div class="promo-content">
+            <p>${message}</p>
+            <div class="promo-actions">
+                <a href="https://addons.mozilla.org/en-US/firefox/addon/job-hunter-assistant/" target="_blank" class="install-button">Install Extension</a>
+                <button class="dismiss-promo" data-location="${location}">&times;</button>
+            </div>
         </div>
     `;
     
@@ -455,7 +481,7 @@ function showExtensionPromo(location) {
             targetElement = document.querySelector('#find .search-buttons');
             break;
         default:
-            targetElement = document.querySelector('main');
+            targetElement = document.querySelector('#apply');
     }
     
     if (targetElement) {

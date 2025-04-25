@@ -37,7 +37,6 @@ function initApp() {
 }
 
 // Set up event listeners for interactive elements
-// Set up event listeners for interactive elements
 function setupEventListeners() {
     // Set up job form save button
     const jobForm = document.getElementById('job-entry-form');
@@ -88,6 +87,8 @@ function setupEventListeners() {
     if (removeJobButton) {
         removeJobButton.addEventListener('click', removeSelectedJob);
     }
+
+    initializeToggles();
 }
 
 // Load saved jobs from storage and display in the UI
@@ -514,6 +515,29 @@ function saveProfileFromForm() {
             showModal('Error', 'There was an error saving your profile. Please try again.');
         }
     }
+}
+
+function initializeToggles() {
+    const toggles = document.querySelectorAll('.toggle-header');
+    
+    toggles.forEach(toggle => {
+        toggle.addEventListener('click', function() {
+            const content = this.nextElementSibling;
+            const isActive = this.classList.contains('active');
+            
+            // Toggle this section
+            this.classList.toggle('active');
+            content.classList.toggle('active');
+            
+            // Track toggle
+            if (typeof trackEvent === 'function') {
+                trackEvent('toggle_section', { 
+                    section: this.textContent.trim(),
+                    action: isActive ? 'close' : 'open'
+                });
+            }
+        });
+    });
 }
 
 // Initialize the app when the DOM is loaded
