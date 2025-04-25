@@ -280,3 +280,232 @@ select:focus {
         flex-direction: column;
     }
 }
+
+/* Additional styles for new features */
+
+/* Job status styles */
+.job-status-container {
+    display: flex;
+    align-items: center;
+    margin: 5px 0;
+}
+
+.status-label {
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 5px;
+}
+
+.job-status-select {
+    font-size: 12px;
+    padding: 3px 5px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+.status-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-left: 5px;
+}
+
+/* Status colors for job items */
+.status-reviewing {
+    border-left: 3px solid #f39c12;
+}
+
+.status-applied {
+    border-left: 3px solid #3498db;
+}
+
+.status-interviewing {
+    border-left: 3px solid #9b59b6;
+}
+
+.status-offer {
+    border-left: 3px solid #2ecc71;
+}
+
+.status-rejected {
+    border-left: 3px solid #e74c3c;
+}
+
+.status-accepted {
+    border-left: 3px solid #27ae60;
+}
+
+.status-declined {
+    border-left: 3px solid #7f8c8d;
+}
+
+/* Full description modal */
+.full-description-modal {
+    width: 90%;
+    max-width: 700px;
+}
+
+.full-description-content {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    margin: 10px 0;
+    line-height: 1.6;
+}
+
+/* Button styles */
+.primary-button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.primary-button:hover {
+    background-color: #2980b9;
+}
+
+.secondary-button {
+    background-color: #95a5a6;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.secondary-button:hover {
+    background-color: #7f8c8d;
+}
+
+.danger-button {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.danger-button:hover {
+    background-color: #c0392b;
+}
+
+.default-button {
+    background-color: #f1f1f1;
+    color: #333;
+    border: 1px solid #ddd;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.default-button:hover {
+    background-color: #e0e0e0;
+}
+
+/* Loading indicator */
+.loading-jobs {
+    text-align: center;
+    color: #95a5a6;
+    padding: 20px;
+}
+
+/* Toggle sections */
+.hiring-phrases-toggle,
+.job-boards-toggle,
+.doc-sites-toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: #3498db;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.hiring-phrases-toggle span,
+.job-boards-toggle span,
+.doc-sites-toggle span {
+    margin-left: 5px;
+}
+
+.hiring-phrases-options,
+.job-boards-options,
+.doc-sites-options {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.options-tip {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin-bottom: 8px;
+    font-style: italic;
+}
+
+/* Job entry section and job list section */
+.job-entry-section,
+.saved-jobs-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.job-entry-section h3,
+.saved-jobs-section h3 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+/* CV JSON section */
+.json-input-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.json-input-section h3 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+/* Refresh section */
+.refresh-section {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+}
+
+.refresh-button {
+    font-size: 0.9rem;
+    padding: 5px 10px;
+    background-color: #f1f1f1;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.refresh-button span {
+    margin-left: 5px;
+}
+
+.refresh-button:hover {
+    background-color: #e0e0e0;
+}
