@@ -287,18 +287,18 @@
     <script>
         // Track that user accessed the web app
         document.addEventListener('DOMContentLoaded', function() {
-          if (typeof trackEvent === 'function') {
+        if (typeof trackEvent === 'function') {
             trackEvent('web_app_access', {
-              referrer: document.referrer
+            referrer: document.referrer
             });
-          } else {
+        } else {
             console.error('trackEvent function not available. Check analytics.js implementation.');
-          }
+        }
         });
     </script>
     <script src="js/storage.js"></script>
-    <script src="js/unified-tracking.js"></script>
     <script src="js/tracking.js"></script>
+    <script src="js/unified-tracking.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/search.js"></script>
     <script src="js/prompts.js"></script>

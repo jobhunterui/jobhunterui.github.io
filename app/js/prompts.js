@@ -252,7 +252,6 @@ function extractDataFromClaudeResponse(jsonData) {
         });
         
     } catch (error) {
-        console.error("Error extracting data from Claude response:", error);
     }
 }
 

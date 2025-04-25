@@ -131,21 +131,6 @@ function setupEventListeners() {
     }
 
     initializeToggles();
-    
-    // Set up tab tracking
-    setupTabTracking();
-}
-
-// Set up tracking for tab switching
-function setupTabTracking() {
-    const tabButtons = document.querySelectorAll('.tab-button');
-    
-    tabButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const tabId = this.getAttribute('data-tab');
-            trackEvent('tab_switch', { tab_name: tabId });
-        });
-    });
 }
 
 // Load saved jobs from storage and display in the UI

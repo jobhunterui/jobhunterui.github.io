@@ -230,7 +230,7 @@ function storeLastSearch(platform, role, location, experience, selectedSites = [
             trackingData.selected_sites = selectedSites.join(',');
         }
         
-        trackEvent('search', trackingData);
+        trackEvent('job_search', trackingData);
     }
 }
 

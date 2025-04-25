@@ -15,7 +15,6 @@ function getStorageData(key, defaultValue = null) {
         const data = localStorage.getItem(key);
         return data ? JSON.parse(data) : defaultValue;
     } catch (error) {
-        console.error(`Error retrieving data for key ${key}:`, error);
         return defaultValue;
     }
 }
@@ -25,9 +24,7 @@ function setStorageData(key, data) {
     try {
         localStorage.setItem(key, JSON.stringify(data));
         return true;
-    } catch (error) {
-        console.error(`Error saving data for key ${key}:`, error);
-        
+    } catch (error) {        
         // Check if it's a quota error
         if (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
             alert('Storage limit reached. Please export your data to avoid loss.');
@@ -168,7 +165,6 @@ function importData(jsonData) {
             summary: summary
         };
     } catch (error) {
-        console.error('Error importing data:', error);
         return {
             success: false,
             error: error.message

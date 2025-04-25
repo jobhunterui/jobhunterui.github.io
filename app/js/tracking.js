@@ -33,8 +33,6 @@ let lastQueuePersistence = 0;      // Last time queue was persisted to storage
 function initializeDataCollection() {
     if (queueInitialized) return;
     
-    console.log("Initializing data collection system...");
-    
     // Load queue from storage
     dataQueue = getStorageData(DATA_COLLECTION.storage.queueKey, []);
     activeRequests = getStorageData(DATA_COLLECTION.storage.activeRequestsKey, 0);
@@ -51,8 +49,6 @@ function initializeDataCollection() {
     // Mark as initialized
     queueInitialized = true;
     lastQueuePersistence = Date.now();
-    
-    console.log("Data collection system initialized");
     
     // Set up unload handler to persist queue
     window.addEventListener('beforeunload', persistQueue);
@@ -158,7 +154,6 @@ function sendDataRequest(queueItem, queueIndex) {
     })
     .then(() => {
         // Request completed successfully
-        console.log(`Request completed successfully: ${queueItem.id}`);
         
         // Remove from queue
         dataQueue.splice(queueIndex, 1);
