@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Hunter - Web App</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/app.css">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <img src="../images/logo.png" alt="Job Hunter Logo">
+                <h1>Job Hunter</h1>
+            </div>
+            <div class="extension-promo">
+                <a href="https://addons.mozilla.org/en-US/firefox/addon/job-hunter-assistant/" target="_blank" class="install-button">Install Extension</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="app-container">
+        <div class="tabs">
+            <button class="tab-button active" data-tab="find">Find Jobs</button>
+            <button class="tab-button" data-tab="apply">Apply</button>
+            <button class="tab-button" data-tab="profile">Profile</button>
+        </div>
+        
+        <!-- Find Jobs Tab -->
+        <div id="find" class="tab-content active">
+            <h2>Find Jobs</h2>
+            <form id="job-search-form">
+                <!-- Search form will go here -->
+            </form>
+        </div>
+        
+        <!-- Apply Tab -->
+        <div id="apply" class="tab-content">
+            <h2>Saved Job Postings</h2>
+            <div class="info-text">Copy job details from any job posting and paste them here to save.</div>
+            
+            <!-- Manual job entry form will go here -->
+            
+            <div id="saved-jobs-list">
+                <!-- Jobs will be listed here dynamically -->
+                <div class="empty-state">No saved jobs yet.</div>
+            </div>
+            
+            <div id="job-actions" class="hidden">
+                <!-- Job action buttons will go here -->
+            </div>
+        </div>
+        
+        <!-- Profile Tab -->
+        <div id="profile" class="tab-content">
+            <h2>Your Profile</h2>
+            
+            <!-- Profile content will go here -->
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <img src="../images/logo-small.png" alt="Job Hunter Logo">
+                <span>Job Hunter</span>
+            </div>
+            <div class="footer-links">
+                <!-- Footer links -->
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; <span id="current-year"></span> Job Hunter. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="../js/analytics.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/tracking.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
