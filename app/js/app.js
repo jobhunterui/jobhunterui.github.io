@@ -20,12 +20,10 @@ function initApp() {
     showExtensionPromo('job-save');
     
     // Track page view
-    if (typeof trackEvent === 'function') {
-        trackEvent('page_view', { 
-            page_title: document.title,
-            page_location: window.location.href
-        });
-    }
+    trackEvent('web_app_page_view', { 
+        page_title: document.title,
+        page_location: window.location.href
+    });
     
     console.log('Job Hunter Web App initialized');
 }
@@ -46,6 +44,11 @@ function setupEventListeners() {
     if (saveProfileButton) {
         saveProfileButton.addEventListener('click', function() {
             saveProfileFromForm();
+            
+            // Track profile save
+            trackEvent('profile_saved', { 
+                action: 'save_profile'
+            });
         });
     }
     
@@ -59,6 +62,9 @@ function setupEventListeners() {
                 savedJobsList.innerHTML = '<div class="loading-jobs">Loading saved jobs...</div>';
             }
             
+            // Track refresh jobs
+            trackEvent('refresh_jobs');
+            
             // Add a small delay to show the loading message
             setTimeout(() => {
                 loadSavedJobs();
@@ -69,20 +75,77 @@ function setupEventListeners() {
     // Set up job action buttons
     const generateApplicationButton = document.getElementById('generate-application');
     if (generateApplicationButton) {
-        generateApplicationButton.addEventListener('click', generateApplication);
+        generateApplicationButton.addEventListener('click', function() {
+            // Track before generating application
+            const selectedJob = document.querySelector('.job-item.selected');
+            if (selectedJob) {
+                const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
+                const savedJobs = getSavedJobs();
+                if (savedJobs[jobIndex]) {
+                    trackEvent('generate_application_click', {
+                        job_title: savedJobs[jobIndex].title || 'Unknown',
+                        company: savedJobs[jobIndex].company || 'Unknown'
+                    });
+                } else {
+                    trackEvent('generate_application_click');
+                }
+            } else {
+                trackEvent('generate_application_click');
+            }
+            
+            generateApplication();
+        });
     }
     
     const interviewPrepButton = document.getElementById('interview-prep');
     if (interviewPrepButton) {
-        interviewPrepButton.addEventListener('click', generateInterviewPrep);
+        interviewPrepButton.addEventListener('click', function() {
+            // Track before generating interview prep
+            const selectedJob = document.querySelector('.job-item.selected');
+            if (selectedJob) {
+                const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
+                const savedJobs = getSavedJobs();
+                if (savedJobs[jobIndex]) {
+                    trackEvent('interview_prep_click', {
+                        job_title: savedJobs[jobIndex].title || 'Unknown',
+                        company: savedJobs[jobIndex].company || 'Unknown'
+                    });
+                } else {
+                    trackEvent('interview_prep_click');
+                }
+            } else {
+                trackEvent('interview_prep_click');
+            }
+            
+            generateInterviewPrep();
+        });
     }
     
     const removeJobButton = document.getElementById('remove-job');
     if (removeJobButton) {
-        removeJobButton.addEventListener('click', removeSelectedJob);
+        removeJobButton.addEventListener('click', function() {
+            // Track job removal click
+            trackEvent('remove_job_click');
+            removeSelectedJob();
+        });
     }
 
     initializeToggles();
+    
+    // Set up tab tracking
+    setupTabTracking();
+}
+
+// Set up tracking for tab switching
+function setupTabTracking() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const tabId = this.getAttribute('data-tab');
+            trackEvent('tab_switch', { tab_name: tabId });
+        });
+    });
 }
 
 // Load saved jobs from storage and display in the UI
@@ -461,19 +524,20 @@ function saveJobFromForm() {
         // Show success message
         showModal('Job Saved', 'The job has been saved successfully.');
         
-        // Track job save
-        if (typeof trackEvent === 'function') {
-            trackEvent('job_saved', {
-                job_title: jobData.title,
-                company: jobData.company,
-                location: jobData.location,
-                url: jobData.url,
-                source: 'web_app',
-                description_snippet: jobData.description.substring(0, 200) + (jobData.description.length > 200 ? '...' : '')
-            });
-        }
+        // Track job save with comprehensive data
+        trackEvent('job_saved', {
+            job_title: jobData.title,
+            company: jobData.company,
+            location: jobData.location,
+            has_url: !!jobData.url,
+            url_domain: jobData.url ? new URL(jobData.url).hostname : 'none',
+            source: 'web_app_manual',
+            description_length: jobData.description.length,
+            status: jobData.status
+        });
     } else {
         showModal('Error', 'There was an error saving the job. Please try again.');
+        trackEvent('job_save_error');
     }
 }
 

@@ -18,7 +18,7 @@ function getOrCreateUserId() {
 }
 
 // Main function to track events
-function trackEvent(eventName, eventParams = {}) {
+function trackGAEvent(eventName, eventParams = {}) {
     try {
         // Add user ID to parameters
         const userId = getOrCreateUserId();
@@ -43,7 +43,7 @@ function trackEvent(eventName, eventParams = {}) {
 
 // Track extension install clicks with source information
 function trackExtensionInstall(source) {
-    trackEvent('extension_install_click', { source: source });
+    trackGAEvent('extension_install_click', { source: source });
 }
 
 // Add tracking to all extension install buttons on page load
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Track Twitter links
     document.querySelectorAll('a[href*="twitter.com"]').forEach(link => {
         link.addEventListener('click', function() {
-            trackEvent('twitter_link_click', {
+            trackGAEvent('twitter_link_click', {
                 link_text: this.textContent.trim()
             });
         });
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
 let pageVisitStartTime = Date.now();
 window.addEventListener('beforeunload', function() {
     const timeSpentSeconds = Math.round((Date.now() - pageVisitStartTime) / 1000);
-    trackEvent('time_on_site', { 
+    trackGAEvent('time_on_site', { 
         seconds: timeSpentSeconds,
         minutes: Math.floor(timeSpentSeconds / 60)
     });
@@ -105,7 +105,7 @@ window.addEventListener('scroll', function() {
     
     breakpoints.forEach(breakpoint => {
         if (scrollPercentage >= breakpoint && maxScrollPercentage < breakpoint) {
-            trackEvent('scroll_depth', { percentage: breakpoint });
+            trackGAEvent('scroll_depth', { percentage: breakpoint });
             maxScrollPercentage = breakpoint;
         }
     });
@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
             !link.getAttribute('href').includes('twitter.com')) { // Skip twitter links (tracked separately)
             
             link.addEventListener('click', function(e) {
-                trackEvent('external_link_click', {
+                trackGAEvent('external_link_click', {
                     destination: this.href,
                     link_text: this.textContent.trim()
                 });
@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    trackEvent('pricing_comparison_view');
+                    trackGAEvent('pricing_comparison_view');
                     observer.unobserve(entry.target); // Track only once
                 }
             });
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (entry.isIntersecting) {
                     const card = entry.target;
                     const featureName = card.querySelector('h3').textContent;
-                    trackEvent('feature_card_view', { feature: featureName });
+                    trackGAEvent('feature_card_view', { feature: featureName });
                     observer.unobserve(card); // Track only once per card
                 }
             });

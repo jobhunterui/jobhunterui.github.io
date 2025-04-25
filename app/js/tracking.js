@@ -192,7 +192,7 @@ function sendDataRequest(queueItem, queueIndex) {
 }
 
 // Main function to track events - use this for all data tracking
-function trackEvent(eventType, eventData = {}) {
+function trackAppEvent(eventType, eventData = {}) {
     const userId = getOrCreateUserId();
     
     // Create data object with common fields

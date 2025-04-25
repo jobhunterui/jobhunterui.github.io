@@ -14,6 +14,10 @@ function setupTabs() {
     
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
+            // Get the current active tab
+            const currentActiveTab = document.querySelector('.tab-button.active');
+            const currentTabId = currentActiveTab ? currentActiveTab.getAttribute('data-tab') : null;
+            
             // Remove active class from all buttons and contents
             tabButtons.forEach(btn => btn.classList.remove('active'));
             tabContents.forEach(content => content.classList.remove('active'));
@@ -23,10 +27,12 @@ function setupTabs() {
             const tabId = button.getAttribute('data-tab');
             document.getElementById(tabId).classList.add('active');
             
-            // Track tab view
-            if (typeof trackEvent === 'function') {
-                trackEvent('view_tab', { tab_name: tabId });
-            }
+            // Track tab view - with enhanced parameters
+            trackEvent('tab_switch', { 
+                tab_name: tabId,
+                previous_tab: currentTabId,
+                is_first_switch: !currentTabId
+            });
         });
     });
 }

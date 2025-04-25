@@ -7,6 +7,18 @@
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/app.css">
     <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TH7Y2W8GC4"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-TH7Y2W8GC4', {
+        'page_title': 'Job Hunter Web App',
+        'page_location': window.location.href
+    });
+    </script>
+    <script src="../js/analytics.js"></script>
 </head>
 <body>
     <header>
@@ -272,8 +284,20 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="../js/analytics.js"></script>
+    <script>
+        // Track that user accessed the web app
+        document.addEventListener('DOMContentLoaded', function() {
+          if (typeof trackEvent === 'function') {
+            trackEvent('web_app_access', {
+              referrer: document.referrer
+            });
+          } else {
+            console.error('trackEvent function not available. Check analytics.js implementation.');
+          }
+        });
+    </script>
     <script src="js/storage.js"></script>
+    <script src="js/unified-tracking.js"></script>
     <script src="js/tracking.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/search.js"></script>
