@@ -38,56 +38,52 @@ function setupSearchButtons() {
 
 // Set up toggle sections
 function setupToggleSections() {
-    // Hiring phrases toggle
-    const hiringPhrasesToggle = document.getElementById('show-hiring-phrases');
-    const hiringPhrasesOptions = document.getElementById('hiring-phrases-options');
+    // Get all toggle headers
+    const toggleHeaders = document.querySelectorAll('.toggle-header');
     
-    if (hiringPhrasesToggle && hiringPhrasesOptions) {
-        hiringPhrasesToggle.addEventListener('click', () => {
-            hiringPhrasesOptions.classList.toggle('active');
-            hiringPhrasesToggle.classList.toggle('active');
+    // Add click event to each toggle header
+    toggleHeaders.forEach(header => {
+        header.addEventListener('click', function() {
+            // Get the content section (next sibling after the header)
+            const content = this.nextElementSibling;
             
-            // Update toggle icon
-            const toggleIcon = hiringPhrasesToggle.querySelector('.toggle-icon');
+            // Toggle active class on header and content
+            this.classList.toggle('active');
+            content.classList.toggle('active');
+            
+            // Update the toggle icon
+            const toggleIcon = this.querySelector('.toggle-icon');
             if (toggleIcon) {
-                toggleIcon.textContent = hiringPhrasesToggle.classList.contains('active') ? '▼' : '▶';
+                // Change icon based on active state
+                if (this.classList.contains('active')) {
+                    toggleIcon.textContent = '▼';
+                } else {
+                    toggleIcon.textContent = '▶';
+                }
+            }
+            
+            // Track toggle action if tracking is available
+            if (typeof trackEvent === 'function') {
+                trackEvent('toggle_section', {
+                    section: this.textContent.trim(),
+                    action: this.classList.contains('active') ? 'open' : 'close'
+                });
             }
         });
-    }
+    });
     
-    // Job boards toggle
-    const jobBoardsToggle = document.getElementById('show-job-boards');
-    const jobBoardsOptions = document.getElementById('job-boards-options');
-    
-    if (jobBoardsToggle && jobBoardsOptions) {
-        jobBoardsToggle.addEventListener('click', () => {
-            jobBoardsOptions.classList.toggle('active');
-            jobBoardsToggle.classList.toggle('active');
-            
-            // Update toggle icon
-            const toggleIcon = jobBoardsToggle.querySelector('.toggle-icon');
-            if (toggleIcon) {
-                toggleIcon.textContent = jobBoardsToggle.classList.contains('active') ? '▼' : '▶';
-            }
-        });
-    }
-    
-    // Doc sites toggle
-    const docSitesToggle = document.getElementById('show-doc-sites');
-    const docSitesOptions = document.getElementById('doc-sites-options');
-    
-    if (docSitesToggle && docSitesOptions) {
-        docSitesToggle.addEventListener('click', () => {
-            docSitesOptions.classList.toggle('active');
-            docSitesToggle.classList.toggle('active');
-            
-            // Update toggle icon
-            const toggleIcon = docSitesToggle.querySelector('.toggle-icon');
-            if (toggleIcon) {
-                toggleIcon.textContent = docSitesToggle.classList.contains('active') ? '▼' : '▶';
-            }
-        });
-    }
+    // Initialize toggle sections as closed
+    toggleHeaders.forEach(header => {
+        const content = header.nextElementSibling;
+        header.classList.remove('active');
+        content.classList.remove('active');
+        
+        // Set initial icon state
+        const toggleIcon = header.querySelector('.toggle-icon');
+        if (toggleIcon) {
+            toggleIcon.textContent = '▶';
+        }
+    });
 }
 
 // Set up hiring phrases customization
