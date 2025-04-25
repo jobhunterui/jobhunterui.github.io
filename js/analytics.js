@@ -31,9 +31,6 @@ function trackGAEvent(eventName, eventParams = {}) {
         // Log the event to Google Analytics
         gtag('event', eventName, enhancedParams);
         
-        // Also log to console during development
-        console.log(`Event tracked: ${eventName}`, enhancedParams);
-        
         return true;
     } catch (error) {
         console.error("Error tracking event:", error);

@@ -54,11 +54,11 @@ function setupToggleSections() {
             // Update the toggle icon
             const toggleIcon = this.querySelector('.toggle-icon');
             if (toggleIcon) {
-                // Change icon based on active state
+                // Change icon from right-pointing to down-pointing when active
                 if (this.classList.contains('active')) {
-                    toggleIcon.textContent = '▼';
+                    toggleIcon.textContent = '▼'; // Down arrow
                 } else {
-                    toggleIcon.textContent = '▶';
+                    toggleIcon.textContent = '▶'; // Right arrow
                 }
             }
             
