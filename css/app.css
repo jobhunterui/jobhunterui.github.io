@@ -818,7 +818,7 @@ select:focus {
 }
 
 .toggle-header.active .toggle-icon {
-    transform: rotate(25deg);
+    transform: rotate(90deg);
 }
 
 .toggle-content {
