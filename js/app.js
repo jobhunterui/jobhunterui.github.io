@@ -22,20 +22,50 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Hiring phrases toggle functionality
+    // Modified for new structure - if the URL has a hash, activate that tab
+    if (window.location.hash) {
+        const tabId = window.location.hash.substring(1);
+        const tabButton = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+        if (tabButton) {
+            tabButton.click();
+        }
+    }
+    
+    // Hiring phrases toggle functionality - kept for backwards compatibility
     const hiringPhrasesToggle = document.getElementById('show-hiring-phrases');
-    const hiringPhrasesOptions = document.getElementById('hiring-phrases-options');
+    if (hiringPhrasesToggle) {
+        const hiringPhrasesOptions = document.getElementById('hiring-phrases-options');
+        
+        hiringPhrasesToggle.addEventListener('click', function() {
+            hiringPhrasesOptions.classList.toggle('hidden');
+            hiringPhrasesToggle.classList.toggle('active');
+        });
+    }
     
-    hiringPhrasesToggle.addEventListener('click', function() {
-        hiringPhrasesOptions.classList.toggle('hidden');
-        hiringPhrasesToggle.classList.toggle('active');
-    });
-    
-    // Custom phrase adding functionality
+    // Custom phrase adding functionality - kept for backwards compatibility
     const addCustomPhraseButton = document.getElementById('add-custom-phrase');
-    const customPhraseInput = document.getElementById('custom-phrase');
+    if (addCustomPhraseButton) {
+        const customPhraseInput = document.getElementById('custom-phrase');
+        
+        addCustomPhraseButton.addEventListener('click', function() {
+            addCustomPhrase();
+        });
+        
+        // Handle "Enter" key in custom phrase input
+        if (customPhraseInput) {
+            customPhraseInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addCustomPhrase();
+                }
+            });
+        }
+    }
     
-    addCustomPhraseButton.addEventListener('click', function() {
+    function addCustomPhrase() {
+        const customPhraseInput = document.getElementById('custom-phrase');
+        if (!customPhraseInput) return;
+        
         const phrase = customPhraseInput.value.trim();
         
         if (phrase) {
@@ -52,7 +82,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Insert before the custom phrase input
             const customPhraseDiv = document.querySelector('.custom-phrase');
-            customPhraseDiv.parentNode.insertBefore(phraseOption, customPhraseDiv);
+            if (customPhraseDiv) {
+                customPhraseDiv.parentNode.insertBefore(phraseOption, customPhraseDiv);
+            }
             
             // Clear input
             customPhraseInput.value = '';
@@ -60,15 +92,29 @@ document.addEventListener('DOMContentLoaded', function() {
             // Track the custom phrase addition
             trackEvent('add_custom_phrase', { phrase: phrase });
         }
-    });
+    }
     
-    // Handle "Enter" key in custom phrase input
-    customPhraseInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            addCustomPhraseButton.click();
-        }
-    });
+    // Job boards toggle functionality - kept for backwards compatibility
+    const jobBoardsToggle = document.getElementById('show-job-boards');
+    if (jobBoardsToggle) {
+        const jobBoardsOptions = document.getElementById('job-boards-options');
+        
+        jobBoardsToggle.addEventListener('click', function() {
+            jobBoardsOptions.classList.toggle('hidden');
+            jobBoardsToggle.classList.toggle('active');
+        });
+    }
+    
+    // Document sites toggle functionality - kept for backwards compatibility
+    const docSitesToggle = document.getElementById('show-doc-sites');
+    if (docSitesToggle) {
+        const docSitesOptions = document.getElementById('doc-sites-options');
+        
+        docSitesToggle.addEventListener('click', function() {
+            docSitesOptions.classList.toggle('hidden');
+            docSitesToggle.classList.toggle('active');
+        });
+    }
     
     // Extension Required Modal
     const modal = document.getElementById('extension-required-modal');
@@ -80,8 +126,13 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.style.display = 'none';
     }
     
-    closeModal.addEventListener('click', hideModal);
-    cancelModal.addEventListener('click', hideModal);
+    if (closeModal) {
+        closeModal.addEventListener('click', hideModal);
+    }
+    
+    if (cancelModal) {
+        cancelModal.addEventListener('click', hideModal);
+    }
     
     // Close when clicking outside of the modal content
     window.addEventListener('click', function(event) {
@@ -100,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (targetElement) {
                 // If clicking on a tab link, activate that tab
-                if (targetId === 'find' || targetId === 'about' || targetId === 'install') {
+                if (['features', 'about', 'webapp', 'extension'].includes(targetId)) {
                     const tabButton = document.querySelector(`.tab-button[data-tab="${targetId}"]`);
                     if (tabButton) {
                         tabButton.click();
@@ -112,9 +163,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     behavior: 'smooth'
                 });
                 
+                // Update URL with hash for better bookmarking
+                history.pushState(null, null, `#${targetId}`);
+                
                 // Track the navigation
                 trackEvent('internal_navigation', { destination: targetId });
             }
+        });
+    });
+    
+    // Web App launch buttons
+    document.querySelectorAll('a[href="/app"]').forEach(button => {
+        button.addEventListener('click', function(e) {
+            // Track web app launch
+            trackEvent('web_app_launch', { source: this.className });
+        });
+    });
+    
+    // Extension install buttons
+    document.querySelectorAll('a[href*="addons.mozilla.org"]').forEach(button => {
+        button.addEventListener('click', function(e) {
+            // Track extension install attempt
+            trackEvent('extension_install_attempt', { source: this.className });
         });
     });
     
@@ -125,9 +195,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Simple local storage for custom phrases
+// Simple local storage for custom phrases - kept for backwards compatibility
 function saveHiringPhrases() {
-    const customPhrases = Array.from(document.querySelectorAll('input[name="hiring-phrase"]'))
+    const phraseInputs = document.querySelectorAll('input[name="hiring-phrase"]');
+    if (phraseInputs.length === 0) return;
+    
+    const customPhrases = Array.from(phraseInputs)
         .filter(input => !['we are hiring', 'join our team', 'job opening', 'open position', 
                           'now hiring', 'looking for', 'immediate opening', 'career opportunities',
                           'remote opportunity'].includes(input.value))
@@ -136,14 +209,16 @@ function saveHiringPhrases() {
     localStorage.setItem('hiringPhrases', JSON.stringify(customPhrases));
 }
 
-// Load hiring phrases from local storage
+// Load hiring phrases from local storage - kept for backwards compatibility
 function loadHiringPhrases() {
+    const customPhraseDiv = document.querySelector('.custom-phrase');
+    if (!customPhraseDiv) return;
+    
     const storedPhrases = localStorage.getItem('hiringPhrases');
     
     if (storedPhrases) {
         try {
             const customPhrases = JSON.parse(storedPhrases);
-            const customPhraseDiv = document.querySelector('.custom-phrase');
             
             customPhrases.forEach(phrase => {
                 // Check if this phrase already exists
@@ -170,14 +245,25 @@ function loadHiringPhrases() {
     }
 }
 
-// Call the load function when the page is loaded
-window.addEventListener('load', loadHiringPhrases);
+// Call the load function when the page is loaded - kept for backwards compatibility
+window.addEventListener('load', function() {
+    if (document.querySelector('.custom-phrase')) {
+        loadHiringPhrases();
+    }
+});
 
-// Save phrases when they're modified or when the page is unloaded
-window.addEventListener('beforeunload', saveHiringPhrases);
+// Save phrases when they're modified or when the page is unloaded - kept for backwards compatibility
+window.addEventListener('beforeunload', function() {
+    if (document.querySelectorAll('input[name="hiring-phrase"]').length > 0) {
+        saveHiringPhrases();
+    }
+});
 
 // Show the extension required modal for features that need it
 function showExtensionRequiredModal() {
-    document.getElementById('extension-required-modal').style.display = 'block';
-    trackEvent('extension_required_modal_shown');
+    const modal = document.getElementById('extension-required-modal');
+    if (modal) {
+        modal.style.display = 'block';
+        trackEvent('extension_required_modal_shown');
+    }
 }
