@@ -18,12 +18,6 @@ function initApp() {
     
     // Show extension promotion in strategic locations
     showExtensionPromo('job-save');
-    showExtensionPromo('job-view');
-    
-    // Show welcome tour for first-time users
-    setTimeout(() => {
-        showWelcomeTour();
-    }, 1000);
     
     // Track page view
     if (typeof trackEvent === 'function') {
