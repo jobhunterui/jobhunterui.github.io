@@ -1344,3 +1344,60 @@ footer {
         padding: 1.5rem;
     }
 }
+
+/* Center content in tab sections */
+#about .about-content,
+#webapp .webapp-content {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+/* Keep text alignment left for lists and paragraphs */
+#about .about-content p,
+#about .about-content ul,
+#webapp .webapp-content p,
+#webapp .webapp-content ul {
+    text-align: left;
+}
+
+/* Center tables and comparison elements */
+.pricing-comparison,
+.pricing-table,
+.feature-comparison,
+.workflow-comparison {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Center images in webapp screenshots */
+.webapp-screenshots {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+/* Make sure headings are centered */
+#about h2,
+#webapp h2,
+.pricing-comparison h3,
+.workflow-comparison h3 {
+    text-align: center;
+}
+
+/* Center the extension promo in the webapp section */
+.extension-promo {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Center the download section */
+.download-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 2rem;
+}
