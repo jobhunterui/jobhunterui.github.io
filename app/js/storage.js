@@ -91,27 +91,41 @@ function getOrCreateUserId() {
     return userId;
 }
 
-// Export all data as JSON file
+// Enhanced export function with better formatting and file naming
 function exportData() {
     const exportData = {
         savedJobs: getSavedJobs(),
         profileData: getProfileData(),
         hiringPhrases: getHiringPhrases(),
-        exportDate: new Date().toISOString()
+        exportDate: new Date().toISOString(),
+        version: '1.0.0'
     };
     
     const dataStr = JSON.stringify(exportData, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
     
-    const exportFileDefaultName = 'jobhunter-data.json';
+    // Create file name with date
+    const date = new Date();
+    const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const exportFileDefaultName = `jobhunter-data-${dateStr}.json`;
     
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
     linkElement.setAttribute('download', exportFileDefaultName);
     linkElement.click();
+    
+    // Track export event
+    if (typeof trackEvent === 'function') {
+        trackEvent('export_data', {
+            jobs_count: exportData.savedJobs.length,
+            has_cv: exportData.profileData.cv ? 'yes' : 'no'
+        });
+    }
+    
+    return true;
 }
 
-// Import data from JSON file
+// Enhanced import with validation and better feedback
 function importData(jsonData) {
     try {
         const data = JSON.parse(jsonData);
@@ -120,6 +134,13 @@ function importData(jsonData) {
         if (!data.savedJobs || !Array.isArray(data.savedJobs)) {
             throw new Error('Invalid data format: savedJobs is missing or not an array');
         }
+        
+        // Summary of what will be imported
+        const summary = {
+            jobCount: data.savedJobs.length,
+            hasCV: !!(data.profileData && data.profileData.cv),
+            hasCustomPhrases: !!(data.hiringPhrases && data.hiringPhrases.length > 0)
+        };
         
         // Import saved jobs
         setStorageData(STORAGE_KEYS.SAVED_JOBS, data.savedJobs);
@@ -134,10 +155,23 @@ function importData(jsonData) {
             setStorageData(STORAGE_KEYS.HIRING_PHRASES, data.hiringPhrases);
         }
         
-        return true;
+        // Track import event
+        if (typeof trackEvent === 'function') {
+            trackEvent('import_data', {
+                jobs_count: summary.jobCount,
+                has_cv: summary.hasCV ? 'yes' : 'no'
+            });
+        }
+        
+        return {
+            success: true,
+            summary: summary
+        };
     } catch (error) {
         console.error('Error importing data:', error);
-        alert('Error importing data: ' + error.message);
-        return false;
+        return {
+            success: false,
+            error: error.message
+        };
     }
 }

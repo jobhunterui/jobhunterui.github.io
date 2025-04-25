@@ -13,6 +13,18 @@ function initApp() {
     // Set up event listeners
     setupEventListeners();
     
+    // Check storage usage
+    checkStorageUsage();
+    
+    // Show extension promotion in strategic locations
+    showExtensionPromo('job-save');
+    showExtensionPromo('job-view');
+    
+    // Show welcome tour for first-time users
+    setTimeout(() => {
+        showWelcomeTour();
+    }, 1000);
+    
     // Track page view
     if (typeof trackEvent === 'function') {
         trackEvent('page_view', { 
