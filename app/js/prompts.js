@@ -1,5 +1,168 @@
 // AI Prompt Generation for the Job Hunter Web App
 
+// Add a one-click CV generation function using Gemini API
+async function generateCVWithGemini() {
+    const selectedJob = document.querySelector('.job-item.selected');
+    
+    if (!selectedJob) {
+        showModal('No Job Selected', 'Please select a job from your saved jobs first.');
+        return;
+    }
+    
+    const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
+    const savedJobs = getSavedJobs();
+    const job = savedJobs[jobIndex];
+    
+    const profileData = getProfileData();
+    const cv = profileData.cv || '';
+    
+    if (!cv.trim()) {
+        showModal('CV Missing', 'Please add your CV in the Profile tab first.', [
+            {
+                id: 'go-to-profile',
+                text: 'Go to Profile',
+                action: () => {
+                    document.querySelector('[data-tab="profile"]').click();
+                }
+            }
+        ]);
+        return;
+    }
+    
+    // Save the last generated job for later matching
+    setStorageData('lastGeneratedJob', job);
+    
+    // Show loading state
+    const loadingModal = showModal('Generating CV', 'Please wait while we generate your tailored CV...', []);
+    document.querySelector('.modal-content').innerHTML += '<div class="loading-spinner"></div>';
+    
+    try {
+        // Call the API
+        const result = await generateCV(job.description, cv);
+        
+        // Close loading modal
+        if (loadingModal) {
+            closeModal(loadingModal);
+        }
+        
+        // Extract data for tracking from the response
+        if (typeof trackEvent === 'function') {
+            extractDataFromGeminiResponse(result.cv_data, job, cv);
+        }
+        
+        // Show the CV
+        const htmlContent = generateCVHtml(result.cv_data);
+        
+        // Create a Blob and open it in a new tab
+        const blob = new Blob([htmlContent], {type: 'text/html'});
+        const blobUrl = URL.createObjectURL(blob);
+        
+        window.open(blobUrl, '_blank');
+        
+        // Show quota information
+        showModal('CV Generated', `Your CV has been generated! You have ${result.quota.remaining} generations remaining today.`);
+        
+    } catch (error) {
+        // Close loading modal
+        if (loadingModal) {
+            closeModal(loadingModal);
+        }
+        
+        // Show error message
+        showModal('Error', `Failed to generate CV: ${error.message}`, [
+            {
+                id: 'try-claude',
+                text: 'Try Claude Instead',
+                action: generateApplication
+            },
+            {
+                id: 'close-error',
+                text: 'Close'
+            }
+        ]);
+    }
+}
+
+// Track data from Gemini response
+function extractDataFromGeminiResponse(cvData, job, cv) {
+    try {
+        // Extract skills from Gemini's response
+        const cvSkills = [];
+        if (cvData.skills && Array.isArray(cvData.skills)) {
+            // Extract all skills that Gemini identified
+            cvData.skills.forEach(skillSet => {
+                const skills = skillSet.split(':');
+                if (skills.length > 1) {
+                    // Get the skills after the category
+                    const skillList = skills[1].split(',').map(s => s.trim());
+                    cvSkills.push(...skillList);
+                } else {
+                    cvSkills.push(skillSet);
+                }
+            });
+        }
+        
+        // Track the enriched data
+        trackEvent('gemini_cv_job_match', {
+            job_title: job.title || '',
+            company: job.company || '',
+            job_location: job.location || '',
+            cv_skills: Array.isArray(cvSkills) ? cvSkills.join(', ') : '',
+            matched_job_title: cvData.jobTitle || '',
+            tailored_summary: cvData.summary || '',
+            education: Array.isArray(cvData.education) ?
+                cvData.education.map(e => `${e.degree}: ${e.institution}`).join('; ') : '',
+            highlighted_experience: Array.isArray(cvData.experience) ?
+                cvData.experience.map(e => e.jobTitle).join('; ') : '',
+            overall_match: cvData.skillGapAnalysis?.overallMatch || ''
+        });
+        
+    } catch (error) {
+        console.error('Error tracking Gemini CV data:', error);
+    }
+}
+
+// Add a one-click CV generation button to the UI
+document.addEventListener('DOMContentLoaded', function() {
+    // Add the one-click CV button to job actions
+    const jobActions = document.getElementById('job-actions');
+    if (jobActions) {
+        // Check if the button already exists
+        if (!document.getElementById('generate-cv-gemini')) {
+            // Create Gemini button
+            const geminiButton = document.createElement('button');
+            geminiButton.id = 'generate-cv-gemini';
+            geminiButton.className = 'primary-button gemini-button';
+            geminiButton.textContent = 'Generate CV (One-Click)';
+            geminiButton.addEventListener('click', generateCVWithGemini);
+            
+            // Insert it as the first button
+            jobActions.insertBefore(geminiButton, jobActions.firstChild);
+            
+            // Add a separator
+            const separator = document.createElement('div');
+            separator.className = 'button-separator';
+            jobActions.insertBefore(separator, jobActions.children[1]);
+        }
+    }
+    
+    // Check API status
+    checkApiStatus().then(status => {
+        const geminiButton = document.getElementById('generate-cv-gemini');
+        if (geminiButton) {
+            if (!status.available) {
+                geminiButton.textContent = 'One-Click CV (Unavailable)';
+                geminiButton.disabled = true;
+                geminiButton.title = 'CV generation API is currently unavailable';
+            } else {
+                geminiButton.title = 'Generate a tailored CV instantly with Gemini AI';
+            }
+        }
+    }).catch(error => {
+        console.error('Error checking API status:', error);
+    });
+});
+
 // Generate application with Claude
 function generateApplication() {
     const selectedJob = document.querySelector('.job-item.selected');
