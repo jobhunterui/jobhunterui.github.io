@@ -4,7 +4,7 @@
  * Configuration for the CV Generator API
  */
 const CV_API_CONFIG = {
-    baseUrl: 'https://your-render-api-url.onrender.com', // Will update after deployment
+    baseUrl: 'https://jobhunter-api-3gbd.onrender.com',
     apiPath: '/api/v1/cv/generate',
     timeout: 45000, // 45 seconds timeout for API calls
 };
