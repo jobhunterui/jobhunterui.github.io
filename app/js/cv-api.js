@@ -4,8 +4,7 @@
  * Configuration for the CV Generator API
  */
 const CV_API_CONFIG = {
-    baseUrl: 'https://jobhunter-api.onrender.com', // Will be updated once deployed
-    localUrl: 'http://localhost:8000',
+    baseUrl: 'https://your-render-api-url.onrender.com', // Will update after deployment
     apiPath: '/api/v1/cv/generate',
     timeout: 45000, // 45 seconds timeout for API calls
 };
@@ -24,9 +23,6 @@ async function generateCV(jobDescription, resume) {
         throw new Error('Job description and resume are required');
     }
 
-    // Determine API URL (use local in development if available)
-    let apiUrl = `${CV_API_CONFIG.baseUrl}${CV_API_CONFIG.apiPath}`;
-    
     // Create request options
     const options = {
         method: 'POST',
@@ -54,7 +50,7 @@ async function generateCV(jobDescription, resume) {
         options.signal = controller.signal;
 
         // Make the API request
-        const response = await fetch(apiUrl, options);
+        const response = await fetch(`${CV_API_CONFIG.baseUrl}${CV_API_CONFIG.apiPath}`, options);
         
         // Clear timeout
         clearTimeout(timeoutId);
@@ -108,41 +104,4 @@ async function generateCV(jobDescription, resume) {
         // Re-throw error
         throw error;
     }
-}
-
-/**
- * Checks API availability and returns quota information
- * 
- * @returns {Promise<Object>} - Quota information
- */
-async function checkApiStatus() {
-    try {
-        // First try the production URL
-        const response = await fetch(`${CV_API_CONFIG.baseUrl}/health`, {
-            method: 'GET'
-        });
-        
-        if (response.ok) {
-            return { available: true, url: CV_API_CONFIG.baseUrl };
-        }
-    } catch (e) {
-        console.log('Production API not available, trying local...');
-    }
-
-    try {
-        // Try the local URL as fallback
-        const localResponse = await fetch(`${CV_API_CONFIG.localUrl}/health`, {
-            method: 'GET'
-        });
-        
-        if (localResponse.ok) {
-            // Update the base URL to use local
-            CV_API_CONFIG.baseUrl = CV_API_CONFIG.localUrl;
-            return { available: true, url: CV_API_CONFIG.localUrl };
-        }
-    } catch (e) {
-        console.log('Local API not available');
-    }
-
-    return { available: false };
 }
