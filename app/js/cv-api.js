@@ -122,6 +122,9 @@ async function generateCoverLetter(jobDescription, resume, feedback = "") {
         throw new Error('Job description and resume are required');
     }
 
+    // Ensure feedback is a string, not an object
+    const feedbackStr = typeof feedback === 'object' ? JSON.stringify(feedback) : (feedback || "");
+
     // Create request options
     const options = {
         method: 'POST',
@@ -131,7 +134,7 @@ async function generateCoverLetter(jobDescription, resume, feedback = "") {
         body: JSON.stringify({
             job_description: jobDescription,
             resume: resume,
-            feedback: feedback
+            feedback: feedbackStr
         })
     };
 
@@ -169,6 +172,7 @@ async function generateCoverLetter(jobDescription, resume, feedback = "") {
             // Parse error response if possible
             try {
                 const errorData = await response.json();
+                console.error('API Error Response:', errorData);
                 throw new Error(errorData.detail || `API error: ${response.status}`);
             } catch (e) {
                 throw new Error(`API error: ${response.status}`);
