@@ -14,17 +14,12 @@ const CareerInsights = (function() {
         handleJobSelection();
         setupLearningPlanGeneration();
         setupCumulativeLearningPlan();
-        
-        // Modified checkForCVData to handle initial load better
-        const insightsTab = document.querySelector('.tab-button[data-tab="insights"]');
-        if (insightsTab && insightsTab.classList.contains('active')) {
-            checkForCVData();
-        }
+        checkForCVData();
     }
     
     // Bind event listeners
     function bindEvents() {
-        // Tab selection event (existing functionality)
+        // Tab selection event
         document.querySelectorAll('.tab-button').forEach(tab => {
             tab.addEventListener('click', function() {
                 if (this.getAttribute('data-tab') === 'insights') {
@@ -33,7 +28,7 @@ const CareerInsights = (function() {
             });
         });
         
-        // Generate CV from insights tab (existing functionality)
+        // Generate CV from insights tab
         const insightsGenerateBtn = document.getElementById('insights-generate-cv');
         if (insightsGenerateBtn) {
             insightsGenerateBtn.addEventListener('click', function() {
@@ -53,33 +48,6 @@ const CareerInsights = (function() {
                     generateCVWithGemini();
                 }, 100);
             });
-        }
-    
-        // New: MutationObserver to detect when insights tab becomes active
-        const insightsTab = document.querySelector('.tab-button[data-tab="insights"]');
-        if (insightsTab) {
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    if (mutation.attributeName === 'class') {
-                        if (insightsTab.classList.contains('active')) {
-                            refreshInsights();
-                        }
-                    }
-                });
-            });
-            
-            observer.observe(insightsTab, { attributes: true });
-        }
-    
-        // Existing learning plan buttons functionality
-        const createLearningPlanBtn = document.getElementById('create-learning-plan');
-        if (createLearningPlanBtn) {
-            createLearningPlanBtn.addEventListener('click', generateLearningPlanPrompt);
-        }
-    
-        const createCumulativePlanBtn = document.getElementById('create-cumulative-learning-plan');
-        if (createCumulativePlanBtn) {
-            createCumulativePlanBtn.addEventListener('click', generateCumulativeLearningPlan);
         }
     }
     
@@ -430,68 +398,26 @@ const CareerInsights = (function() {
     function refreshInsights() {
         const selectedJob = document.querySelector('.job-item.selected');
         
-        // Update job selector to match the selected job (if any) - existing functionality
+        // Update job selector to match the selected job (if any)
         const jobSelector = document.getElementById('insights-job-select');
-        if (jobSelector) {
-            // If a job is selected in Apply tab, sync with insights selector
-            if (selectedJob) {
-                const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
-                jobSelector.value = jobIndex;
-            }
-            
-            // If no job selected in Apply tab but selector has a value, use that
-            else if (jobSelector.value !== '') {
-                const jobIndex = parseInt(jobSelector.value);
-                loadJobInsights(jobIndex);
-                return;
-            }
+        if (jobSelector && selectedJob) {
+            const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
+            jobSelector.value = jobIndex;
         }
         
         populateJobSelector();
         
-        // Handle job selection logic - enhanced to work independently of Apply tab
         if (selectedJob) {
             const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
             loadJobInsights(jobIndex);
         } else {
-            // No job selected in Apply tab - try to find a suitable job to display
-            const savedJobs = getSavedJobs();
-            
-            if (savedJobs.length > 0) {
-                // Check if job selector has a valid selection
-                if (jobSelector && jobSelector.value !== '') {
-                    const jobIndex = parseInt(jobSelector.value);
-                    if (!isNaN(jobIndex) && savedJobs[jobIndex]) {
-                        loadJobInsights(jobIndex);
-                        return;
-                    }
-                }
-                
-                // Try to find first job with analysis data
-                const jobWithAnalysisIndex = savedJobs.findIndex(job => job.cvAnalysis);
-                if (jobWithAnalysisIndex >= 0) {
-                    if (jobSelector) {
-                        jobSelector.value = jobWithAnalysisIndex;
-                    }
-                    loadJobInsights(jobWithAnalysisIndex);
-                } 
-                // Otherwise show first job with empty insights
-                else {
-                    if (jobSelector) {
-                        jobSelector.value = "0";
-                    }
-                    updateJobHeader(savedJobs[0]);
-                    showEmptyInsights();
-                }
-            } else {
-                showWelcomeMessage();
-            }
+            showWelcomeMessage();
         }
         
-        // Always update cumulative analysis (existing functionality)
+        // Always update cumulative analysis, even if no job is selected
         updateCumulativeSkillsAnalysis();
         
-        // Update display of cumulative section based on job data (existing functionality)
+        // Update display of cumulative section based on job data
         const cumulativeSection = document.getElementById('cumulative-section');
         const savedJobs = getSavedJobs();
         const jobsWithAnalysis = savedJobs.filter(job => job.cvAnalysis);
