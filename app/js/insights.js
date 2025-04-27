@@ -13,6 +13,7 @@ const CareerInsights = (function() {
         populateJobSelector();
         handleJobSelection();
         setupLearningPlanGeneration();
+        setupCumulativeLearningPlan();
         checkForCVData();
     }
     
@@ -660,6 +661,77 @@ function updateCumulativeSkillsAnalysis() {
             skillGapsList.innerHTML = '<li class="empty-list-message">No skill gaps identified</li>';
         }
     }
+}
+
+function setupCumulativeLearningPlan() {
+    const createCumulativePlanBtn = document.getElementById('create-cumulative-learning-plan');
+    
+    if (!createCumulativePlanBtn) return;
+    
+    createCumulativePlanBtn.addEventListener('click', function() {
+        generateCumulativeLearningPlan();
+    });
+}
+
+// Function to generate a learning plan based on all skill gaps
+function generateCumulativeLearningPlan() {
+    const savedJobs = getSavedJobs();
+    const jobsWithAnalysis = savedJobs.filter(job => job.cvAnalysis);
+    
+    if (jobsWithAnalysis.length === 0) {
+        showModal('No CV Analysis', 'Generate CVs for jobs first to create a learning plan.');
+        return;
+    }
+    
+    // Collect all skill gaps across jobs
+    const allMissingSkills = {};
+    
+    jobsWithAnalysis.forEach(job => {
+        const missingSkills = job.cvAnalysis.skillGapAnalysis?.missingSkills || [];
+        missingSkills.forEach(skill => {
+            allMissingSkills[skill] = (allMissingSkills[skill] || 0) + 1;
+        });
+    });
+    
+    // Convert to array and sort by frequency
+    const sortedSkills = Object.entries(allMissingSkills)
+        .sort((a, b) => b[1] - a[1])
+        .map(item => item[0]);
+    
+    if (sortedSkills.length === 0) {
+        showModal('No Skill Gaps', 'No skill gaps identified across your jobs. Your skills match well!');
+        return;
+    }
+    
+    // Create a well-structured prompt for an AI learning plan
+    let prompt = `Create a comprehensive career development plan focusing on these key skills: ${sortedSkills.join(', ')}. 
+
+My analysis shows these are the most important skills for my target career path based on multiple job postings.
+
+For each skill:
+1. Explain its importance in modern professional settings
+2. Suggest practical ways to develop it (courses, projects, practice methods)
+3. Recommend specific resources (books, online courses, YouTube channels, communities)
+4. Provide a learning timeline from beginner to advanced
+
+Also include:
+- How these skills complement each other
+- Ways to demonstrate these skills to potential employers
+- Suggestions for building a portfolio highlighting these abilities
+
+Focus on both theoretical understanding and practical application, with an emphasis on demonstrable results.`;
+
+    // Track this action
+    if (typeof trackEvent === 'function') {
+        trackEvent('generate_cumulative_learning_plan', {
+            skill_count: sortedSkills.length,
+            top_skills: sortedSkills.slice(0, 3).join(', ')
+        });
+    }
+    
+    // Open AI tool with the prompt
+    const encodedPrompt = encodeURIComponent(prompt);
+    window.open(`https://www.perplexity.ai/?q=${encodedPrompt}`, '_blank');
 }
 
 // Initialize the Career Insights module

@@ -188,36 +188,6 @@
         <div id="apply" class="tab-content">
             <h2>Saved Job Postings</h2>
             
-            <div class="job-entry-section">
-                <h3>Add a New Job</h3>
-                <p class="info-text">Copy job details from any job posting and paste them here.</p>
-                
-                <form id="job-entry-form">
-                    <!-- Job entry form fields -->
-                    <div class="form-group">
-                        <label for="job-title" class="form-label">Job Title:</label>
-                        <input type="text" id="job-title" class="form-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="job-company" class="form-label">Company:</label>
-                        <input type="text" id="job-company" class="form-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="job-location" class="form-label">Location:</label>
-                        <input type="text" id="job-location" class="form-input" placeholder="e.g. Remote, London, New York">
-                    </div>
-                    <div class="form-group">
-                        <label for="job-url" class="form-label">Job URL (optional):</label>
-                        <input type="url" id="job-url" class="form-input form-url-input" placeholder="e.g. https://company.com/jobs/position">
-                    </div>
-                    <div class="form-group">
-                        <label for="job-description" class="form-label">Job Description:</label>
-                        <textarea id="job-description" class="form-textarea" rows="10" required placeholder="Paste the full job description here..."></textarea>
-                    </div>
-                    <button type="submit" id="save-job-btn" class="primary-button">Save Job</button>
-                </form>
-            </div>
-            
             <div class="saved-jobs-section">
                 <h3>Your Saved Jobs</h3>
                 <div class="refresh-section">
@@ -234,7 +204,7 @@
                 
                 <div id="saved-jobs-list">
                     <!-- Jobs will be listed here dynamically -->
-                    <div class="empty-state">No saved jobs yet.</div>
+                    <div class="empty-state">No saved jobs yet. Add a new job below.</div>
                 </div>
                 
                 <div id="job-actions" class="hidden">
@@ -267,6 +237,37 @@
                     </div>
                 </div>
             </div>
+
+            <div class="job-entry-section">
+                <h3>Add a New Job</h3>
+                <p class="info-text">Copy job details from any job posting and paste them here.</p>
+                
+                <form id="job-entry-form">
+                    <!-- Job entry form fields -->
+                    <div class="form-group">
+                        <label for="job-title" class="form-label">Job Title:</label>
+                        <input type="text" id="job-title" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="job-company" class="form-label">Company:</label>
+                        <input type="text" id="job-company" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="job-location" class="form-label">Location:</label>
+                        <input type="text" id="job-location" class="form-input" placeholder="e.g. Remote, London, New York">
+                    </div>
+                    <div class="form-group">
+                        <label for="job-url" class="form-label">Job URL (optional):</label>
+                        <input type="url" id="job-url" class="form-input form-url-input" placeholder="e.g. https://company.com/jobs/position">
+                    </div>
+                    <div class="form-group">
+                        <label for="job-description" class="form-label">Job Description:</label>
+                        <textarea id="job-description" class="form-textarea" rows="10" required placeholder="Paste the full job description here..."></textarea>
+                    </div>
+                    <button type="submit" id="save-job-btn" class="primary-button">Save Job</button>
+                </form>
+            </div>
+
         </div>
         
         <!-- Profile Tab -->
@@ -384,6 +385,17 @@
                             <div class="skill-gap-summary">
                                 <h5>Your Top Skill Gaps</h5>
                                 <ul id="skill-gap-summary-list"></ul>
+                            </div>
+
+                            <div class="cumulative-learning-actions" style="text-align: center; margin-top: 20px;">
+                                <button id="create-cumulative-learning-plan" class="primary-button">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="perplexity-icon">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <path d="M12 16v-4"></path>
+                                        <path d="M12 8h.01"></path>
+                                    </svg>
+                                    Create Career Learning Plan
+                                </button>
                             </div>
                         </div>
                     </div>
