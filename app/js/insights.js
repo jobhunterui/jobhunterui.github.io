@@ -10,6 +10,9 @@ const CareerInsights = (function() {
     // Initialize the module
     function init() {
         bindEvents();
+        populateJobSelector();
+        handleJobSelection();
+        setupLearningPlanGeneration();
         checkForCVData();
     }
     
@@ -165,7 +168,7 @@ const CareerInsights = (function() {
         }
     }
     
-    // Display insights for a job with CV analysis
+    // Display insights and learning plan for a job with CV analysis
     function displayInsights(job, cvAnalysis) {
         // Update job header
         updateJobHeader(job);
@@ -181,6 +184,21 @@ const CareerInsights = (function() {
         
         // Display experience highlights
         displayExperienceHighlights(cvAnalysis);
+        
+        // Show/hide learning plan button based on missing skills
+        const learningActions = document.querySelector('.learning-actions');
+        const missingSkills = cvAnalysis.skillGapAnalysis?.missingSkills || [];
+        
+        if (learningActions) {
+            if (missingSkills.length > 0) {
+                learningActions.style.display = 'block';
+            } else {
+                learningActions.style.display = 'none';
+            }
+        }
+        
+        // Update cumulative skills analysis
+        updateCumulativeSkillsAnalysis();
     }
     
     // Update the skills match meter
@@ -346,9 +364,18 @@ const CareerInsights = (function() {
         experienceHighlights.innerHTML = highlightsHTML;
     }
     
-    // Refresh insights when tab is selected or job changes
+    // Refresh insights and cummulative analysis when tab is selected or job changes
     function refreshInsights() {
         const selectedJob = document.querySelector('.job-item.selected');
+        
+        // Update job selector to match the selected job (if any)
+        const jobSelector = document.getElementById('insights-job-select');
+        if (jobSelector && selectedJob) {
+            const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
+            jobSelector.value = jobIndex;
+        }
+        
+        populateJobSelector();
         
         if (selectedJob) {
             const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
@@ -356,6 +383,9 @@ const CareerInsights = (function() {
         } else {
             showWelcomeMessage();
         }
+        
+        // Update the cumulative analysis section
+        updateCumulativeSkillsAnalysis();
     }
     
     // Save CV analysis data for a job
@@ -384,6 +414,194 @@ const CareerInsights = (function() {
         saveCVAnalysis: saveCVAnalysis
     };
 })();
+
+// Populate the job selection dropdown
+function populateJobSelector() {
+    const jobSelector = document.getElementById('insights-job-select');
+    
+    if (!jobSelector) return;
+    
+    // Clear existing options except the first one
+    while (jobSelector.options.length > 1) {
+        jobSelector.remove(1);
+    }
+    
+    // Get saved jobs
+    const savedJobs = getSavedJobs();
+    
+    if (savedJobs.length === 0) {
+        return;
+    }
+    
+    // Add jobs to selector
+    savedJobs.forEach((job, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = `${job.title} at ${job.company}`;
+        
+        // Mark jobs that have CV analysis
+        if (job.cvAnalysis) {
+            option.textContent += ' (Analysis available)';
+        }
+        
+        jobSelector.appendChild(option);
+    });
+    
+    // Check if there's a selected job
+    const selectedJob = document.querySelector('.job-item.selected');
+    if (selectedJob) {
+        const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
+        jobSelector.value = jobIndex;
+    }
+}
+
+// Handle job selection from dropdown
+function handleJobSelection() {
+    const jobSelector = document.getElementById('insights-job-select');
+    
+    if (!jobSelector) return;
+    
+    jobSelector.addEventListener('change', function() {
+        const selectedIndex = this.value;
+        
+        if (selectedIndex === '') {
+            showWelcomeMessage();
+            return;
+        }
+        
+        loadJobInsights(parseInt(selectedIndex));
+    });
+}
+
+// Perplexity learning plan generation
+function setupLearningPlanGeneration() {
+    const createLearningPlanBtn = document.getElementById('create-learning-plan');
+    
+    if (!createLearningPlanBtn) return;
+    
+    createLearningPlanBtn.addEventListener('click', function() {
+        generateLearningPlan();
+    });
+}
+
+// Generate and open Perplexity with learning plan prompt
+function generateLearningPlan() {
+    if (!currentJobData || !currentCVAnalysis) return;
+    
+    // Get missing skills
+    const missingSkills = currentCVAnalysis.skillGapAnalysis?.missingSkills || [];
+    
+    if (missingSkills.length === 0) {
+        showModal('No Skills to Learn', 'No skill gaps identified for this job. Your skills already match well!');
+        return;
+    }
+    
+    // Create a well-structured prompt for Perplexity
+    let prompt = `Create a personalized learning plan to develop these skills for a ${currentJobData.title} role: ${missingSkills.join(', ')}. 
+
+For each skill:
+1. Explain why this skill is valuable in this role
+2. Suggest practical ways to learn it (online courses, books, projects)
+3. Recommend specific resources including free YouTube channels, blogs, and tutorials
+4. Provide a suggested learning timeline
+
+Focus on mental models and core concepts, not just tools. Include both theoretical knowledge and practical application ideas.`;
+
+    // Track this action
+    if (typeof trackEvent === 'function') {
+        trackEvent('generate_learning_plan', {
+            job_title: currentJobData.title || '',
+            company: currentJobData.company || '',
+            missing_skills: missingSkills.join(', ')
+        });
+    }
+    
+    // Open Perplexity with the prompt
+    const encodedPrompt = encodeURIComponent(prompt);
+    window.open(`https://www.perplexity.ai/?q=${encodedPrompt}`, '_blank');
+}
+
+// Update the cumulative skills analysis section
+function updateCumulativeSkillsAnalysis() {
+    const savedJobs = getSavedJobs();
+    const cumulativeAnalysisSection = document.getElementById('cumulative-skills-analysis');
+    const skillsTracker = document.querySelector('.skills-tracker');
+    
+    if (!cumulativeAnalysisSection || !skillsTracker) return;
+    
+    // Collect data from all jobs with analysis
+    const jobsWithAnalysis = savedJobs.filter(job => job.cvAnalysis);
+    
+    if (jobsWithAnalysis.length === 0) {
+        skillsTracker.style.display = 'none';
+        return;
+    }
+    
+    // Show the tracker
+    skillsTracker.style.display = 'grid';
+    
+    // Collect all skills
+    const allRequiredSkills = {};
+    const allMissingSkills = {};
+    
+    jobsWithAnalysis.forEach(job => {
+        // Add required skills
+        const matchingSkills = job.cvAnalysis.skillGapAnalysis?.matchingSkills || [];
+        const missingSkills = job.cvAnalysis.skillGapAnalysis?.missingSkills || [];
+        
+        // All skills (both matching and missing) are required for the job
+        [...matchingSkills, ...missingSkills].forEach(skill => {
+            allRequiredSkills[skill] = (allRequiredSkills[skill] || 0) + 1;
+        });
+        
+        // Track missing skills separately
+        missingSkills.forEach(skill => {
+            allMissingSkills[skill] = (allMissingSkills[skill] || 0) + 1;
+        });
+    });
+    
+    // Update most requested skills list
+    const mostRequestedList = document.getElementById('most-requested-skills-list');
+    
+    if (mostRequestedList) {
+        // Sort skills by frequency
+        const sortedSkills = Object.entries(allRequiredSkills)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5); // Top 5 skills
+        
+        if (sortedSkills.length > 0) {
+            mostRequestedList.innerHTML = sortedSkills.map(([skill, count]) => `
+                <li class="skill-item">
+                    <span class="skill-name">${skill}</span>
+                    <span class="skill-frequency">${count} ${count === 1 ? 'job' : 'jobs'}</span>
+                </li>
+            `).join('');
+        } else {
+            mostRequestedList.innerHTML = '<li class="empty-list-message">No skills data available</li>';
+        }
+    }
+    
+    // Update skill gaps list
+    const skillGapsList = document.getElementById('skill-gap-summary-list');
+    
+    if (skillGapsList) {
+        // Sort missing skills by frequency
+        const sortedMissingSkills = Object.entries(allMissingSkills)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5); // Top 5 missing skills
+        
+        if (sortedMissingSkills.length > 0) {
+            skillGapsList.innerHTML = sortedMissingSkills.map(([skill, count]) => `
+                <li class="skill-item">
+                    <span class="skill-name">${skill}</span>
+                    <span class="skill-frequency">${count} ${count === 1 ? 'job' : 'jobs'}</span>
+                </li>
+            `).join('');
+        } else {
+            skillGapsList.innerHTML = '<li class="empty-list-message">No skill gaps identified</li>';
+        }
+    }
+}
 
 // Initialize the Career Insights module
 document.addEventListener('DOMContentLoaded', function() {

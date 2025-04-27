@@ -147,6 +147,48 @@ select:focus {
     background-color: #e0e0e0;
 }
 
+/* Improved job actions section */
+.job-actions-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 15px;
+}
+
+.job-actions-group {
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    padding: 14px;
+    border-left: 3px solid #3498db;
+}
+
+.job-actions-group:nth-child(2) {
+    border-left-color: #9b59b6;
+}
+
+.job-actions-group:nth-child(3) {
+    border-left-color: #7f8c8d;
+}
+
+.action-group-title {
+    margin: 0 0 5px 0;
+    font-size: 15px;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.action-group-info {
+    font-size: 13px;
+    color: #7f8c8d;
+    margin: 0 0 10px 0;
+}
+
+.action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
 /* Empty state */
 .empty-state {
     text-align: center;
@@ -286,9 +328,66 @@ select:focus {
     .export-import-buttons {
         flex-direction: column;
     }
-}
 
-/* Additional styles for new features */
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .action-buttons button {
+        width: 100%;
+    }
+
+    .skills-details {
+        grid-template-columns: 1fr;
+    }
+
+    .tab-content {
+        padding: 1rem;
+    }
+    
+    .form-group label {
+        font-size: 0.9rem;
+    }
+    
+    .search-buttons {
+        grid-template-columns: 1fr;
+    }
+    
+    #search-ai {
+        grid-column: 1;
+    }
+    
+    .job-item {
+        font-size: 0.9rem;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+    }
+    
+    .extension-promo {
+        flex-direction: column;
+        padding: 0.8rem;
+    }
+    
+    .extension-promo .promo-actions {
+        margin-top: 0.5rem;
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .storage-warning-content {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .promo-content {
+        flex-direction: column;
+        text-align: center;
+    }
+}
 
 /* Job status styles */
 .job-status-container {
@@ -499,14 +598,19 @@ select:focus {
 
 .refresh-button {
     font-size: 0.9rem;
-    padding: 5px 10px;
     background-color: #f1f1f1;
     color: #333;
     border: 1px solid #ddd;
     border-radius: 4px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    padding: 6px 12px;
     cursor: pointer;
+}
+
+.refresh-button svg {
+    margin-right: 6px;
+    vertical-align: middle;
 }
 
 .refresh-button span {
@@ -550,53 +654,6 @@ select:focus {
 .storage-warning-actions button {
     padding: 5px 10px;
     font-size: 0.85rem;
-}
-
-@media (max-width: 768px) {
-    .storage-warning-content {
-        flex-direction: column;
-        gap: 10px;
-    }
-}
-
-/* Responsive improvements */
-@media (max-width: 768px) {
-    .tab-content {
-        padding: 1rem;
-    }
-    
-    .form-group label {
-        font-size: 0.9rem;
-    }
-    
-    .search-buttons {
-        grid-template-columns: 1fr;
-    }
-    
-    #search-ai {
-        grid-column: 1;
-    }
-    
-    .job-item {
-        font-size: 0.9rem;
-    }
-    
-    .modal-content {
-        width: 95%;
-        margin: 5% auto;
-    }
-    
-    .extension-promo {
-        flex-direction: column;
-        padding: 0.8rem;
-    }
-    
-    .extension-promo .promo-actions {
-        margin-top: 0.5rem;
-        display: flex;
-        justify-content: center;
-        width: 100%;
-    }
 }
 
 @media (max-width: 480px) {
@@ -926,13 +983,6 @@ select:focus {
     background-color: #eee;
 }
 
-@media (max-width: 768px) {
-    .promo-content {
-        flex-direction: column;
-        text-align: center;
-    }
-}
-
 /* Form Field Styling */
 .form-group {
     margin-bottom: 1.2rem;
@@ -1006,6 +1056,14 @@ select:focus {
 .gemini-button:disabled {
     background-color: #ccc;
     cursor: not-allowed;
+}
+
+.claude-button {
+    background-color: #9b59b6;
+}
+
+.claude-button:hover {
+    background-color: #8e44ad;
 }
 
 /* Loading indicator enhancements */
@@ -1299,9 +1357,192 @@ select:focus {
     border-color: #2ecc71 !important;
 }
 
+/* Profile tab improvements */
+#profile .form-group {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 18px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+#profile .form-group:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+#profile .form-label {
+    color: #2c3e50;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+#profile textarea {
+    font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    resize: vertical;
+    background-color: white;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#profile textarea:focus {
+    border-color: #3498db;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08), 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+#profile .form-info {
+    background-color: #e8f4fa;
+    border-left: 3px solid #3498db;
+    padding: 10px 12px;
+    margin-top: 12px;
+    margin-bottom: 15px;
+    border-radius: 0 4px 4px 0;
+    font-size: 0.9rem;
+    color: #2c3e50;
+}
+
+#profile button {
+    margin-top: 5px;
+}
+
+/* JSON input styling */
+#profile .json-input-section {
+    margin-top: 30px;
+    padding-top: 25px;
+    border-top: 1px solid #e0e0e0;
+}
+
+#profile #cv-json {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    background-color: #f5f5f5;
+}
+
+/* Export/Import section */
+#profile .export-import-section {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 18px;
+    margin-top: 30px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+#profile .export-import-section h3 {
+    margin-top: 0;
+    color: #2c3e50;
+}
+
+/* Job selector improvements */
+.insights-job-selector {
+    margin-bottom: 20px;
+    background-color: white;
+    padding: 12px 15px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.insights-job-selector label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+
+.insights-job-selector select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* Learning plan button */
+.learning-actions {
+    margin-top: 15px;
+    text-align: center;
+}
+
+#create-learning-plan {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #4c4c9d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#create-learning-plan:hover {
+    background-color: #3d3d7d;
+}
+
+.perplexity-icon {
+    margin-right: 8px;
+}
+
+/* Cumulative skills analysis */
+.skills-tracker {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 15px;
+}
+
+.most-requested-skills,
+.skill-gap-summary {
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    padding: 15px;
+}
+
+.most-requested-skills h5,
+.skill-gap-summary h5 {
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: var(--secondary-color);
+}
+
+.skill-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.skill-item:last-child {
+    border-bottom: none;
+}
+
+.skill-name {
+    font-weight: 500;
+}
+
+.skill-frequency {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+}
+
+.empty-analysis {
+    color: var(--light-text);
+    font-style: italic;
+    text-align: center;
+    padding: 20px 0;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .skills-details {
+    .skills-tracker {
         grid-template-columns: 1fr;
     }
 }

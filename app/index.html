@@ -238,9 +238,33 @@
                 </div>
                 
                 <div id="job-actions" class="hidden">
-                    <button id="generate-application" class="primary-button">Generate Application</button>
-                    <button id="interview-prep" class="secondary-button">Interview Prep</button>
-                    <button id="remove-job" class="danger-button">Remove</button>
+                    <div class="job-actions-container">
+                        <div class="job-actions-group">
+                            <h4 class="action-group-title">Quick Generation (AI)</h4>
+                            <p class="action-group-info">One-click AI generation - faster but less customizable</p>
+                            <div class="action-buttons">
+                                <button id="generate-cv-gemini" class="primary-button gemini-button">Generate CV (One-Click)</button>
+                                <button id="generate-cover-letter-gemini" class="primary-button gemini-button">Generate Cover
+                                    Letter</button>
+                            </div>
+                        </div>
+                
+                        <div class="job-actions-group">
+                            <h4 class="action-group-title">Advanced Generation (Claude)</h4>
+                            <p class="action-group-info">Manual process with Claude - more control and higher quality</p>
+                            <div class="action-buttons">
+                                <button id="generate-application" class="primary-button claude-button">Generate with Claude</button>
+                            </div>
+                        </div>
+                
+                        <div class="job-actions-group">
+                            <h4 class="action-group-title">Other Actions</h4>
+                            <div class="action-buttons">
+                                <button id="interview-prep" class="secondary-button">Interview Prep</button>
+                                <button id="remove-job" class="danger-button">Remove</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -278,6 +302,13 @@
             
             <div class="insights-content" id="insights-content" style="display: none;">
                 <div class="insights-job-header">
+                    <div class="insights-job-selector">
+                        <label for="insights-job-select">Select a job to analyze:</label>
+                        <select id="insights-job-select" class="form-select">
+                            <option value="">Choose a job...</option>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
                     <h3 id="insights-job-title">Position at Company</h3>
                     <p id="insights-job-company-location">Company • Location</p>
                 </div>
@@ -316,6 +347,16 @@
                         <div id="learning-recommendations">
                             <p class="empty-recommendations">Generate a CV for this job to get personalized learning recommendations.</p>
                         </div>
+                        <div class="learning-actions" style="display: none;">
+                            <button id="create-learning-plan" class="primary-button">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="perplexity-icon">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 16v-4"></path>
+                                    <path d="M12 8h.01"></path>
+                                </svg>
+                                Create Learning Plan with AI
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -328,8 +369,23 @@
                     </div>
                 </div>
                 
-                <div class="insights-actions">
-                    <button id="insights-generate-cv" class="primary-button">Generate CV Analysis</button>
+                <div class="insights-section">
+                    <div class="insights-card">
+                        <h4 class="insights-section-title">Cumulative Skill Analysis</h4>
+                        <div id="cumulative-skills-analysis">
+                            <p class="empty-analysis">Generate CVs for multiple jobs to see common skill requirements.</p>
+                            <div class="skills-tracker" style="display: none;">
+                                <div class="most-requested-skills">
+                                    <h5>Most Requested Skills</h5>
+                                    <ul id="most-requested-skills-list"></ul>
+                                </div>
+                                <div class="skill-gap-summary">
+                                    <h5>Your Top Skill Gaps</h5>
+                                    <ul id="skill-gap-summary-list"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
