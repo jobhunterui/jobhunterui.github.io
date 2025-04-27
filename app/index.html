@@ -6,6 +6,7 @@
     <title>Job Hunter - Web App</title>
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/app.css">
+    <link rel="stylesheet" href="../css/learning.css">
     <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-TH7Y2W8GC4"></script>
@@ -39,6 +40,7 @@
             <button class="tab-button" data-tab="apply">Apply</button>
             <button class="tab-button" data-tab="profile">Profile</button>
             <button class="tab-button" data-tab="insights">Career Insights</button>
+            <button class="tab-button" data-tab="learning">Learning</button>
         </div>
         
         <!-- Find Jobs Tab -->
@@ -403,6 +405,111 @@
             </div>
             
         </div>
+
+        <!-- Learning Dashboard Tab -->
+        <div id="learning" class="tab-content">
+            <h2>Learning Dashboard</h2>
+            
+            <!-- Empty state - shown when no learning plan is loaded -->
+            <div id="learning-empty-state" class="learning-empty-state">
+                <h3>Track Your Professional Learning Journey</h3>
+                <p>Create a personalized learning plan based on the skill gaps identified in your Career Insights. 
+                Generate a learning plan with Perplexity, then paste the JSON here to build your interactive dashboard.</p>
+                
+                <div class="learning-json-input">
+                    <label for="learning-plan-json" class="form-label">Paste Learning Plan JSON:</label>
+                    <textarea id="learning-plan-json" class="form-textarea" placeholder="Paste the learning plan JSON from Perplexity here..."></textarea>
+                    <p class="form-info">Generate a plan in Career Insights tab, paste it to Perplexity, then paste the JSON response back here.</p>
+                    <button id="load-learning-plan" class="primary-button">Load Learning Plan</button>
+                </div>
+                
+                <div class="learning-empty-actions">
+                    <button id="go-to-insights" class="secondary-button">Go to Career Insights</button>
+                    <button id="view-example-plan" class="default-button">View Example Plan</button>
+                </div>
+            </div>
+            
+            <!-- Dashboard - shown when a learning plan is loaded -->
+            <div id="learning-dashboard" class="learning-dashboard">
+                <!-- Dashboard header -->
+                <div class="learning-header">
+                    <div>
+                        <h3 id="learning-plan-title" class="learning-plan-title">Career Learning Plan</h3>
+                        <p id="learning-plan-meta" class="learning-plan-meta">Created on: <span id="plan-created-date">-</span></p>
+                    </div>
+                    <div class="learning-header-actions">
+                        <button id="edit-learning-plan" class="default-button">Edit Plan</button>
+                        <button id="reset-learning-plan" class="secondary-button">Reset Progress</button>
+                    </div>
+                </div>
+                
+                <!-- Overall progress -->
+                <div class="learning-progress-container">
+                    <div class="learning-progress-stat">
+                        <div class="learning-stat-item">
+                            <div id="skills-count" class="learning-stat-value">0</div>
+                            <div class="learning-stat-label">Skills</div>
+                        </div>
+                        <div class="learning-stat-item">
+                            <div id="resources-count" class="learning-stat-value">0</div>
+                            <div class="learning-stat-label">Resources</div>
+                        </div>
+                        <div class="learning-stat-item">
+                            <div id="projects-count" class="learning-stat-value">0</div>
+                            <div class="learning-stat-label">Projects</div>
+                        </div>
+                        <div class="learning-stat-item">
+                            <div id="overall-progress" class="learning-stat-value">0%</div>
+                            <div class="learning-stat-label">Completed</div>
+                        </div>
+                    </div>
+                    <div class="learning-overall-progress">
+                        <div id="progress-bar" class="learning-progress-bar"></div>
+                    </div>
+                </div>
+                
+                <!-- Dashboard navigation -->
+                <div class="learning-nav">
+                    <button class="learning-nav-item active" data-section="skills">Skills</button>
+                    <button class="learning-nav-item" data-section="timeline">Timeline</button>
+                    <button class="learning-nav-item" data-section="resources">Resources Library</button>
+                </div>
+                
+                <!-- Dashboard content -->
+                <div class="learning-content">
+                    <!-- Skills section -->
+                    <div id="skills-section" class="learning-section active">
+                        <div id="skills-grid" class="learning-skills-grid">
+                            <!-- Skills cards will be inserted here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Timeline section -->
+                    <div id="timeline-section" class="learning-section">
+                        <div id="timeline-container" class="timeline-container">
+                            <!-- Timeline weeks will be inserted here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Resources section -->
+                    <div id="resources-section" class="learning-section">
+                        <div id="resources-library">
+                            <!-- Resources will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Export plan section -->
+                <div class="export-plan-section">
+                    <h4 class="export-plan-title">Export Learning Plan</h4>
+                    <p class="form-info">Export your learning plan with progress data to PDF or share with others.</p>
+                    <div class="export-plan-options">
+                        <button id="export-plan-pdf" class="primary-button">Export as PDF</button>
+                        <button id="share-plan" class="secondary-button">Share Plan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <footer>
@@ -442,5 +549,6 @@
     <script src="js/app.js"></script>
     <script src="js/cv-api.js"></script>
     <script src="js/insights.js"></script>
+    <script src="js/learning.js"></script>
 </body>
 </html>
