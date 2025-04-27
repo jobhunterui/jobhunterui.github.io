@@ -944,6 +944,8 @@ At the end, provide overall feedback and tips to improve. Let's start the interv
 
 // Add one-click CV generation with Gemini
 async function generateCVWithGemini(feedback = "") {
+    console.log('generateCVWithGemini function called');
+
     const selectedJob = document.querySelector('.job-item.selected');
     
     if (!selectedJob) {
@@ -1109,6 +1111,8 @@ async function generateCVWithGemini(feedback = "") {
 
 // Generate cover letter with Gemini
 async function generateCoverLetterWithGemini(feedback = "") {
+    console.log('generateCoverLetterWithGemini function called');
+
     const selectedJob = document.querySelector('.job-item.selected');
     
     if (!selectedJob) {
@@ -1553,45 +1557,38 @@ function extractDataFromGeminiResponse(cvData, job, cv) {
     }
 }
 
-// Add the UI setup for one-click generation buttons
+// Add direct event listeners to the Gemini buttons
 document.addEventListener('DOMContentLoaded', function() {
-    // Add the one-click buttons to job actions
-    const jobActions = document.getElementById('job-actions');
-    if (jobActions) {
-        // Check if the CV button already exists
-        if (!document.getElementById('generate-cv-gemini')) {
-            // Create Gemini CV button
-            const cvButton = document.createElement('button');
-            cvButton.id = 'generate-cv-gemini';
-            cvButton.className = 'primary-button gemini-button';
-            cvButton.textContent = 'Generate CV (One-Click)';
-            cvButton.addEventListener('click', generateCVWithGemini);
-            
-            // Insert it as the first button
-            if (jobActions.firstChild) {
-                jobActions.insertBefore(cvButton, jobActions.firstChild);
-            } else {
-                jobActions.appendChild(cvButton);
-            }
-        }
+    // CV generation button
+    const cvButton = document.getElementById('generate-cv-gemini');
+    if (cvButton) {
+        // Remove any existing event listeners (to be safe)
+        const newCvButton = cvButton.cloneNode(true);
+        cvButton.parentNode.replaceChild(newCvButton, cvButton);
         
-        // Check if the Cover Letter button already exists
-        if (!document.getElementById('generate-cover-letter-gemini')) {
-            // Create Gemini Cover Letter button
-            const coverLetterButton = document.createElement('button');
-            coverLetterButton.id = 'generate-cover-letter-gemini';
-            coverLetterButton.className = 'primary-button gemini-button';
-            coverLetterButton.textContent = 'Generate Cover Letter';
-            coverLetterButton.addEventListener('click', generateCoverLetterWithGemini);
-            
-            // Insert it after the CV button
-            const cvButton = document.getElementById('generate-cv-gemini');
-            if (cvButton && cvButton.nextSibling) {
-                jobActions.insertBefore(coverLetterButton, cvButton.nextSibling);
-            } else {
-                jobActions.appendChild(coverLetterButton);
-            }
-        }
+        // Add our new event listener
+        newCvButton.addEventListener('click', function(e) {
+            console.log('Generate CV button clicked');
+            generateCVWithGemini();
+        });
+    } else {
+        console.warn('CV button not found in DOM');
+    }
+    
+    // Cover Letter generation button
+    const coverLetterButton = document.getElementById('generate-cover-letter-gemini');
+    if (coverLetterButton) {
+        // Remove any existing event listeners (to be safe)
+        const newCoverLetterButton = coverLetterButton.cloneNode(true);
+        coverLetterButton.parentNode.replaceChild(newCoverLetterButton, coverLetterButton);
+        
+        // Add our new event listener
+        newCoverLetterButton.addEventListener('click', function(e) {
+            console.log('Generate Cover Letter button clicked');
+            generateCoverLetterWithGemini();
+        });
+    } else {
+        console.warn('Cover Letter button not found in DOM');
     }
 });
 
@@ -1914,5 +1911,28 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Add our event listener
         newCumulativePlanBtn.addEventListener('click', generateCumulativeLearningPlan);
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Directly find existing buttons and attach event listeners
+    const cvButton = document.getElementById('generate-cv-gemini');
+    if (cvButton) {
+        cvButton.addEventListener('click', function() {
+            console.log('Generate CV button clicked');  // Debug log
+            generateCVWithGemini();
+        });
+    } else {
+        console.log('CV button not found in DOM');  // Debug log
+    }
+    
+    const coverLetterButton = document.getElementById('generate-cover-letter-gemini');
+    if (coverLetterButton) {
+        coverLetterButton.addEventListener('click', function() {
+            console.log('Generate Cover Letter button clicked');  // Debug log
+            generateCoverLetterWithGemini();
+        });
+    } else {
+        console.log('Cover Letter button not found in DOM');  // Debug log
     }
 });

@@ -17,7 +17,7 @@ const CV_API_CONFIG = {
  * @returns {Promise<Object>} - The generated CV data and quota information
  * @throws {Error} - If the API request fails
  */
-async function generateCV(jobDescription, resume) {
+async function generateCV(jobDescription, resume, feedback = "") {
     // Validate inputs
     if (!jobDescription || !resume) {
         throw new Error('Job description and resume are required');
@@ -31,7 +31,8 @@ async function generateCV(jobDescription, resume) {
         },
         body: JSON.stringify({
             job_description: jobDescription,
-            resume: resume
+            resume: resume,
+            feedback: feedback
         })
     };
 
