@@ -1884,28 +1884,3 @@ document.addEventListener('DOMContentLoaded', function() {
         newCumulativePlanBtn.addEventListener('click', generateCumulativeLearningPlan);
     }
 });
-
-// Initialize prompts functionality for learning plans
-document.addEventListener('DOMContentLoaded', function() {
-    // Hook into existing "Create Learning Plan" buttons
-    const insightsLearningPlanBtn = document.getElementById('create-learning-plan');
-    if (insightsLearningPlanBtn) {
-        // Replace existing event listener with our new one
-        const newLearningPlanBtn = insightsLearningPlanBtn.cloneNode(true);
-        insightsLearningPlanBtn.parentNode.replaceChild(newLearningPlanBtn, insightsLearningPlanBtn);
-        
-        // Add our event listener
-        newLearningPlanBtn.addEventListener('click', generateLearningPlanPrompt);
-    }
-    
-    // Hook into cumulative learning plan button
-    const cumulativeLearningPlanBtn = document.getElementById('create-cumulative-learning-plan');
-    if (cumulativeLearningPlanBtn) {
-        // Replace existing event listener with our new one
-        const newCumulativePlanBtn = cumulativeLearningPlanBtn.cloneNode(true);
-        cumulativeLearningPlanBtn.parentNode.replaceChild(newCumulativePlanBtn, cumulativeLearningPlanBtn);
-        
-        // Add our event listener
-        newCumulativePlanBtn.addEventListener('click', generateCumulativeLearningPlan);
-    }
-});
