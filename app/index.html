@@ -278,7 +278,7 @@
                 <label for="cv" class="form-label">Your CV/Resume:</label>
                 <textarea id="cv" name="cv" class="form-textarea" rows="15" placeholder="Paste your CV or resume text here..."></textarea>
                 <p class="form-info">This information will be used to generate tailored applications for jobs you save.</p>
-                <button id="save-profile" class="primary-button">Save Profile</button>
+                <button id="save-profile" class="primary-button">Save CV</button>
             </div>
 
             <!-- JSON input in profile tab -->
@@ -369,25 +369,27 @@
                     </div>
                 </div>
                 
-                <div class="insights-section">
-                    <div class="insights-card">
-                        <h4 class="insights-section-title">Cumulative Skill Analysis</h4>
-                        <div id="cumulative-skills-analysis">
-                            <p class="empty-analysis">Generate CVs for multiple jobs to see common skill requirements.</p>
-                            <div class="skills-tracker" style="display: none;">
-                                <div class="most-requested-skills">
-                                    <h5>Most Requested Skills</h5>
-                                    <ul id="most-requested-skills-list"></ul>
-                                </div>
-                                <div class="skill-gap-summary">
-                                    <h5>Your Top Skill Gaps</h5>
-                                    <ul id="skill-gap-summary-list"></ul>
-                                </div>
+            </div>
+
+            <div class="insights-section cumulative-section" id="cumulative-section">
+                <div class="insights-card">
+                    <h4 class="insights-section-title">Cumulative Skill Analysis</h4>
+                    <div id="cumulative-skills-analysis">
+                        <p class="empty-analysis">Generate CVs for multiple jobs to see common skill requirements.</p>
+                        <div class="skills-tracker" style="display: none;">
+                            <div class="most-requested-skills">
+                                <h5>Most Requested Skills</h5>
+                                <ul id="most-requested-skills-list"></ul>
+                            </div>
+                            <div class="skill-gap-summary">
+                                <h5>Your Top Skill Gaps</h5>
+                                <ul id="skill-gap-summary-list"></ul>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            
         </div>
     </main>
 

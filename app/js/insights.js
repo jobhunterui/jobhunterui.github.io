@@ -53,26 +53,41 @@ const CareerInsights = (function() {
     // Check if CV data is available for any jobs
     function checkForCVData() {
         const savedJobs = getSavedJobs();
-        let hasData = false;
         
-        // Look for any job with CV analysis data
-        savedJobs.forEach(job => {
-            if (job.cvAnalysis) {
-                hasData = true;
-            }
-        });
+        // Always show the dropdown if there are saved jobs
+        populateJobSelector();
         
-        // If no data found, user needs to generate insights first
+        // Check if any job has CV analysis data
+        let hasData = savedJobs.some(job => job.cvAnalysis);
+        
         if (!hasData) {
+            // No job with analysis, but still show the dropdown
+            const jobSelector = document.getElementById('insights-job-select');
+            if (jobSelector && jobSelector.options.length > 1) {
+                // We have saved jobs but no analysis - show job header
+                // but empty insights sections
+                if (jobSelector.value !== '') {
+                    const jobIndex = parseInt(jobSelector.value);
+                    updateJobHeader(savedJobs[jobIndex]);
+                    showEmptyInsights();
+                    return;
+                }
+            }
             showWelcomeMessage();
         } else {
-            // If user has generated CV before, look for a selected job
+            // Some job has analysis - try to show selected job or first job with analysis
             const selectedJob = document.querySelector('.job-item.selected');
             if (selectedJob) {
                 const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
                 loadJobInsights(jobIndex);
             } else {
-                showWelcomeMessage();
+                // No job selected in Apply tab - find first job with analysis
+                const jobWithAnalysisIndex = savedJobs.findIndex(job => job.cvAnalysis);
+                if (jobWithAnalysisIndex >= 0) {
+                    loadJobInsights(jobWithAnalysisIndex);
+                } else {
+                    showWelcomeMessage();
+                }
             }
         }
     }
@@ -384,8 +399,22 @@ const CareerInsights = (function() {
             showWelcomeMessage();
         }
         
-        // Update the cumulative analysis section
+        // Always update cumulative analysis, even if no job is selected
         updateCumulativeSkillsAnalysis();
+        
+        // Update display of cumulative section based on job data
+        const cumulativeSection = document.getElementById('cumulative-section');
+        const savedJobs = getSavedJobs();
+        const jobsWithAnalysis = savedJobs.filter(job => job.cvAnalysis);
+        
+        if (cumulativeSection) {
+            // Always show if we have any jobs with analysis
+            if (jobsWithAnalysis.length > 0) {
+                cumulativeSection.style.display = 'block';
+            } else {
+                cumulativeSection.style.display = 'none';
+            }
+        }
     }
     
     // Save CV analysis data for a job
@@ -480,16 +509,32 @@ function setupLearningPlanGeneration() {
     if (!createLearningPlanBtn) return;
     
     createLearningPlanBtn.addEventListener('click', function() {
-        generateLearningPlan();
+        // Get the currently selected job data from the dropdown
+        const jobSelector = document.getElementById('insights-job-select');
+        if (!jobSelector || jobSelector.value === '') {
+            showModal('No Job Selected', 'Please select a job first to generate a learning plan.');
+            return;
+        }
+        
+        const savedJobs = getSavedJobs();
+        const jobIndex = parseInt(jobSelector.value);
+        const jobData = savedJobs[jobIndex];
+        
+        if (!jobData || !jobData.cvAnalysis) {
+            showModal('No CV Analysis', 'Generate a CV for this job first to create a learning plan.');
+            return;
+        }
+        
+        generateLearningPlan(jobData, jobData.cvAnalysis);
     });
 }
 
 // Generate and open Perplexity with learning plan prompt
-function generateLearningPlan() {
-    if (!currentJobData || !currentCVAnalysis) return;
+function generateLearningPlan(jobData, cvAnalysis) {
+    if (!jobData || !cvAnalysis) return;
     
     // Get missing skills
-    const missingSkills = currentCVAnalysis.skillGapAnalysis?.missingSkills || [];
+    const missingSkills = cvAnalysis.skillGapAnalysis?.missingSkills || [];
     
     if (missingSkills.length === 0) {
         showModal('No Skills to Learn', 'No skill gaps identified for this job. Your skills already match well!');
@@ -497,7 +542,7 @@ function generateLearningPlan() {
     }
     
     // Create a well-structured prompt for Perplexity
-    let prompt = `Create a personalized learning plan to develop these skills for a ${currentJobData.title} role: ${missingSkills.join(', ')}. 
+    let prompt = `Create a personalized learning plan to develop these skills for a ${jobData.title} role: ${missingSkills.join(', ')}. 
 
 For each skill:
 1. Explain why this skill is valuable in this role
@@ -510,8 +555,8 @@ Focus on mental models and core concepts, not just tools. Include both theoretic
     // Track this action
     if (typeof trackEvent === 'function') {
         trackEvent('generate_learning_plan', {
-            job_title: currentJobData.title || '',
-            company: currentJobData.company || '',
+            job_title: jobData.title || '',
+            company: jobData.company || '',
             missing_skills: missingSkills.join(', ')
         });
     }

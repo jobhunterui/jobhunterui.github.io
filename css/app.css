@@ -149,8 +149,8 @@ select:focus {
 
 /* Improved job actions section */
 .job-actions-container {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 16px;
     margin-top: 15px;
 }
@@ -168,6 +168,10 @@ select:focus {
 
 .job-actions-group:nth-child(3) {
     border-left-color: #7f8c8d;
+}
+
+.job-actions-group:first-child {
+    grid-column: 1 / span 2; /* Quick Generation takes full width */
 }
 
 .action-group-title {
@@ -386,6 +390,15 @@ select:focus {
     .promo-content {
         flex-direction: column;
         text-align: center;
+    }
+
+    .skills-tracker {
+        grid-template-columns: 1fr;
+    }
+
+    .job-actions-container {
+        display: flex;
+        flex-direction: column;
     }
 }
 
@@ -1538,11 +1551,4 @@ select:focus {
     font-style: italic;
     text-align: center;
     padding: 20px 0;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .skills-tracker {
-        grid-template-columns: 1fr;
-    }
 }
