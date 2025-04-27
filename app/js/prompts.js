@@ -1759,7 +1759,7 @@ function generateCumulativeLearningPlan() {
     // Get top skills (limit to 5)
     const topSkills = sortedSkills.slice(0, 5);
     
-    // Create prompt for Perplexity
+    // Create prompt for Perplexity with structured JSON format
     let prompt = `Create a comprehensive career development plan focusing on these key skills that appear most frequently in my job search: ${topSkills.join(', ')}. 
 
 Please structure your response as a JSON object with exactly this structure:
