@@ -455,7 +455,9 @@ const CareerInsights = (function() {
     return {
         init: init,
         refreshInsights: refreshInsights,
-        saveCVAnalysis: saveCVAnalysis
+        saveCVAnalysis: saveCVAnalysis,
+        loadJobInsights: loadJobInsights,
+        showWelcomeMessage: showWelcomeMessage
     };
 })();
 
@@ -502,23 +504,24 @@ function populateJobSelector() {
 // Handle job selection from dropdown
 function handleJobSelection() {
     const jobSelector = document.getElementById('insights-job-select');
-
+    
     if (!jobSelector) return;
-
-    jobSelector.addEventListener('change', function () {
+    
+    jobSelector.addEventListener('change', function() {
         const selectedIndex = this.value;
-
+        
         if (selectedIndex === '') {
-            showWelcomeMessage();
+            showWelcomeMessage(); // This might also need to be exposed
             return;
         }
-
-        loadJobInsights(parseInt(selectedIndex));
-
+        
+        // Call the method from the module
+        CareerInsights.loadJobInsights(parseInt(selectedIndex));
+        
         // Show content even if there's no analysis yet
         const welcomeSection = document.getElementById('insights-welcome');
         const contentSection = document.getElementById('insights-content');
-
+        
         if (welcomeSection && contentSection) {
             welcomeSection.style.display = 'none';
             contentSection.style.display = 'block';

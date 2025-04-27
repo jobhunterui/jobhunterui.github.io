@@ -221,6 +221,33 @@ function createClaudePrompt(job, cv) {
     Make sure the JSON follows this exact structure as my extension will parse it automatically. Prioritize skills and experience that are most relevant to the job description. For each experience and education item, add a relevanceScore from 0-100 indicating how relevant it is to this specific job. Also include the skillGapAnalysis section to help me understand my fit for the role.`;
 }
 
+function processCVJson(jsonData) {
+    try {
+        const cvData = JSON.parse(jsonData);
+        
+        // Save analysis to the currently selected job
+        const selectedJob = document.querySelector('.job-item.selected');
+        if (selectedJob) {
+            const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
+            if (typeof CareerInsights !== 'undefined' && CareerInsights.saveCVAnalysis) {
+                CareerInsights.saveCVAnalysis(jobIndex, cvData);
+                
+                // Update the insights view if we're on the insights tab
+                const insightsTab = document.querySelector('.tab-button[data-tab="insights"]');
+                if (insightsTab && insightsTab.classList.contains('active')) {
+                    // Update the UI with the new data
+                    CareerInsights.refreshInsights();
+                }
+            }
+        }
+        
+        return cvData;
+    } catch (error) {
+        console.error('Error parsing CV JSON:', error);
+        return null;
+    }
+}
+
 // Preview CV after getting response from Claude
 function previewCV() {
     const jsonInput = document.getElementById('cv-json');
@@ -231,8 +258,13 @@ function previewCV() {
     }
     
     try {
-        // Parse the JSON data
-        const data = JSON.parse(jsonInput.value);
+        // Parse the JSON data using the new processCVJson function
+        const data = processCVJson(jsonInput.value);
+        
+        if (!data) {
+            showModal('Error', 'Error processing JSON data. Please make sure you pasted the correct format from Claude.');
+            return;
+        }
         
         // Extract data for ML models from Claude's response
         if (typeof trackEvent === 'function') {

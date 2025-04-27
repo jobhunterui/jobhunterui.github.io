@@ -170,10 +170,6 @@ select:focus {
     border-left-color: #7f8c8d;
 }
 
-.job-actions-group:first-child {
-    grid-column: 1 / span 2; /* Quick Generation takes full width */
-}
-
 .action-group-title {
     margin: 0 0 5px 0;
     font-size: 15px;
