@@ -105,6 +105,32 @@ function copyToClipboard(text) {
     return navigator.clipboard.writeText(text);
 }
 
+/**
+ * Creates and opens a preview of HTML content in a new tab/window
+ * 
+ * @param {string} htmlContent - The HTML content to preview
+ * @returns {Window} - The opened window object
+ */
+function createAndOpenPreview(htmlContent) {
+    const blob = new Blob([htmlContent], {type: 'text/html'});
+    const blobUrl = URL.createObjectURL(blob);
+    
+    // Open in new tab and set up cleanup
+    const newWindow = window.open(blobUrl, '_blank');
+    
+    // Clean up blob URL when window closes
+    if (newWindow) {
+        newWindow.addEventListener('beforeunload', () => {
+            URL.revokeObjectURL(blobUrl);
+        });
+    } else {
+        // If popup was blocked, still clean up the URL after a delay
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+    }
+    
+    return newWindow;
+}
+
 // Create prompt for Claude
 function createClaudePrompt(job, cv) {
     return `I need help creating:
@@ -200,11 +226,13 @@ function previewCV() {
         // Create HTML content
         const htmlContent = generateCVHtml(data);
         
-        // Create a Blob and open it in a new tab
-        const blob = new Blob([htmlContent], {type: 'text/html'});
-        const blobUrl = URL.createObjectURL(blob);
+        // Track this preview creation
+        if (typeof trackEvent === 'function') {
+            trackEvent('preview_cv', { method: 'claude_json' });
+        }
         
-        window.open(blobUrl, '_blank');
+        // Use the helper function to create and open the preview
+        createAndOpenPreview(htmlContent);
         
     } catch (e) {
         showModal('Error', 'Error parsing JSON. Please make sure you pasted the correct format from Claude: ' + e.message);
@@ -621,14 +649,7 @@ function generateCVHtml(data) {
                     </div>
                 ` : ''}
                 
-                ${data.skillGapAnalysis ? `
-                    <h3 class="section-title">Skill Match Analysis</h3>
-                    <div class="skills-list">
-                        <p><strong>Overall Match:</strong> ${data.skillGapAnalysis.overallMatch || ''}%</p>
-                        <p><strong>Matching Skills:</strong> ${data.skillGapAnalysis.matchingSkills ? data.skillGapAnalysis.matchingSkills.join(', ') : ''}</p>
-                        <p><strong>Skills to Develop:</strong> ${data.skillGapAnalysis.missingSkills ? data.skillGapAnalysis.missingSkills.join(', ') : ''}</p>
-                    </div>
-                ` : ''}
+                <!-- Skill gap analysis data is tracked but not displayed -->
             </div>
         </div>
     </div>
@@ -785,13 +806,35 @@ async function generateCVWithGemini() {
     // Save the last generated job for later matching
     setStorageData('lastGeneratedJob', job);
     
-    // Show loading state
-    const loadingModal = showModal('Generating CV', 'Please wait while we generate your tailored CV...', []);
-    document.querySelector('.modal-content').innerHTML += '<div class="loading-spinner"></div>';
+    // Show improved loading modal with progress indication
+    const loadingModal = showModal('Generating CV', 
+        `<div class="loading-message">
+            <p>Please wait while we generate your tailored CV...</p>
+            <div class="loading-spinner"></div>
+            <div class="loading-steps">
+                <div class="loading-step current">Analyzing job description</div>
+                <div class="loading-step">Matching with your CV</div>
+                <div class="loading-step">Creating tailored document</div>
+            </div>
+        </div>`, []);
+    
+    // Progress simulation for better UX
+    let currentStep = 0;
+    const loadingSteps = document.querySelectorAll('.loading-step');
+    const progressInterval = setInterval(() => {
+        if (loadingSteps && currentStep < loadingSteps.length - 1) {
+            loadingSteps[currentStep].classList.remove('current');
+            currentStep++;
+            loadingSteps[currentStep].classList.add('current');
+        }
+    }, 2000);
     
     try {
         // Call the API
         const result = await generateCV(job.description, cv);
+        
+        // Clear the progress interval
+        clearInterval(progressInterval);
         
         // Close loading modal
         if (loadingModal) {
@@ -806,16 +849,16 @@ async function generateCVWithGemini() {
         // Show the CV
         const htmlContent = generateCVHtml(result.cv_data);
         
-        // Create a Blob and open it in a new tab
-        const blob = new Blob([htmlContent], {type: 'text/html'});
-        const blobUrl = URL.createObjectURL(blob);
-        
-        window.open(blobUrl, '_blank');
+        // Use the helper function to create and open the preview
+        createAndOpenPreview(htmlContent);
         
         // Show quota information
         showModal('CV Generated', `Your CV has been generated! You have ${result.quota.remaining} generations remaining today.`);
         
     } catch (error) {
+        // Clear the progress interval on error
+        clearInterval(progressInterval);
+        
         // Close loading modal
         if (loadingModal) {
             closeModal(loadingModal);
