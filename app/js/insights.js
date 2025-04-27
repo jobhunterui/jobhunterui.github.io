@@ -54,41 +54,55 @@ const CareerInsights = (function() {
     function checkForCVData() {
         const savedJobs = getSavedJobs();
         
-        // Always show the dropdown if there are saved jobs
+        // Always populate the job selector if there are saved jobs
         populateJobSelector();
         
-        // Check if any job has CV analysis data
-        let hasData = savedJobs.some(job => job.cvAnalysis);
-        
-        if (!hasData) {
-            // No job with analysis, but still show the dropdown
-            const jobSelector = document.getElementById('insights-job-select');
-            if (jobSelector && jobSelector.options.length > 1) {
-                // We have saved jobs but no analysis - show job header
-                // but empty insights sections
-                if (jobSelector.value !== '') {
-                    const jobIndex = parseInt(jobSelector.value);
-                    updateJobHeader(savedJobs[jobIndex]);
-                    showEmptyInsights();
-                    return;
-                }
+        // If we have any saved jobs at all, show the job selector
+        if (savedJobs.length > 0) {
+            // Show content section with the job selector
+            const welcomeSection = document.getElementById('insights-welcome');
+            const contentSection = document.getElementById('insights-content');
+            
+            if (welcomeSection && contentSection) {
+                welcomeSection.style.display = 'none';
+                contentSection.style.display = 'block';
             }
-            showWelcomeMessage();
-        } else {
-            // Some job has analysis - try to show selected job or first job with analysis
-            const selectedJob = document.querySelector('.job-item.selected');
-            if (selectedJob) {
-                const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
+            
+            // Check if any job has CV analysis data
+            const hasAnalysisData = savedJobs.some(job => job.cvAnalysis);
+            
+            // Try to select a job if one was previously selected
+            const jobSelector = document.getElementById('insights-job-select');
+            if (jobSelector && jobSelector.value !== '') {
+                const jobIndex = parseInt(jobSelector.value);
                 loadJobInsights(jobIndex);
-            } else {
-                // No job selected in Apply tab - find first job with analysis
+            } 
+            // Otherwise if no job is selected but there's analysis data, select the first job with data
+            else if (hasAnalysisData) {
                 const jobWithAnalysisIndex = savedJobs.findIndex(job => job.cvAnalysis);
                 if (jobWithAnalysisIndex >= 0) {
                     loadJobInsights(jobWithAnalysisIndex);
+                    
+                    // Update the selector UI to reflect this selection
+                    if (jobSelector) {
+                        jobSelector.value = jobWithAnalysisIndex;
+                    }
                 } else {
-                    showWelcomeMessage();
+                    // This shouldn't happen (we found hasAnalysisData but no job with analysis)
+                    showEmptyInsights();
                 }
+            } 
+            // If no job is selected and no analysis data, show empty insights for first job
+            else {
+                if (jobSelector) {
+                    jobSelector.value = "0"; // Select first job by default
+                }
+                updateJobHeader(savedJobs[0]);
+                showEmptyInsights();
             }
+        } else {
+            // No saved jobs at all, show welcome message
+            showWelcomeMessage();
         }
     }
     
