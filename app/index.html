@@ -323,20 +323,19 @@
         <div id="insights" class="tab-content">
             <h2>Career Insights</h2>
 
-            <div class="insights-job-selector">
-                <label for="insights-job-select">Select a job to analyze:</label>
-                <select id="insights-job-select" class="form-select">
-                    <option value="">Choose a job...</option>
-                    <!-- Options will be populated dynamically -->
-                </select>
-            </div>
-
             <div class="insights-welcome" id="insights-welcome">
                 <p>Select a job from the Apply tab to see personalized career insights and skill recommendations.</p>
             </div>
 
             <div class="insights-content" id="insights-content" style="display: none;">
                 <div class="insights-job-header">
+                    <div class="insights-job-selector">
+                        <label for="insights-job-select">Select a job to analyze:</label>
+                        <select id="insights-job-select" class="form-select">
+                            <option value="">Choose a job...</option>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
                     <h3 id="insights-job-title">Position at Company</h3>
                     <p id="insights-job-company-location">Company • Location</p>
                 </div>
