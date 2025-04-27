@@ -1285,22 +1285,18 @@ select:focus {
 /* Match percentage colors */
 .match-poor {
     border-color: #e74c3c !important;
-    color: #e74c3c;
 }
 
 .match-fair {
     border-color: #f39c12 !important;
-    color: #f39c12;
 }
 
 .match-good {
     border-color: #3498db !important;
-    color: #3498db;
 }
 
 .match-excellent {
     border-color: #2ecc71 !important;
-    color: #2ecc71;
 }
 
 /* Responsive adjustments */
