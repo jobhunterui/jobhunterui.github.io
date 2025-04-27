@@ -115,17 +115,31 @@ function createAndOpenPreview(htmlContent) {
     const blob = new Blob([htmlContent], {type: 'text/html'});
     const blobUrl = URL.createObjectURL(blob);
     
-    // Open in new tab and set up cleanup
+    // Try to open the window
     const newWindow = window.open(blobUrl, '_blank');
+    
+    // Check if pop-up was blocked
+    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        // Pop-up was likely blocked
+        showModal('Pop-up Blocked', 
+            'It looks like your browser blocked the CV preview. Please allow pop-ups for this site to view your CV, then try again.', 
+            [{
+                id: 'try-again',
+                text: 'Try Again',
+                action: () => createAndOpenPreview(htmlContent)
+            }]
+        );
+        
+        // Clean up the blob URL
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+        return null;
+    }
     
     // Clean up blob URL when window closes
     if (newWindow) {
         newWindow.addEventListener('beforeunload', () => {
             URL.revokeObjectURL(blobUrl);
         });
-    } else {
-        // If popup was blocked, still clean up the URL after a delay
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
     }
     
     return newWindow;
