@@ -79,6 +79,12 @@ const LearningDashboard = (function() {
                 switchSection(section);
             });
         });
+
+        // Share/export plan button
+        const shareExportBtn = document.getElementById('share-export-plan');
+        if (shareExportBtn) {
+            shareExportBtn.addEventListener('click', shareExportPlan);
+        }
         
         // Export plan as PDF button
         const exportPdfBtn = document.getElementById('export-plan-pdf');
@@ -1064,6 +1070,51 @@ const LearningDashboard = (function() {
                 }
             }
         ]);
+    }
+
+    // Share or export plan function - add this to learning.js
+    function shareExportPlan() {
+        if (!currentPlan) return;
+        
+        // Generate a descriptive title for the plan
+        const planTitle = currentPlan.plan_title || 'Career Learning Plan';
+        const planDate = currentPlan.created_date ? new Date(currentPlan.created_date).toLocaleDateString() : '';
+        const exportTitle = `${planTitle} - Created with JobHunter ${planDate}`;
+        
+        // Format plan content for export
+        const planData = JSON.stringify(currentPlan, null, 2);
+        
+        // Create a blob with the plan content
+        const blob = new Blob([planData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        // Create a filename with date
+        const safeTitle = planTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        const fileName = `${safeTitle}_${new Date().toISOString().split('T')[0]}.json`;
+        
+        // Create a download link
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.textContent = 'Download Learning Plan';
+        
+        // Trigger download
+        document.body.appendChild(a);
+        a.click();
+        
+        // Clean up
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 100);
+        
+        // Track export/share action
+        if (typeof trackEvent === 'function') {
+            trackEvent('learning_plan_exported', {
+                plan_title: planTitle,
+                skill_count: currentPlan.skills?.length || 0
+            });
+        }
     }
     
     // Helper function to copy to clipboard

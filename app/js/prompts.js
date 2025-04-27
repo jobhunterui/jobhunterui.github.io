@@ -1,5 +1,7 @@
 // AI Prompt Generation for the Job Hunter Web App
 
+let perplexityWindowOpen = false;
+
 // Generate application with Claude
 function generateApplication() {
     const selectedJob = document.querySelector('.job-item.selected');
@@ -1586,6 +1588,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Generate a learning plan prompt for Perplexity
 function generateLearningPlanPrompt() {
+    // Prevent multiple windows
+    if (perplexityWindowOpen) {
+        showModal('Window Already Open', 'A Perplexity window is already open. Please complete that process first.');
+        return;
+    }
+
     const selectedJob = document.querySelector('.job-item.selected');
     
     if (!selectedJob) {
@@ -1684,8 +1692,14 @@ Only respond with the JSON structure - no additional text before or after. Make 
     // Encode the prompt for URL
     const encodedPrompt = encodeURIComponent(prompt);
     
-    // Open Perplexity with the prompt directly in the URL
+    // Set flag and open window
+    perplexityWindowOpen = true;
     window.open(`https://www.perplexity.ai/?q=${encodedPrompt}`, '_blank');
+    
+    // Reset flag after delay
+    setTimeout(() => {
+        perplexityWindowOpen = false;
+    }, 5000);
     
     // Show instructions
     showModal('Learning Plan Generation', 
@@ -1708,6 +1722,12 @@ Only respond with the JSON structure - no additional text before or after. Make 
 
 // Generate a cumulative learning plan across multiple jobs
 function generateCumulativeLearningPlan() {
+    // Prevent multiple windows
+    if (perplexityWindowOpen) {
+        showModal('Window Already Open', 'A Perplexity window is already open. Please complete that process first.');
+        return;
+    }
+
     const savedJobs = getSavedJobs();
     const jobsWithAnalysis = savedJobs.filter(job => job.cvAnalysis);
     
@@ -1812,8 +1832,14 @@ Only respond with the JSON structure - no additional text before or after. Make 
     // Encode the prompt for URL
     const encodedPrompt = encodeURIComponent(prompt);
     
-    // Open Perplexity with the prompt directly in the URL
+    // Set flag and open window
+    perplexityWindowOpen = true;
     window.open(`https://www.perplexity.ai/?q=${encodedPrompt}`, '_blank');
+    
+    // Reset flag after delay
+    setTimeout(() => {
+        perplexityWindowOpen = false;
+    }, 5000);
     
     // Show instructions
     showModal('Career Development Plan', 
