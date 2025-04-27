@@ -1570,3 +1570,27 @@ select:focus {
 #create-cumulative-learning-plan:hover {
     background-color: #3d3d7d;
 }
+
+.create-plan-button-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 20px 0;
+}
+
+#create-career-plan-btn {
+    background-color: #4c4c9d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#create-career-plan-btn:hover {
+    background-color: #3d3d7d;
+}

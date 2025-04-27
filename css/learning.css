@@ -179,6 +179,7 @@
 .learning-skills-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    align-items: start;
     gap: 20px;
     margin-bottom: 30px;
 }
