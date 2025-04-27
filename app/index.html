@@ -38,6 +38,7 @@
             <button class="tab-button active" data-tab="find">Find Jobs</button>
             <button class="tab-button" data-tab="apply">Apply</button>
             <button class="tab-button" data-tab="profile">Profile</button>
+            <button class="tab-button" data-tab="insights">Career Insights</button>
         </div>
         
         <!-- Find Jobs Tab -->
@@ -266,6 +267,72 @@
             
             <!-- Export/Import section will be added by setupExportImport() in ui.js -->
         </div>
+
+        <!-- Career Insights Tab -->
+        <div id="insights" class="tab-content">
+            <h2>Career Insights</h2>
+            
+            <div class="insights-welcome" id="insights-welcome">
+                <p>Select a job from the Apply tab to see personalized career insights and skill recommendations.</p>
+            </div>
+            
+            <div class="insights-content" id="insights-content" style="display: none;">
+                <div class="insights-job-header">
+                    <h3 id="insights-job-title">Position at Company</h3>
+                    <p id="insights-job-company-location">Company • Location</p>
+                </div>
+                
+                <div class="insights-section">
+                    <div class="insights-card">
+                        <h4 class="insights-section-title">Skills Match Analysis</h4>
+                        <div class="skills-match-container">
+                            <div class="skills-match-overview">
+                                <div class="skills-match-meter">
+                                    <div class="skills-match-value" id="skills-match-value">--</div>
+                                    <div class="skills-match-label">Match</div>
+                                </div>
+                            </div>
+                            <div class="skills-details">
+                                <div class="matching-skills">
+                                    <h5>Matching Skills</h5>
+                                    <ul id="matching-skills-list">
+                                        <li class="empty-list-message">Generate a CV for this job first</li>
+                                    </ul>
+                                </div>
+                                <div class="missing-skills">
+                                    <h5>Skills to Develop</h5>
+                                    <ul id="missing-skills-list">
+                                        <li class="empty-list-message">Generate a CV for this job first</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="insights-section">
+                    <div class="insights-card">
+                        <h4 class="insights-section-title">Learning Recommendations</h4>
+                        <div id="learning-recommendations">
+                            <p class="empty-recommendations">Generate a CV for this job to get personalized learning recommendations.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="insights-section">
+                    <div class="insights-card">
+                        <h4 class="insights-section-title">Experience Highlights</h4>
+                        <div id="experience-highlights">
+                            <p class="empty-highlights">Generate a CV for this job to see which of your experiences are most relevant.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="insights-actions">
+                    <button id="insights-generate-cv" class="primary-button">Generate CV Analysis</button>
+                </div>
+            </div>
+        </div>
     </main>
 
     <footer>
@@ -304,5 +371,6 @@
     <script src="js/prompts.js"></script>
     <script src="js/app.js"></script>
     <script src="js/cv-api.js"></script>
+    <script src="js/insights.js"></script>
 </body>
 </html>

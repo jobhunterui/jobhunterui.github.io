@@ -182,6 +182,15 @@ function loadSavedJobs() {
                 if (jobActions) {
                     jobActions.classList.remove('hidden');
                 }
+                
+                // Dispatch a custom event for job selection
+                // This will be used by the insights tab to update
+                const jobSelectedEvent = new CustomEvent('jobSelected', {
+                    detail: {
+                        jobIndex: index
+                    }
+                });
+                document.dispatchEvent(jobSelectedEvent);
             });
             
             // Add view details functionality

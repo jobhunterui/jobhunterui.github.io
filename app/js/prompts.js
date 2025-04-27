@@ -542,6 +542,103 @@ function generateCVHtml(data) {
             display: inline;
         }
         
+        /* Feedback section */
+        .feedback-section {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .feedback-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--secondary-color);
+        }
+        
+        .feedback-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        
+        .feedback-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: none;
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .feedback-btn:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .feedback-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        #thumbs-up {
+            color: #2ecc71;
+        }
+        
+        #thumbs-up:hover {
+            background-color: rgba(46, 204, 113, 0.1);
+            border-color: #2ecc71;
+        }
+        
+        #thumbs-down {
+            color: #e74c3c;
+        }
+        
+        #thumbs-down:hover {
+            background-color: rgba(231, 76, 60, 0.1);
+            border-color: #e74c3c;
+        }
+        
+        .feedback-thankyou {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        
+        /* Feedback form */
+        #feedback-form {
+            display: none;
+            margin-top: 15px;
+            text-align: left;
+        }
+        
+        #feedback-form textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 100px;
+            margin-bottom: 10px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        
+        #regenerate-btn {
+            background-color: #0077B5;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
         /* Print styles */
         @media print {
             body {
@@ -556,7 +653,7 @@ function generateCVHtml(data) {
                 max-width: 100%;
             }
             
-            .print-controls {
+            .print-controls, .feedback-section {
                 display: none;
             }
             
@@ -665,6 +762,29 @@ function generateCVHtml(data) {
                 
                 <!-- Skill gap analysis data is tracked but not displayed -->
             </div>
+        </div>
+    </div>
+    
+    <div class="feedback-section">
+        <div class="feedback-title">How is this CV?</div>
+        <div id="feedback-buttons" class="feedback-buttons">
+            <button id="thumbs-up" class="feedback-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                </svg>
+                Looks Good
+            </button>
+            <button id="thumbs-down" class="feedback-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
+                </svg>
+                Needs Improvement
+            </button>
+        </div>
+        <div id="feedback-form">
+            <p>Please tell us how we can improve this CV:</p>
+            <textarea id="feedback-text" placeholder="E.g., 'Include more technical skills', 'Focus more on my management experience', etc."></textarea>
+            <button id="regenerate-btn">Regenerate with Feedback</button>
         </div>
     </div>
 </body>
@@ -789,7 +909,7 @@ At the end, provide overall feedback and tips to improve. Let's start the interv
 }
 
 // Add one-click CV generation with Gemini
-async function generateCVWithGemini() {
+async function generateCVWithGemini(feedback = "") {
     const selectedJob = document.querySelector('.job-item.selected');
     
     if (!selectedJob) {
@@ -845,7 +965,7 @@ async function generateCVWithGemini() {
     
     try {
         // Call the API
-        const result = await generateCV(job.description, cv);
+        const result = await generateCV(job.description, cv, feedback);
         
         // Clear the progress interval
         clearInterval(progressInterval);
@@ -860,11 +980,71 @@ async function generateCVWithGemini() {
             extractDataFromGeminiResponse(result.cv_data, job, cv);
         }
         
+        // NEW: Save CV data for career insights
+        if (typeof CareerInsights !== 'undefined' && CareerInsights.saveCVAnalysis) {
+            CareerInsights.saveCVAnalysis(jobIndex, result.cv_data);
+        }
+        
         // Show the CV
         const htmlContent = generateCVHtml(result.cv_data);
         
         // Use the helper function to create and open the preview
-        createAndOpenPreview(htmlContent);
+        const previewWindow = createAndOpenPreview(htmlContent);
+        
+        // Attach feedback functionality to the preview window
+        if (previewWindow) {
+            previewWindow.addEventListener('load', () => {
+                const thumbsUpBtn = previewWindow.document.getElementById('thumbs-up');
+                const thumbsDownBtn = previewWindow.document.getElementById('thumbs-down');
+                
+                if (thumbsUpBtn) {
+                    thumbsUpBtn.addEventListener('click', () => {
+                        // Track positive feedback
+                        if (typeof trackEvent === 'function') {
+                            trackEvent('cv_feedback_positive', {
+                                job_title: job.title || '',
+                                company: job.company || ''
+                            });
+                        }
+                        
+                        // Show thank you message in the preview window
+                        previewWindow.document.getElementById('feedback-buttons').innerHTML = 
+                            '<p class="feedback-thankyou">Thank you for your feedback!</p>';
+                    });
+                }
+                
+                if (thumbsDownBtn) {
+                    thumbsDownBtn.addEventListener('click', () => {
+                        // Show feedback form in the preview
+                        previewWindow.document.getElementById('feedback-form').style.display = 'block';
+                        previewWindow.document.getElementById('feedback-buttons').style.display = 'none';
+                        
+                        // Set up the regenerate button
+                        const regenerateBtn = previewWindow.document.getElementById('regenerate-btn');
+                        if (regenerateBtn) {
+                            regenerateBtn.addEventListener('click', () => {
+                                const feedbackText = previewWindow.document.getElementById('feedback-text').value;
+                                
+                                // Track negative feedback
+                                if (typeof trackEvent === 'function') {
+                                    trackEvent('cv_feedback_negative', {
+                                        job_title: job.title || '',
+                                        company: job.company || '',
+                                        feedback: feedbackText
+                                    });
+                                }
+                                
+                                // Close the preview window
+                                previewWindow.close();
+                                
+                                // Regenerate with feedback
+                                generateCVWithGemini(feedbackText);
+                            });
+                        }
+                    });
+                }
+            });
+        }
         
         // Show quota information
         showModal('CV Generated', `Your CV has been generated! You have ${result.quota.remaining} generations remaining today.`);
@@ -891,6 +1071,413 @@ async function generateCVWithGemini() {
             }
         ]);
     }
+}
+
+// Generate cover letter with Gemini
+async function generateCoverLetterWithGemini(feedback = "") {
+    const selectedJob = document.querySelector('.job-item.selected');
+    
+    if (!selectedJob) {
+        showModal('No Job Selected', 'Please select a job from your saved jobs first.');
+        return;
+    }
+    
+    const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
+    const savedJobs = getSavedJobs();
+    const job = savedJobs[jobIndex];
+    
+    const profileData = getProfileData();
+    const cv = profileData.cv || '';
+    
+    if (!cv.trim()) {
+        showModal('CV Missing', 'Please add your CV in the Profile tab first.', [
+            {
+                id: 'go-to-profile',
+                text: 'Go to Profile',
+                action: () => {
+                    document.querySelector('[data-tab="profile"]').click();
+                }
+            }
+        ]);
+        return;
+    }
+    
+    // Save the last generated job for later reference
+    setStorageData('lastGeneratedJob', job);
+    
+    // Show improved loading modal with progress indication
+    const loadingModal = showModal('Generating Cover Letter', 
+        `<div class="loading-message">
+            <p>Please wait while we generate your cover letter...</p>
+            <div class="loading-spinner"></div>
+            <div class="loading-steps">
+                <div class="loading-step current">Analyzing job description</div>
+                <div class="loading-step">Matching with your CV</div>
+                <div class="loading-step">Creating professional cover letter</div>
+            </div>
+        </div>`, []);
+    
+    // Progress simulation for better UX
+    let currentStep = 0;
+    const loadingSteps = document.querySelectorAll('.loading-step');
+    const progressInterval = setInterval(() => {
+        if (loadingSteps && currentStep < loadingSteps.length - 1) {
+            loadingSteps[currentStep].classList.remove('current');
+            currentStep++;
+            loadingSteps[currentStep].classList.add('current');
+        }
+    }, 2000);
+    
+    try {
+        // Call the API
+        const result = await generateCoverLetter(job.description, cv, feedback);
+        
+        // Clear the progress interval
+        clearInterval(progressInterval);
+        
+        // Close loading modal
+        if (loadingModal) {
+            closeModal(loadingModal);
+        }
+        
+        // Track this generation
+        if (typeof trackEvent === 'function') {
+            trackEvent('cover_letter_generated', {
+                job_title: job.title || '',
+                company: job.company || '',
+                has_feedback: feedback ? 'yes' : 'no'
+            });
+        }
+        
+        // Show the cover letter
+        previewCoverLetter(result.cover_letter, job);
+        
+        // Show quota information
+        showModal('Cover Letter Generated', `Your cover letter has been generated! You have ${result.quota.remaining} generations remaining today.`);
+        
+    } catch (error) {
+        // Clear the progress interval on error
+        clearInterval(progressInterval);
+        
+        // Close loading modal
+        if (loadingModal) {
+            closeModal(loadingModal);
+        }
+        
+        // Show error message
+        showModal('Error', `Failed to generate cover letter: ${error.message}`, [
+            {
+                id: 'try-claude',
+                text: 'Try Claude Instead',
+                action: generateApplication
+            },
+            {
+                id: 'close-error',
+                text: 'Close'
+            }
+        ]);
+    }
+}
+
+// Preview generated cover letter
+function previewCoverLetter(coverLetterText, job) {
+    // Create the HTML content for preview
+    const htmlContent = generateCoverLetterHtml(coverLetterText, job);
+    
+    // Use the helper function to create and open the preview
+    const previewWindow = createAndOpenPreview(htmlContent);
+    
+    // Attach feedback functionality to the preview window
+    if (previewWindow) {
+        previewWindow.addEventListener('load', () => {
+            const thumbsUpBtn = previewWindow.document.getElementById('thumbs-up');
+            const thumbsDownBtn = previewWindow.document.getElementById('thumbs-down');
+            
+            if (thumbsUpBtn) {
+                thumbsUpBtn.addEventListener('click', () => {
+                    // Track positive feedback
+                    if (typeof trackEvent === 'function') {
+                        trackEvent('cover_letter_feedback_positive', {
+                            job_title: job.title || '',
+                            company: job.company || ''
+                        });
+                    }
+                    
+                    // Show thank you message in the preview window
+                    previewWindow.document.getElementById('feedback-buttons').innerHTML = 
+                        '<p class="feedback-thankyou">Thank you for your feedback!</p>';
+                });
+            }
+            
+            if (thumbsDownBtn) {
+                thumbsDownBtn.addEventListener('click', () => {
+                    // Show feedback form in the preview
+                    previewWindow.document.getElementById('feedback-form').style.display = 'block';
+                    previewWindow.document.getElementById('feedback-buttons').style.display = 'none';
+                    
+                    // Set up the regenerate button
+                    const regenerateBtn = previewWindow.document.getElementById('regenerate-btn');
+                    if (regenerateBtn) {
+                        regenerateBtn.addEventListener('click', () => {
+                            const feedbackText = previewWindow.document.getElementById('feedback-text').value;
+                            
+                            // Track negative feedback
+                            if (typeof trackEvent === 'function') {
+                                trackEvent('cover_letter_feedback_negative', {
+                                    job_title: job.title || '',
+                                    company: job.company || '',
+                                    feedback: feedbackText
+                                });
+                            }
+                            
+                            // Close the preview window
+                            previewWindow.close();
+                            
+                            // Regenerate with feedback
+                            generateCoverLetterWithGemini(feedbackText);
+                        });
+                    }
+                });
+            }
+        });
+    }
+}
+
+// Generate HTML for cover letter preview
+function generateCoverLetterHtml(coverLetterText, job) {
+    // Format the cover letter text - maintaining its structure while ensuring it's HTML-safe
+    const formattedCoverLetter = coverLetterText
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\n/g, '<br>');
+    
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cover Letter Preview</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --text-color: #333;
+            --light-text: #666;
+            --accent-color: #1abc9c;
+            --background-color: #f5f5f5;
+            --card-background: white;
+            --heading-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            --body-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--body-font);
+        }
+        
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            font-size: 14px;
+            padding: 25px;
+        }
+        
+        .cover-letter-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--card-background);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+            padding: 40px;
+        }
+        
+        /* Controls */
+        .controls {
+            max-width: 800px;
+            margin: 20px auto;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .print-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .print-controls button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .cover-letter-content {
+            line-height: 1.5;
+        }
+        
+        /* Feedback section */
+        .feedback-section {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: var(--card-background);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .feedback-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--secondary-color);
+        }
+        
+        .feedback-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        
+        .feedback-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: none;
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .feedback-btn:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .feedback-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        #thumbs-up {
+            color: #2ecc71;
+        }
+        
+        #thumbs-up:hover {
+            background-color: rgba(46, 204, 113, 0.1);
+            border-color: #2ecc71;
+        }
+        
+        #thumbs-down {
+            color: #e74c3c;
+        }
+        
+        #thumbs-down:hover {
+            background-color: rgba(231, 76, 60, 0.1);
+            border-color: #e74c3c;
+        }
+        
+        .feedback-thankyou {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        
+        /* Feedback form */
+        #feedback-form {
+            display: none;
+            margin-top: 15px;
+            text-align: left;
+        }
+        
+        #feedback-form textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 100px;
+            margin-bottom: 10px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        
+        #regenerate-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        /* Print styles */
+        @media print {
+            body {
+                padding: 0;
+                background-color: white;
+                font-size: 12px;
+            }
+            
+            .cover-letter-container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            
+            .controls, .feedback-section {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <h2>Cover Letter for ${job.title || 'Position'} at ${job.company || 'Company'}</h2>
+        <div class="print-controls">
+            <button onclick="window.print()">Print</button>
+            <button onclick="window.close()">Close</button>
+        </div>
+    </div>
+
+    <div class="cover-letter-container">
+        <div class="cover-letter-content">
+            ${formattedCoverLetter}
+        </div>
+    </div>
+    
+    <div class="feedback-section">
+        <div class="feedback-title">How is this cover letter?</div>
+        <div id="feedback-buttons" class="feedback-buttons">
+            <button id="thumbs-up" class="feedback-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                </svg>
+                Looks Good
+            </button>
+            <button id="thumbs-down" class="feedback-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
+                </svg>
+                Needs Improvement
+            </button>
+        </div>
+        <div id="feedback-form">
+            <p>Please tell us how we can improve this cover letter:</p>
+            <textarea id="feedback-text" placeholder="E.g., 'Make it more specific to the job role', 'Highlight more technical skills', etc."></textarea>
+            <button id="regenerate-btn">Regenerate with Feedback</button>
+        </div>
+    </div>
+</body>
+</html>`;
 }
 
 // Helper function to track data from Gemini response
@@ -932,25 +1519,43 @@ function extractDataFromGeminiResponse(cvData, job, cv) {
     }
 }
 
-// Add the UI setup for CV generation
+// Add the UI setup for one-click generation buttons
 document.addEventListener('DOMContentLoaded', function() {
-    // Add the one-click CV button to job actions
+    // Add the one-click buttons to job actions
     const jobActions = document.getElementById('job-actions');
     if (jobActions) {
-        // Check if the button already exists
+        // Check if the CV button already exists
         if (!document.getElementById('generate-cv-gemini')) {
-            // Create Gemini button
-            const geminiButton = document.createElement('button');
-            geminiButton.id = 'generate-cv-gemini';
-            geminiButton.className = 'primary-button gemini-button';
-            geminiButton.textContent = 'Generate CV (One-Click)';
-            geminiButton.addEventListener('click', generateCVWithGemini);
+            // Create Gemini CV button
+            const cvButton = document.createElement('button');
+            cvButton.id = 'generate-cv-gemini';
+            cvButton.className = 'primary-button gemini-button';
+            cvButton.textContent = 'Generate CV (One-Click)';
+            cvButton.addEventListener('click', generateCVWithGemini);
             
             // Insert it as the first button
             if (jobActions.firstChild) {
-                jobActions.insertBefore(geminiButton, jobActions.firstChild);
+                jobActions.insertBefore(cvButton, jobActions.firstChild);
             } else {
-                jobActions.appendChild(geminiButton);
+                jobActions.appendChild(cvButton);
+            }
+        }
+        
+        // Check if the Cover Letter button already exists
+        if (!document.getElementById('generate-cover-letter-gemini')) {
+            // Create Gemini Cover Letter button
+            const coverLetterButton = document.createElement('button');
+            coverLetterButton.id = 'generate-cover-letter-gemini';
+            coverLetterButton.className = 'primary-button gemini-button';
+            coverLetterButton.textContent = 'Generate Cover Letter';
+            coverLetterButton.addEventListener('click', generateCoverLetterWithGemini);
+            
+            // Insert it after the CV button
+            const cvButton = document.getElementById('generate-cv-gemini');
+            if (cvButton && cvButton.nextSibling) {
+                jobActions.insertBefore(coverLetterButton, cvButton.nextSibling);
+            } else {
+                jobActions.appendChild(coverLetterButton);
             }
         }
     }

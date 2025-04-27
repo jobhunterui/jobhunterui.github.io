@@ -265,8 +265,16 @@ select:focus {
 /* Job actions */
 #job-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
     margin-top: 15px;
+}
+
+/* Document generation button layout */
+#generate-cv-gemini, 
+#generate-cover-letter-gemini {
+    margin-right: 10px;
+    margin-bottom: 10px;
 }
 
 /* Responsive adjustments */
@@ -1043,4 +1051,261 @@ select:focus {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Career Insights tab styles */
+#insights {
+    background-color: #f8f9fa;
+}
+
+.insights-welcome {
+    text-align: center;
+    padding: 40px 20px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.insights-content {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.insights-job-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.insights-job-header h3 {
+    margin-bottom: 5px;
+    color: var(--secondary-color);
+}
+
+.insights-job-header p {
+    color: var(--light-text);
+    font-size: 0.9rem;
+}
+
+.insights-section {
+    margin-bottom: 25px;
+}
+
+.insights-card {
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    padding: 20px;
+}
+
+.insights-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--secondary-color);
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+/* Skills Match Analysis */
+.skills-match-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.skills-match-overview {
+    display: flex;
+    justify-content: center;
+}
+
+.skills-match-meter {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: #f3f4f6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 8px solid;
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.skills-match-value {
+    font-size: 36px;
+    font-weight: bold;
+}
+
+.skills-match-label {
+    font-size: 14px;
+    color: var(--light-text);
+}
+
+.skills-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.matching-skills, .missing-skills {
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    padding: 15px;
+}
+
+.matching-skills h5, .missing-skills h5 {
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: var(--secondary-color);
+}
+
+.matching-skills ul, .missing-skills ul {
+    padding-left: 20px;
+    margin: 0;
+}
+
+.matching-skills li, .missing-skills li {
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.empty-list-message {
+    color: var(--light-text);
+    font-style: italic;
+}
+
+/* Learning Recommendations */
+.learning-recommendation {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.learning-recommendation:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.recommendation-icon {
+    min-width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e3f2fd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    color: #1976d2;
+}
+
+.recommendation-content h5 {
+    margin: 0;
+    margin-bottom: 5px;
+}
+
+.recommendation-content p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--light-text);
+}
+
+.empty-recommendations, .empty-highlights {
+    color: var(--light-text);
+    font-style: italic;
+    text-align: center;
+    padding: 20px 0;
+}
+
+/* Experience Highlights */
+.experience-highlight {
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.experience-highlight:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.experience-highlight-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.experience-highlight-title {
+    font-weight: 600;
+    font-size: 15px;
+    margin: 0;
+}
+
+.experience-highlight-relevance {
+    font-size: 13px;
+    color: #fff;
+    background-color: #3498db;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.experience-highlight-company {
+    font-size: 13px;
+    color: var(--light-text);
+    margin-bottom: 8px;
+}
+
+.experience-highlight-points {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.experience-highlight-points li {
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+/* Insights Actions */
+.insights-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.insights-actions button {
+    padding: 10px 20px;
+}
+
+/* Match percentage colors */
+.match-poor {
+    border-color: #e74c3c !important;
+    color: #e74c3c;
+}
+
+.match-fair {
+    border-color: #f39c12 !important;
+    color: #f39c12;
+}
+
+.match-good {
+    border-color: #3498db !important;
+    color: #3498db;
+}
+
+.match-excellent {
+    border-color: #2ecc71 !important;
+    color: #2ecc71;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .skills-details {
+        grid-template-columns: 1fr;
+    }
 }
