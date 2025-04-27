@@ -1552,3 +1552,21 @@ select:focus {
     text-align: center;
     padding: 20px 0;
 }
+
+.cumulative-learning-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 25px;
+    width: 100%;
+}
+
+/* Make the button itself more prominent */
+#create-cumulative-learning-plan {
+    padding: 10px 20px;
+    font-weight: 600;
+    background-color: #4c4c9d;
+}
+
+#create-cumulative-learning-plan:hover {
+    background-color: #3d3d7d;
+}

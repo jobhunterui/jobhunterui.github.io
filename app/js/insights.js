@@ -706,20 +706,25 @@ function generateCumulativeLearningPlan() {
     // Create a well-structured prompt for an AI learning plan
     let prompt = `Create a comprehensive career development plan focusing on these key skills: ${sortedSkills.join(', ')}. 
 
-My analysis shows these are the most important skills for my target career path based on multiple job postings.
+My analysis shows these are the most important skills for my career path based on multiple job postings.
 
 For each skill:
-1. Explain its importance in modern professional settings
-2. Suggest practical ways to develop it (courses, projects, practice methods)
-3. Recommend specific resources (books, online courses, YouTube channels, communities)
-4. Provide a learning timeline from beginner to advanced
+1. Explain the foundational mental models and core thinking patterns behind mastering this skill
+2. Suggest a structured learning path from beginner to advanced
+3. Recommend specific resources with direct links:
+   - Top YouTube channels/content creators (name specific videos or playlists where possible)
+   - Books that teach the mental models, not just the technical aspects
+   - Online courses that are highly interactive
+   - Communities where I can practice and get feedback
+4. Provide practical project ideas to demonstrate each skill
 
-Also include:
-- How these skills complement each other
-- Ways to demonstrate these skills to potential employers
-- Suggestions for building a portfolio highlighting these abilities
+Additionally:
+- Explain how these mental models complement each other
+- Suggest a 12-week learning schedule with specific milestones
+- Include ways to measure progress and test understanding
+- Recommend experts to follow on social media who explain these concepts well
 
-Focus on both theoretical understanding and practical application, with an emphasis on demonstrable results.`;
+Focus on deep understanding rather than surface-level knowledge, emphasizing the "why" behind each concept.`;
 
     // Track this action
     if (typeof trackEvent === 'function') {
