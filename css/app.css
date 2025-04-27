@@ -150,7 +150,7 @@ select:focus {
 /* Improved job actions section */
 .job-actions-container {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 16px;
     margin-top: 15px;
 }
@@ -397,8 +397,7 @@ select:focus {
     }
 
     .job-actions-container {
-        display: flex;
-        flex-direction: column;
+        grid-template-columns: 1fr;
     }
 }
 
@@ -1454,8 +1453,8 @@ select:focus {
 .insights-job-selector {
     margin-bottom: 20px;
     background-color: white;
-    padding: 12px 15px;
-    border-radius: 6px;
+    padding: 15px 20px;
+    border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -1468,7 +1467,7 @@ select:focus {
 
 .insights-job-selector select {
     width: 100%;
-    padding: 8px 12px;
+    padding: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
 }

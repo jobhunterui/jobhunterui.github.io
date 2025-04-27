@@ -462,35 +462,35 @@ const CareerInsights = (function() {
 // Populate the job selection dropdown
 function populateJobSelector() {
     const jobSelector = document.getElementById('insights-job-select');
-    
+
     if (!jobSelector) return;
-    
+
     // Clear existing options except the first one
     while (jobSelector.options.length > 1) {
         jobSelector.remove(1);
     }
-    
+
     // Get saved jobs
     const savedJobs = getSavedJobs();
-    
+
     if (savedJobs.length === 0) {
         return;
     }
-    
+
     // Add jobs to selector
     savedJobs.forEach((job, index) => {
         const option = document.createElement('option');
         option.value = index;
         option.textContent = `${job.title} at ${job.company}`;
-        
+
         // Mark jobs that have CV analysis
         if (job.cvAnalysis) {
             option.textContent += ' (Analysis available)';
         }
-        
+
         jobSelector.appendChild(option);
     });
-    
+
     // Check if there's a selected job
     const selectedJob = document.querySelector('.job-item.selected');
     if (selectedJob) {
@@ -502,18 +502,27 @@ function populateJobSelector() {
 // Handle job selection from dropdown
 function handleJobSelection() {
     const jobSelector = document.getElementById('insights-job-select');
-    
+
     if (!jobSelector) return;
-    
-    jobSelector.addEventListener('change', function() {
+
+    jobSelector.addEventListener('change', function () {
         const selectedIndex = this.value;
-        
+
         if (selectedIndex === '') {
             showWelcomeMessage();
             return;
         }
-        
+
         loadJobInsights(parseInt(selectedIndex));
+
+        // Show content even if there's no analysis yet
+        const welcomeSection = document.getElementById('insights-welcome');
+        const contentSection = document.getElementById('insights-content');
+
+        if (welcomeSection && contentSection) {
+            welcomeSection.style.display = 'none';
+            contentSection.style.display = 'block';
+        }
     });
 }
 

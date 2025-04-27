@@ -43,6 +43,11 @@ function getSavedJobs() {
 function saveJob(jobData) {
     const savedJobs = getSavedJobs();
     savedJobs.push(jobData);
+
+    if (typeof CareerInsights !== 'undefined' && CareerInsights.refreshInsights) {
+        CareerInsights.refreshInsights();
+    }
+
     return setStorageData(STORAGE_KEYS.SAVED_JOBS, savedJobs);
 }
 
