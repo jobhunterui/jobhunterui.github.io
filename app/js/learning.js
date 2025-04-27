@@ -469,13 +469,23 @@ const LearningDashboard = (function() {
         }
     }
     
-    // Render the skills section
+    // Render the skills section with improved handling of many skills
     function renderSkillsSection() {
         const skillsGrid = document.getElementById('skills-grid');
         if (!skillsGrid || !currentPlan.skills) return;
         
         // Clear existing content
         skillsGrid.innerHTML = '';
+        
+        // Determine if we have many skills (more than 3)
+        const hasMany = currentPlan.skills.length > 3;
+        
+        // Update grid class based on number of skills
+        if (hasMany) {
+            skillsGrid.classList.add('many-skills');
+        } else {
+            skillsGrid.classList.remove('many-skills');
+        }
         
         // Add skill cards
         currentPlan.skills.forEach((skill, skillIndex) => {
@@ -484,7 +494,7 @@ const LearningDashboard = (function() {
         });
     }
     
-    // Create a skill card element
+    // Create a skill card element with improved toggle behavior
     function createSkillCard(skill, skillIndex) {
         const skillCard = document.createElement('div');
         skillCard.className = 'skill-card';
@@ -545,7 +555,21 @@ const LearningDashboard = (function() {
             detailsToggle.addEventListener('click', function() {
                 const isActive = details.classList.contains('active');
                 
-                // Toggle classes
+                // Close all other skill details first
+                document.querySelectorAll('.skill-details.active').forEach(activeDetails => {
+                    if (activeDetails !== details) {
+                        activeDetails.classList.remove('active');
+                        const parentCard = activeDetails.closest('.skill-card');
+                        if (parentCard) {
+                            const toggleBtn = parentCard.querySelector('.skill-details-toggle');
+                            if (toggleBtn) {
+                                toggleBtn.innerHTML = '<span class="toggle-icon">▶</span> Show Details';
+                            }
+                        }
+                    }
+                });
+                
+                // Toggle the clicked skill details
                 details.classList.toggle('active');
                 
                 // Update button text

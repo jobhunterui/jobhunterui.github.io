@@ -1681,68 +1681,183 @@ Only respond with the JSON structure - no additional text before or after. Make 
         });
     }
     
-    // Copy prompt to clipboard
-    copyToClipboard(prompt).then(() => {
-        // Open Perplexity in a new tab
-        window.open('https://www.perplexity.ai/', '_blank');
-        
-        // Show instructions
-        showModal('Prompt Copied', 
-            'Learning plan prompt copied to clipboard! Paste it into Perplexity, then copy the JSON response back to the Learning dashboard.', 
-            [
-                {
-                    id: 'go-to-learning',
-                    text: 'Go to Learning Dashboard',
-                    action: () => {
-                        document.querySelector('[data-tab="learning"]').click();
-                    }
-                },
-                {
-                    id: 'ok-prompt',
-                    text: 'OK'
+    // Encode the prompt for URL
+    const encodedPrompt = encodeURIComponent(prompt);
+    
+    // Open Perplexity with the prompt directly in the URL
+    window.open(`https://www.perplexity.ai/?q=${encodedPrompt}`, '_blank');
+    
+    // Show instructions
+    showModal('Learning Plan Generation', 
+        'Perplexity will open with your prompt. Once you receive the JSON response, copy it and paste it in the Learning Dashboard tab.',
+        [
+            {
+                id: 'go-to-learning',
+                text: 'Go to Learning Dashboard',
+                action: () => {
+                    document.querySelector('[data-tab="learning"]').click();
                 }
-            ]
-        );
-    }).catch(error => {
-        console.error('Error copying to clipboard:', error);
-        
-        // Alternative method for clipboard
-        const textArea = document.createElement('textarea');
-        textArea.value = prompt;
-        textArea.style.position = 'fixed';
-        document.body.appendChild(textArea);
-        textArea.select();
-        
-        try {
-            document.execCommand('copy');
-            
-            // Open Perplexity in a new tab
-            window.open('https://www.perplexity.ai/', '_blank');
-            
-            // Show instructions
-            showModal('Prompt Copied', 
-                'Learning plan prompt copied to clipboard! Paste it into Perplexity, then copy the JSON response back to the Learning dashboard.',
-                [
-                    {
-                        id: 'go-to-learning',
-                        text: 'Go to Learning Dashboard',
-                        action: () => {
-                            document.querySelector('[data-tab="learning"]').click();
-                        }
-                    },
-                    {
-                        id: 'ok-prompt',
-                        text: 'OK'
-                    }
-                ]
-            );
-        } catch (err) {
-            showModal('Error', 'Could not copy the prompt. Please try again or copy it manually.');
-        }
-        
-        document.body.removeChild(textArea);
-    });
+            },
+            {
+                id: 'ok-prompt',
+                text: 'OK'
+            }
+        ]
+    );
 }
+
+// Generate a cumulative learning plan across multiple jobs
+function generateCumulativeLearningPlan() {
+    const savedJobs = getSavedJobs();
+    const jobsWithAnalysis = savedJobs.filter(job => job.cvAnalysis);
+    
+    if (jobsWithAnalysis.length === 0) {
+        showModal('No Job Analysis', 'Please generate CVs for jobs first to identify skill gaps.');
+        return;
+    }
+    
+    // Collect all skill gaps across jobs
+    const allMissingSkills = {};
+    
+    jobsWithAnalysis.forEach(job => {
+        const missingSkills = job.cvAnalysis.skillGapAnalysis?.missingSkills || [];
+        missingSkills.forEach(skill => {
+            allMissingSkills[skill] = (allMissingSkills[skill] || 0) + 1;
+        });
+    });
+    
+    // Convert to array and sort by frequency
+    const sortedSkills = Object.entries(allMissingSkills)
+        .sort((a, b) => b[1] - a[1])
+        .map(item => item[0]);
+    
+    if (sortedSkills.length === 0) {
+        showModal('No Skill Gaps', 'No skill gaps identified across your jobs. Your skills match well!');
+        return;
+    }
+    
+    // Get top skills (limit to 5)
+    const topSkills = sortedSkills.slice(0, 5);
+    
+    // Create prompt for Perplexity
+    let prompt = `Create a comprehensive career development plan focusing on these key skills that appear most frequently in my job search: ${topSkills.join(', ')}. 
+
+Please structure your response as a JSON object with exactly this structure:
+
+\`\`\`json
+{
+  "plan_title": "Career Development Plan for ${topSkills.length} Key Skills",
+  "skills": [
+    {
+      "name": "Skill Name", 
+      "description": "Brief description of this skill's importance in the job market",
+      "progress": 0,
+      "modules": [
+        {
+          "title": "Module Name", 
+          "description": "What this module covers",
+          "resources": [
+            {
+              "title": "Resource Title",
+              "type": "documentation/video/course/article",
+              "url": "URL to resource",
+              "completed": false
+            }
+          ],
+          "projects": [
+            {
+              "title": "Project Title",
+              "description": "Brief description of what to build or do",
+              "completed": false
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "timeline": {
+    "weeks": [
+      {
+        "week": 1,
+        "focus": "What to focus on this week",
+        "activities": ["Specific activity 1", "Specific activity 2"],
+        "completed": false
+      }
+    ]
+  }
+}
+\`\`\`
+
+For each skill:
+1. Explain why this skill is increasingly valuable in today's job market
+2. Include 2-3 learning modules that build progressively
+3. For each module, include 2-4 high-quality learning resources with direct links
+4. Include at least one practical project per module that would demonstrate this skill to employers
+5. Focus on both theoretical understanding and practical application
+6. Target the plan for someone advancing their career, not a complete beginner
+7. Create an 8-12 week learning schedule that balances all skills
+8. Emphasize projects that could be added to a portfolio
+
+Only respond with the JSON structure - no additional text before or after. Make sure the JSON is valid and properly formatted.`;
+
+    // Track this action
+    if (typeof trackEvent === 'function') {
+        trackEvent('generate_cumulative_learning_plan', {
+            top_skills: topSkills.join(', '),
+            skill_count: topSkills.length,
+            job_count: jobsWithAnalysis.length
+        });
+    }
+    
+    // Encode the prompt for URL
+    const encodedPrompt = encodeURIComponent(prompt);
+    
+    // Open Perplexity with the prompt directly in the URL
+    window.open(`https://www.perplexity.ai/?q=${encodedPrompt}`, '_blank');
+    
+    // Show instructions
+    showModal('Career Development Plan', 
+        'Perplexity will open with your prompt. Once you receive the JSON response, copy it and paste it in the Learning Dashboard tab.',
+        [
+            {
+                id: 'go-to-learning',
+                text: 'Go to Learning Dashboard',
+                action: () => {
+                    document.querySelector('[data-tab="learning"]').click();
+                }
+            },
+            {
+                id: 'ok-prompt',
+                text: 'OK'
+            }
+        ]
+    );
+}
+
+// Initialize prompts functionality for learning plans
+document.addEventListener('DOMContentLoaded', function() {
+    // Hook into existing "Create Learning Plan" buttons
+    const insightsLearningPlanBtn = document.getElementById('create-learning-plan');
+    if (insightsLearningPlanBtn) {
+        // Replace existing event listener with our new one
+        const newLearningPlanBtn = insightsLearningPlanBtn.cloneNode(true);
+        insightsLearningPlanBtn.parentNode.replaceChild(newLearningPlanBtn, insightsLearningPlanBtn);
+        
+        // Add our event listener
+        newLearningPlanBtn.addEventListener('click', generateLearningPlanPrompt);
+    }
+    
+    // Hook into cumulative learning plan button
+    const cumulativeLearningPlanBtn = document.getElementById('create-cumulative-learning-plan');
+    if (cumulativeLearningPlanBtn) {
+        // Replace existing event listener with our new one
+        const newCumulativePlanBtn = cumulativeLearningPlanBtn.cloneNode(true);
+        cumulativeLearningPlanBtn.parentNode.replaceChild(newCumulativePlanBtn, cumulativeLearningPlanBtn);
+        
+        // Add our event listener
+        newCumulativePlanBtn.addEventListener('click', generateCumulativeLearningPlan);
+    }
+});
 
 // Generate a cumulative learning plan across multiple jobs
 function generateCumulativeLearningPlan() {
