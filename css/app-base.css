@@ -30,7 +30,7 @@ h1, h2, h3, h4, h5, h6 {
     color: #2c3e50;
 }
 
-/* Modal styles that appear to be missing based on screenshots */
+/* Modal styles */
 .modal {
     position: fixed;
     z-index: 1000;
@@ -54,6 +54,87 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
     position: relative;
     padding: 20px;
+}
+
+/* Modal buttons */
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.modal-buttons button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    min-width: 80px;
+    font-weight: 500;
+}
+
+.modal-buttons .primary-button {
+    background-color: #3498db;
+    color: white;
+}
+
+.modal-buttons .secondary-button {
+    background-color: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.modal-buttons .danger-button {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.modal-buttons .default-button {
+    background-color: #f8f9fa;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+/* Interview Prep and Remove buttons */
+#interview-prep, #remove-job {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    min-width: 120px;
+}
+
+#interview-prep {
+    background-color: #9b59b6;
+    color: white;
+    border: none;
+}
+
+#interview-prep:hover {
+    background-color: #8e44ad;
+}
+
+#remove-job {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+}
+
+#remove-job:hover {
+    background-color: #c0392b;
+}
+
+/* Make sure buttons in job actions are properly spaced */
+.job-actions-group .action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
 }
 
 /* Prompt copied dialog styles */
