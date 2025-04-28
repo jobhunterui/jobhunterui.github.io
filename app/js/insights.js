@@ -12,8 +12,6 @@ const CareerInsights = (function() {
         bindEvents();
         populateJobSelector();
         handleJobSelection();
-        setupLearningPlanGeneration();
-        setupCumulativeLearningPlan();
         checkForCVData();
     }
     
