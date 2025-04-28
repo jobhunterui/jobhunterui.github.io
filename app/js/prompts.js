@@ -1560,6 +1560,7 @@ function extractDataFromGeminiResponse(cvData, job, cv) {
     }
 }
 
+/*
 // Add direct event listeners to the Gemini buttons
 document.addEventListener('DOMContentLoaded', function () {
     // CV generation button
@@ -1615,6 +1616,8 @@ document.addEventListener('DOMContentLoaded', function () {
         previewCvButton.addEventListener('click', previewCV);
     }
 });
+
+*/
 
 // Learning Plan Generation functionality
 
@@ -1892,6 +1895,231 @@ Only respond with the JSON structure - no additional text before or after. Make 
     );
 }
 
+document.addEventListener('DOMContentLoaded', function () {
+    // CV generation button
+    const cvButton = document.getElementById('generate-cv-gemini');
+    if (cvButton) {
+        // Remove any existing event listeners
+        const newCvButton = cvButton.cloneNode(true);
+        cvButton.parentNode.replaceChild(newCvButton, cvButton);
+
+        // Add our event listener with tracking
+        newCvButton.addEventListener('click', function (e) {
+            // Track event before generating
+            if (typeof trackEvent === 'function') {
+                trackEvent('gemini_cv_generation_click', {
+                    method: 'gemini', 
+                    generation_type: 'cv',
+                    page: 'apply_tab'
+                });
+            }
+            generateCVWithGemini();
+        });
+    }
+
+    // Cover Letter generation button
+    const coverLetterButton = document.getElementById('generate-cover-letter-gemini');
+    if (coverLetterButton) {
+        // Remove any existing event listeners
+        const newCoverLetterButton = coverLetterButton.cloneNode(true);
+        coverLetterButton.parentNode.replaceChild(newCoverLetterButton, coverLetterButton);
+
+        // Add our event listener with tracking
+        newCoverLetterButton.addEventListener('click', function (e) {
+            // Track event before generating
+            if (typeof trackEvent === 'function') {
+                trackEvent('gemini_cover_letter_generation_click', {
+                    method: 'gemini',
+                    generation_type: 'cover_letter',
+                    page: 'apply_tab'
+                });
+            }
+            generateCoverLetterWithGemini();
+        });
+    }
+
+    // Set up Generate Application button (Claude)
+    const generateApplicationButton = document.getElementById('generate-application');
+    if (generateApplicationButton) {
+        // Remove any existing event listeners
+        const newGenerateAppButton = generateApplicationButton.cloneNode(true);
+        generateApplicationButton.parentNode.replaceChild(newGenerateAppButton, generateApplicationButton);
+
+        // Add our event listener with tracking
+        newGenerateAppButton.addEventListener('click', function() {
+            // Get selected job data for tracking
+            const selectedJob = document.querySelector('.job-item.selected');
+            let trackingData = {};
+            
+            if (selectedJob) {
+                const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
+                const savedJobs = getSavedJobs();
+                if (savedJobs[jobIndex]) {
+                    trackingData = {
+                        job_title: savedJobs[jobIndex].title || 'Unknown',
+                        company: savedJobs[jobIndex].company || 'Unknown',
+                        method: 'claude',
+                        generation_type: 'application'
+                    };
+                }
+            }
+            
+            // Track event before generating
+            if (typeof trackEvent === 'function') {
+                trackEvent('claude_generation_click', trackingData);
+            }
+            
+            generateApplication();
+        });
+    }
+
+    // Set up Interview Prep button
+    const interviewPrepButton = document.getElementById('interview-prep');
+    if (interviewPrepButton) {
+        // Remove any existing event listeners
+        const newInterviewPrepButton = interviewPrepButton.cloneNode(true);
+        interviewPrepButton.parentNode.replaceChild(newInterviewPrepButton, interviewPrepButton);
+
+        // Add our event listener with tracking
+        newInterviewPrepButton.addEventListener('click', function() {
+            // Get selected job data for tracking
+            const selectedJob = document.querySelector('.job-item.selected');
+            let trackingData = {
+                method: 'claude',
+                preparation_type: 'interview'
+            };
+            
+            if (selectedJob) {
+                const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
+                const savedJobs = getSavedJobs();
+                if (savedJobs[jobIndex]) {
+                    trackingData.job_title = savedJobs[jobIndex].title || 'Unknown';
+                    trackingData.company = savedJobs[jobIndex].company || 'Unknown';
+                }
+            }
+            
+            // Track event before generating
+            if (typeof trackEvent === 'function') {
+                trackEvent('interview_prep_click', trackingData);
+            }
+            
+            generateInterviewPrep();
+        });
+    }
+
+    // Set up Preview CV button
+    const previewCvButton = document.getElementById('preview-cv');
+    if (previewCvButton) {
+        // Remove any existing event listeners
+        const newPreviewCvButton = previewCvButton.cloneNode(true);
+        previewCvButton.parentNode.replaceChild(newPreviewCvButton, previewCvButton);
+
+        // Add our event listener with tracking
+        newPreviewCvButton.addEventListener('click', function() {
+            // Track event before previewing
+            if (typeof trackEvent === 'function') {
+                trackEvent('preview_cv_click', {
+                    method: 'manual_json',
+                    page: 'profile_tab'
+                });
+            }
+            
+            previewCV();
+        });
+    }
+    
+    // Learning plan buttons
+    const insightsLearningPlanBtn = document.getElementById('create-learning-plan');
+    if (insightsLearningPlanBtn) {
+        // Remove any existing event listeners
+        const newLearningPlanBtn = insightsLearningPlanBtn.cloneNode(true);
+        insightsLearningPlanBtn.parentNode.replaceChild(newLearningPlanBtn, insightsLearningPlanBtn);
+
+        // Add our event listener with tracking
+        newLearningPlanBtn.addEventListener('click', function() {
+            // Get selected job data for tracking
+            const selectedJob = document.querySelector('.job-item.selected');
+            let trackingData = {
+                plan_type: 'single_job',
+                tool: 'perplexity'
+            };
+            
+            if (selectedJob) {
+                const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
+                const savedJobs = getSavedJobs();
+                if (savedJobs[jobIndex]) {
+                    trackingData.job_title = savedJobs[jobIndex].title || 'Unknown';
+                    trackingData.company = savedJobs[jobIndex].company || 'Unknown';
+                    
+                    // Add skill gap info if available
+                    if (savedJobs[jobIndex].cvAnalysis && 
+                        savedJobs[jobIndex].cvAnalysis.skillGapAnalysis && 
+                        savedJobs[jobIndex].cvAnalysis.skillGapAnalysis.missingSkills) {
+                        trackingData.missing_skills = savedJobs[jobIndex].cvAnalysis.skillGapAnalysis.missingSkills.join(', ');
+                        trackingData.skill_count = savedJobs[jobIndex].cvAnalysis.skillGapAnalysis.missingSkills.length;
+                    }
+                }
+            }
+            
+            // Track event before generating
+            if (typeof trackEvent === 'function') {
+                trackEvent('learning_plan_generation_click', trackingData);
+            }
+            
+            generateLearningPlanPrompt();
+        });
+    }
+
+    const cumulativeLearningPlanBtn = document.getElementById('create-cumulative-learning-plan');
+    if (cumulativeLearningPlanBtn) {
+        // Remove any existing event listeners
+        const newCumulativePlanBtn = cumulativeLearningPlanBtn.cloneNode(true);
+        cumulativeLearningPlanBtn.parentNode.replaceChild(newCumulativePlanBtn, cumulativeLearningPlanBtn);
+
+        // Add our event listener with tracking
+        newCumulativePlanBtn.addEventListener('click', function() {
+            // Get jobs with analysis data for tracking
+            const savedJobs = getSavedJobs();
+            const jobsWithAnalysis = savedJobs.filter(job => job.cvAnalysis);
+            
+            let trackingData = {
+                plan_type: 'cumulative',
+                tool: 'perplexity',
+                job_count: jobsWithAnalysis.length
+            };
+            
+            // Collect all skill gaps for tracking
+            const allMissingSkills = {};
+            jobsWithAnalysis.forEach(job => {
+                const missingSkills = job.cvAnalysis.skillGapAnalysis?.missingSkills || [];
+                missingSkills.forEach(skill => {
+                    allMissingSkills[skill] = (allMissingSkills[skill] || 0) + 1;
+                });
+            });
+            
+            // Get top skills
+            const sortedSkills = Object.entries(allMissingSkills)
+                .sort((a, b) => b[1] - a[1])
+                .map(item => item[0]);
+                
+            const topSkills = sortedSkills.slice(0, 5);
+            
+            if (topSkills.length > 0) {
+                trackingData.top_skills = topSkills.join(', ');
+                trackingData.skill_count = topSkills.length;
+            }
+            
+            // Track event before generating
+            if (typeof trackEvent === 'function') {
+                trackEvent('cumulative_learning_plan_click', trackingData);
+            }
+            
+            generateCumulativeLearningPlan();
+        });
+    }
+});
+
+/*
 // Initialize prompts functionality for learning plans
 document.addEventListener('DOMContentLoaded', function () {
     // Hook into existing "Create Learning Plan" buttons
@@ -1916,3 +2144,5 @@ document.addEventListener('DOMContentLoaded', function () {
         newCumulativePlanBtn.addEventListener('click', generateCumulativeLearningPlan);
     }
 });
+
+*/
