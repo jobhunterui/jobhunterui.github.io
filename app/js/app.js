@@ -430,6 +430,62 @@ function showJobDetails(job, index) {
     });
 }
 
+/**
+ * Shows a modal with the full job description text
+ * @param {string} description - The full job description text to display
+ */
+function showFullDescription(description) {
+    // Create modal for showing the full description
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    
+    modal.innerHTML = `
+        <div class="modal-content full-description-modal">
+            <span class="close-modal">&times;</span>
+            <h2>Full Job Description</h2>
+            <div class="full-description-content">
+                <pre>${description}</pre>
+            </div>
+            <div class="modal-buttons">
+                <button id="close-full-description" class="default-button">Close</button>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to document
+    document.body.appendChild(modal);
+    
+    // Show modal with fade-in effect
+    setTimeout(() => {
+        modal.classList.add('active');
+    }, 10);
+    
+    // Set up close button
+    modal.querySelector('.close-modal').addEventListener('click', () => {
+        closeModal(modal);
+    });
+    
+    // Set up close button
+    const closeButton = modal.querySelector('#close-full-description');
+    if (closeButton) {
+        closeButton.addEventListener('click', () => {
+            closeModal(modal);
+        });
+    }
+    
+    // Close when clicking outside the modal content
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal(modal);
+        }
+    });
+    
+    // Track this viewing
+    if (typeof trackEvent === 'function') {
+        trackEvent('view_full_description');
+    }
+}
+
 // Remove selected job
 function removeSelectedJob() {
     const selectedJob = document.querySelector('.job-item.selected');

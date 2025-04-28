@@ -5,19 +5,19 @@ let perplexityWindowOpen = false;
 // Generate application with Claude
 function generateApplication() {
     const selectedJob = document.querySelector('.job-item.selected');
-    
+
     if (!selectedJob) {
         showModal('No Job Selected', 'Please select a job from your saved jobs first.');
         return;
     }
-    
+
     const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
     const savedJobs = getSavedJobs();
     const job = savedJobs[jobIndex];
-    
+
     const profileData = getProfileData();
     const cv = profileData.cv || '';
-    
+
     if (!cv.trim()) {
         showModal('CV Missing', 'Please add your CV in the Profile tab first.', [
             {
@@ -30,27 +30,27 @@ function generateApplication() {
         ]);
         return;
     }
-    
+
     // Save the last generated job for later matching with Claude's response
     setStorageData('lastGeneratedJob', job);
-    
+
     // Create prompt for Claude
     const prompt = createClaudePrompt(job, cv);
-    
-    // Copy prompt to clipboard
-    copyToClipboard(prompt).then(() => {
+
+    // Function to handle successful clipboard copy
+    function handleSuccessfulCopy() {
         // Show the JSON input field in profile
         const jsonInputSection = document.querySelector('.json-input-section');
         if (jsonInputSection) {
             jsonInputSection.classList.remove('hidden');
         }
-        
+
         // Open Claude in a new tab
         window.open('https://claude.ai', '_blank');
-        
+
         // Switch to profile tab
         document.querySelector('[data-tab="profile"]').click();
-        
+
         // Show instructions
         showModal('Prompt Copied', 'Prompt copied to clipboard! Paste it into Claude, then copy the JSON response back to the extension.', [
             {
@@ -58,7 +58,7 @@ function generateApplication() {
                 text: 'OK'
             }
         ]);
-        
+
         // Track application generation
         if (typeof trackEvent === 'function') {
             trackEvent('application_generated', {
@@ -67,38 +67,34 @@ function generateApplication() {
                 has_cv: cv ? 'yes' : 'no'
             });
         }
+    }
+
+    // Try modern clipboard API first
+    copyToClipboard(prompt).then(() => {
+        handleSuccessfulCopy();
     }).catch(error => {
         console.error('Error copying to clipboard:', error);
-        
+
         // Alternative method for clipboard
         const textArea = document.createElement('textarea');
         textArea.value = prompt;
         textArea.style.position = 'fixed';
         document.body.appendChild(textArea);
         textArea.select();
-        
+
         try {
-            document.execCommand('copy');
-            
-            // Show the JSON input field in profile
-            const jsonInputSection = document.querySelector('.json-input-section');
-            if (jsonInputSection) {
-                jsonInputSection.classList.remove('hidden');
+            const success = document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            if (success) {
+                handleSuccessfulCopy();
+            } else {
+                showModal('Error', 'Could not copy the prompt. Please try again or copy it manually.');
             }
-            
-            // Open Claude in a new tab
-            window.open('https://claude.ai', '_blank');
-            
-            // Switch to profile tab
-            document.querySelector('[data-tab="profile"]').click();
-            
-            // Show instructions
-            showModal('Prompt Copied', 'Prompt copied to clipboard! Paste it into Claude, then copy the JSON response back to the extension.');
         } catch (err) {
+            document.body.removeChild(textArea);
             showModal('Error', 'Could not copy the prompt. Please try again or copy it manually.');
         }
-        
-        document.body.removeChild(textArea);
     });
 }
 
@@ -114,36 +110,36 @@ function copyToClipboard(text) {
  * @returns {Window} - The opened window object
  */
 function createAndOpenPreview(htmlContent) {
-    const blob = new Blob([htmlContent], {type: 'text/html'});
+    const blob = new Blob([htmlContent], { type: 'text/html' });
     const blobUrl = URL.createObjectURL(blob);
-    
+
     // Try to open the window
     const newWindow = window.open(blobUrl, '_blank');
-    
+
     // Check if pop-up was blocked
     if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
         // Pop-up was likely blocked
-        showModal('Pop-up Blocked', 
-            'It looks like your browser blocked the CV preview. Please allow pop-ups for this site to view your CV, then try again.', 
+        showModal('Pop-up Blocked',
+            'It looks like your browser blocked the CV preview. Please allow pop-ups for this site to view your CV, then try again.',
             [{
                 id: 'try-again',
                 text: 'Try Again',
                 action: () => createAndOpenPreview(htmlContent)
             }]
         );
-        
+
         // Clean up the blob URL
         setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
         return null;
     }
-    
+
     // Clean up blob URL when window closes
     if (newWindow) {
         newWindow.addEventListener('beforeunload', () => {
             URL.revokeObjectURL(blobUrl);
         });
     }
-    
+
     return newWindow;
 }
 
@@ -224,14 +220,14 @@ function createClaudePrompt(job, cv) {
 function processCVJson(jsonData) {
     try {
         const cvData = JSON.parse(jsonData);
-        
+
         // Save analysis to the currently selected job
         const selectedJob = document.querySelector('.job-item.selected');
         if (selectedJob) {
             const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
             if (typeof CareerInsights !== 'undefined' && CareerInsights.saveCVAnalysis) {
                 CareerInsights.saveCVAnalysis(jobIndex, cvData);
-                
+
                 // Update the insights view if we're on the insights tab
                 const insightsTab = document.querySelector('.tab-button[data-tab="insights"]');
                 if (insightsTab && insightsTab.classList.contains('active')) {
@@ -240,7 +236,7 @@ function processCVJson(jsonData) {
                 }
             }
         }
-        
+
         return cvData;
     } catch (error) {
         console.error('Error parsing CV JSON:', error);
@@ -251,37 +247,37 @@ function processCVJson(jsonData) {
 // Preview CV after getting response from Claude
 function previewCV() {
     const jsonInput = document.getElementById('cv-json');
-    
+
     if (!jsonInput || !jsonInput.value.trim()) {
         showModal('JSON Missing', 'Please paste the JSON output from Claude first.');
         return;
     }
-    
+
     try {
         // Parse the JSON data using the new processCVJson function
         const data = processCVJson(jsonInput.value);
-        
+
         if (!data) {
             showModal('Error', 'Error processing JSON data. Please make sure you pasted the correct format from Claude.');
             return;
         }
-        
+
         // Extract data for ML models from Claude's response
         if (typeof trackEvent === 'function') {
             extractDataFromClaudeResponse(jsonInput.value);
         }
-        
+
         // Create HTML content
         const htmlContent = generateCVHtml(data);
-        
+
         // Track this preview creation
         if (typeof trackEvent === 'function') {
             trackEvent('preview_cv', { method: 'claude_json' });
         }
-        
+
         // Use the helper function to create and open the preview
         createAndOpenPreview(htmlContent);
-        
+
     } catch (e) {
         showModal('Error', 'Error parsing JSON. Please make sure you pasted the correct format from Claude: ' + e.message);
     }
@@ -292,11 +288,11 @@ function extractDataFromClaudeResponse(jsonData) {
     try {
         // Parse the JSON data from Claude
         const data = JSON.parse(jsonData);
-        
+
         // Get stored job data to associate with this response
         const job = getStorageData('lastGeneratedJob') || {};
         const cv = getProfileData().cv || '';
-        
+
         // Extract skills from Claude's JSON
         const cvSkills = [];
         if (data.skills && Array.isArray(data.skills)) {
@@ -312,7 +308,7 @@ function extractDataFromClaudeResponse(jsonData) {
                 }
             });
         }
-        
+
         // Track the enriched data
         trackEvent('cv_job_match', {
             job_title: job.title || '',
@@ -326,7 +322,7 @@ function extractDataFromClaudeResponse(jsonData) {
             highlighted_experience: Array.isArray(data.experience) ?
                 data.experience.map(e => e.jobTitle).join('; ') : ''
         });
-        
+
     } catch (error) {
     }
 }
@@ -828,19 +824,19 @@ function generateCVHtml(data) {
 // Generate interview preparation prompts
 function generateInterviewPrep() {
     const selectedJob = document.querySelector('.job-item.selected');
-    
+
     if (!selectedJob) {
         showModal('No Job Selected', 'Please select a job from your saved jobs first.');
         return;
     }
-    
+
     const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
     const savedJobs = getSavedJobs();
     const job = savedJobs[jobIndex];
-    
+
     const profileData = getProfileData();
     const cv = profileData.cv || '';
-    
+
     if (!cv.trim()) {
         showModal('CV Missing', 'Please add your CV in the Profile tab first.', [
             {
@@ -853,7 +849,7 @@ function generateInterviewPrep() {
         ]);
         return;
     }
-    
+
     // Track interview prep generation
     if (typeof trackEvent === 'function') {
         trackEvent('generate_interview_prep', {
@@ -861,45 +857,52 @@ function generateInterviewPrep() {
             company: job.company || ''
         });
     }
-    
+
     // Create prompt for Claude
     const prompt = createInterviewPrepPrompt(job, cv);
-    
-    // Copy prompt to clipboard
-    copyToClipboard(prompt).then(() => {
+
+    // Function to handle successful clipboard copy
+    function handleSuccessfulCopy() {
         // Open Claude in a new tab
         window.open('https://claude.ai', '_blank');
-        
+
         // Show instructions
-        showModal('Interview Prep Prompt Copied', 'Interview prep prompt copied to clipboard! Paste it into Claude to start your interview preparation session.', [
-            {
-                id: 'ok-prompt',
-                text: 'OK'
-            }
-        ]);
+        showModal('Interview Prep Prompt Copied',
+            'Interview prep prompt copied to clipboard! Paste it into Claude to start your interview preparation session.',
+            [
+                {
+                    id: 'ok-prompt',
+                    text: 'OK'
+                }
+            ]);
+    }
+
+    // Try modern clipboard API first
+    copyToClipboard(prompt).then(() => {
+        handleSuccessfulCopy();
     }).catch(error => {
         console.error('Error copying to clipboard:', error);
-        
+
         // Alternative method for clipboard
         const textArea = document.createElement('textarea');
         textArea.value = prompt;
         textArea.style.position = 'fixed';
         document.body.appendChild(textArea);
         textArea.select();
-        
+
         try {
-            document.execCommand('copy');
-            
-            // Open Claude in a new tab
-            window.open('https://claude.ai', '_blank');
-            
-            // Show instructions
-            showModal('Interview Prep Prompt Copied', 'Interview prep prompt copied to clipboard! Paste it into Claude to start your interview preparation session.');
+            const success = document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            if (success) {
+                handleSuccessfulCopy();
+            } else {
+                showModal('Error', 'Could not copy the prompt. Please try again or copy it manually.');
+            }
         } catch (err) {
+            document.body.removeChild(textArea);
             showModal('Error', 'Could not copy the prompt. Please try again or copy it manually.');
         }
-        
-        document.body.removeChild(textArea);
     });
 }
 
@@ -947,19 +950,19 @@ async function generateCVWithGemini(feedback = "") {
     console.log('generateCVWithGemini function called');
 
     const selectedJob = document.querySelector('.job-item.selected');
-    
+
     if (!selectedJob) {
         showModal('No Job Selected', 'Please select a job from your saved jobs first.');
         return;
     }
-    
+
     const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
     const savedJobs = getSavedJobs();
     const job = savedJobs[jobIndex];
-    
+
     const profileData = getProfileData();
     const cv = profileData.cv || '';
-    
+
     if (!cv.trim()) {
         showModal('CV Missing', 'Please add your CV in the Profile tab first.', [
             {
@@ -972,12 +975,12 @@ async function generateCVWithGemini(feedback = "") {
         ]);
         return;
     }
-    
+
     // Save the last generated job for later matching
     setStorageData('lastGeneratedJob', job);
-    
+
     // Show improved loading modal with progress indication
-    const loadingModal = showModal('Generating CV', 
+    const loadingModal = showModal('Generating CV',
         `<div class="loading-message">
             <p>Please wait while we generate your tailored CV...</p>
             <div class="loading-spinner"></div>
@@ -987,7 +990,7 @@ async function generateCVWithGemini(feedback = "") {
                 <div class="loading-step">Creating tailored document</div>
             </div>
         </div>`, []);
-    
+
     // Progress simulation for better UX
     let currentStep = 0;
     const loadingSteps = document.querySelectorAll('.loading-step');
@@ -998,41 +1001,41 @@ async function generateCVWithGemini(feedback = "") {
             loadingSteps[currentStep].classList.add('current');
         }
     }, 2000);
-    
+
     try {
         // Call the API
         const result = await generateCV(job.description, cv, feedback);
-        
+
         // Clear the progress interval
         clearInterval(progressInterval);
-        
+
         // Close loading modal
         if (loadingModal) {
             closeModal(loadingModal);
         }
-        
+
         // Extract data for tracking from the response
         if (typeof trackEvent === 'function') {
             extractDataFromGeminiResponse(result.cv_data, job, cv);
         }
-        
+
         // NEW: Save CV data for career insights
         if (typeof CareerInsights !== 'undefined' && CareerInsights.saveCVAnalysis) {
             CareerInsights.saveCVAnalysis(jobIndex, result.cv_data);
         }
-        
+
         // Show the CV
         const htmlContent = generateCVHtml(result.cv_data);
-        
+
         // Use the helper function to create and open the preview
         const previewWindow = createAndOpenPreview(htmlContent);
-        
+
         // Attach feedback functionality to the preview window
         if (previewWindow) {
             previewWindow.addEventListener('load', () => {
                 const thumbsUpBtn = previewWindow.document.getElementById('thumbs-up');
                 const thumbsDownBtn = previewWindow.document.getElementById('thumbs-down');
-                
+
                 if (thumbsUpBtn) {
                     thumbsUpBtn.addEventListener('click', () => {
                         // Track positive feedback
@@ -1042,25 +1045,25 @@ async function generateCVWithGemini(feedback = "") {
                                 company: job.company || ''
                             });
                         }
-                        
+
                         // Show thank you message in the preview window
-                        previewWindow.document.getElementById('feedback-buttons').innerHTML = 
+                        previewWindow.document.getElementById('feedback-buttons').innerHTML =
                             '<p class="feedback-thankyou">Thank you for your feedback!</p>';
                     });
                 }
-                
+
                 if (thumbsDownBtn) {
                     thumbsDownBtn.addEventListener('click', () => {
                         // Show feedback form in the preview
                         previewWindow.document.getElementById('feedback-form').style.display = 'block';
                         previewWindow.document.getElementById('feedback-buttons').style.display = 'none';
-                        
+
                         // Set up the regenerate button
                         const regenerateBtn = previewWindow.document.getElementById('regenerate-btn');
                         if (regenerateBtn) {
                             regenerateBtn.addEventListener('click', () => {
                                 const feedbackText = previewWindow.document.getElementById('feedback-text').value;
-                                
+
                                 // Track negative feedback
                                 if (typeof trackEvent === 'function') {
                                     trackEvent('cv_feedback_negative', {
@@ -1069,10 +1072,10 @@ async function generateCVWithGemini(feedback = "") {
                                         feedback: feedbackText
                                     });
                                 }
-                                
+
                                 // Close the preview window
                                 previewWindow.close();
-                                
+
                                 // Regenerate with feedback
                                 generateCVWithGemini(feedbackText);
                             });
@@ -1081,19 +1084,19 @@ async function generateCVWithGemini(feedback = "") {
                 }
             });
         }
-        
+
         // Show quota information
         showModal('CV Generated', `Your CV has been generated! You have ${result.quota.remaining} generations remaining today.`);
-        
+
     } catch (error) {
         // Clear the progress interval on error
         clearInterval(progressInterval);
-        
+
         // Close loading modal
         if (loadingModal) {
             closeModal(loadingModal);
         }
-        
+
         // Show error message
         showModal('Error', `Failed to generate CV: ${error.message}`, [
             {
@@ -1114,19 +1117,19 @@ async function generateCoverLetterWithGemini(feedback = "") {
     console.log('generateCoverLetterWithGemini function called');
 
     const selectedJob = document.querySelector('.job-item.selected');
-    
+
     if (!selectedJob) {
         showModal('No Job Selected', 'Please select a job from your saved jobs first.');
         return;
     }
-    
+
     const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
     const savedJobs = getSavedJobs();
     const job = savedJobs[jobIndex];
-    
+
     const profileData = getProfileData();
     const cv = profileData.cv || '';
-    
+
     if (!cv.trim()) {
         showModal('CV Missing', 'Please add your CV in the Profile tab first.', [
             {
@@ -1139,12 +1142,12 @@ async function generateCoverLetterWithGemini(feedback = "") {
         ]);
         return;
     }
-    
+
     // Save the last generated job for later reference
     setStorageData('lastGeneratedJob', job);
-    
+
     // Show improved loading modal with progress indication
-    const loadingModal = showModal('Generating Cover Letter', 
+    const loadingModal = showModal('Generating Cover Letter',
         `<div class="loading-message">
             <p>Please wait while we generate your cover letter...</p>
             <div class="loading-spinner"></div>
@@ -1154,7 +1157,7 @@ async function generateCoverLetterWithGemini(feedback = "") {
                 <div class="loading-step">Creating professional cover letter</div>
             </div>
         </div>`, []);
-    
+
     // Progress simulation for better UX
     let currentStep = 0;
     const loadingSteps = document.querySelectorAll('.loading-step');
@@ -1165,19 +1168,19 @@ async function generateCoverLetterWithGemini(feedback = "") {
             loadingSteps[currentStep].classList.add('current');
         }
     }, 2000);
-    
+
     try {
         // Call the API
         const result = await generateCoverLetter(job.description, cv, feedback);
-        
+
         // Clear the progress interval
         clearInterval(progressInterval);
-        
+
         // Close loading modal
         if (loadingModal) {
             closeModal(loadingModal);
         }
-        
+
         // Track this generation
         if (typeof trackEvent === 'function') {
             trackEvent('cover_letter_generated', {
@@ -1186,22 +1189,22 @@ async function generateCoverLetterWithGemini(feedback = "") {
                 has_feedback: feedback ? 'yes' : 'no'
             });
         }
-        
+
         // Show the cover letter
         previewCoverLetter(result.cover_letter, job);
-        
+
         // Show quota information
         showModal('Cover Letter Generated', `Your cover letter has been generated! You have ${result.quota.remaining} generations remaining today.`);
-        
+
     } catch (error) {
         // Clear the progress interval on error
         clearInterval(progressInterval);
-        
+
         // Close loading modal
         if (loadingModal) {
             closeModal(loadingModal);
         }
-        
+
         // Show error message
         showModal('Error', `Failed to generate cover letter: ${error.message}`, [
             {
@@ -1221,16 +1224,16 @@ async function generateCoverLetterWithGemini(feedback = "") {
 function previewCoverLetter(coverLetterText, job) {
     // Create the HTML content for preview
     const htmlContent = generateCoverLetterHtml(coverLetterText, job);
-    
+
     // Use the helper function to create and open the preview
     const previewWindow = createAndOpenPreview(htmlContent);
-    
+
     // Attach feedback functionality to the preview window
     if (previewWindow) {
         previewWindow.addEventListener('load', () => {
             const thumbsUpBtn = previewWindow.document.getElementById('thumbs-up');
             const thumbsDownBtn = previewWindow.document.getElementById('thumbs-down');
-            
+
             if (thumbsUpBtn) {
                 thumbsUpBtn.addEventListener('click', () => {
                     // Track positive feedback
@@ -1240,25 +1243,25 @@ function previewCoverLetter(coverLetterText, job) {
                             company: job.company || ''
                         });
                     }
-                    
+
                     // Show thank you message in the preview window
-                    previewWindow.document.getElementById('feedback-buttons').innerHTML = 
+                    previewWindow.document.getElementById('feedback-buttons').innerHTML =
                         '<p class="feedback-thankyou">Thank you for your feedback!</p>';
                 });
             }
-            
+
             if (thumbsDownBtn) {
                 thumbsDownBtn.addEventListener('click', () => {
                     // Show feedback form in the preview
                     previewWindow.document.getElementById('feedback-form').style.display = 'block';
                     previewWindow.document.getElementById('feedback-buttons').style.display = 'none';
-                    
+
                     // Set up the regenerate button
                     const regenerateBtn = previewWindow.document.getElementById('regenerate-btn');
                     if (regenerateBtn) {
                         regenerateBtn.addEventListener('click', () => {
                             const feedbackText = previewWindow.document.getElementById('feedback-text').value;
-                            
+
                             // Track negative feedback
                             if (typeof trackEvent === 'function') {
                                 trackEvent('cover_letter_feedback_negative', {
@@ -1267,10 +1270,10 @@ function previewCoverLetter(coverLetterText, job) {
                                     feedback: feedbackText
                                 });
                             }
-                            
+
                             // Close the preview window
                             previewWindow.close();
-                            
+
                             // Regenerate with feedback
                             generateCoverLetterWithGemini(feedbackText);
                         });
@@ -1288,7 +1291,7 @@ function generateCoverLetterHtml(coverLetterText, job) {
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/\n/g, '<br>');
-    
+
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1536,7 +1539,7 @@ function extractDataFromGeminiResponse(cvData, job, cv) {
                 }
             });
         }
-        
+
         // Track the enriched data
         trackEvent('gemini_cv_job_match', {
             job_title: job.title || '',
@@ -1551,39 +1554,39 @@ function extractDataFromGeminiResponse(cvData, job, cv) {
                 cvData.experience.map(e => e.jobTitle).join('; ') : '',
             overall_match: cvData.skillGapAnalysis?.overallMatch || ''
         });
-        
+
     } catch (error) {
         console.error('Error tracking Gemini CV data:', error);
     }
 }
 
 // Add direct event listeners to the Gemini buttons
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // CV generation button
     const cvButton = document.getElementById('generate-cv-gemini');
     if (cvButton) {
         // Remove any existing event listeners (to be safe)
         const newCvButton = cvButton.cloneNode(true);
         cvButton.parentNode.replaceChild(newCvButton, cvButton);
-        
+
         // Add our new event listener
-        newCvButton.addEventListener('click', function(e) {
+        newCvButton.addEventListener('click', function (e) {
             console.log('Generate CV button clicked');
             generateCVWithGemini();
         });
     } else {
         console.warn('CV button not found in DOM');
     }
-    
+
     // Cover Letter generation button
     const coverLetterButton = document.getElementById('generate-cover-letter-gemini');
     if (coverLetterButton) {
         // Remove any existing event listeners (to be safe)
         const newCoverLetterButton = coverLetterButton.cloneNode(true);
         coverLetterButton.parentNode.replaceChild(newCoverLetterButton, coverLetterButton);
-        
+
         // Add our new event listener
-        newCoverLetterButton.addEventListener('click', function(e) {
+        newCoverLetterButton.addEventListener('click', function (e) {
             console.log('Generate Cover Letter button clicked');
             generateCoverLetterWithGemini();
         });
@@ -1593,19 +1596,19 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Initialize prompts functionality
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Set up Generate Application button
     const generateApplicationButton = document.getElementById('generate-application');
     if (generateApplicationButton) {
         generateApplicationButton.addEventListener('click', generateApplication);
     }
-    
+
     // Set up Interview Prep button
     const interviewPrepButton = document.getElementById('interview-prep');
     if (interviewPrepButton) {
         interviewPrepButton.addEventListener('click', generateInterviewPrep);
     }
-    
+
     // Set up Preview CV button
     const previewCvButton = document.getElementById('preview-cv');
     if (previewCvButton) {
@@ -1624,29 +1627,29 @@ function generateLearningPlanPrompt() {
     }
 
     const selectedJob = document.querySelector('.job-item.selected');
-    
+
     if (!selectedJob) {
         showModal('No Job Selected', 'Please select a job from your saved jobs first to identify skill gaps.');
         return;
     }
-    
+
     const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
     const savedJobs = getSavedJobs();
     const job = savedJobs[jobIndex];
-    
+
     // Check if job has CV analysis with skill gaps
     if (!job.cvAnalysis || !job.cvAnalysis.skillGapAnalysis || !job.cvAnalysis.skillGapAnalysis.missingSkills) {
         showModal('No Skill Gaps Identified', 'Please generate a CV for this job first to identify skill gaps.');
         return;
     }
-    
+
     const missingSkills = job.cvAnalysis.skillGapAnalysis.missingSkills;
-    
+
     if (missingSkills.length === 0) {
         showModal('No Skill Gaps Found', 'No skill gaps were identified for this job. Your skills match well with the requirements!');
         return;
     }
-    
+
     // Create a well-structured prompt for Perplexity
     let prompt = `Create a detailed, structured learning plan for these skills that I need to develop for a ${job.title} role: ${missingSkills.join(', ')}. 
 
@@ -1717,21 +1720,21 @@ Only respond with the JSON structure - no additional text before or after. Make 
             skill_count: missingSkills.length
         });
     }
-    
+
     // Encode the prompt for URL
     const encodedPrompt = encodeURIComponent(prompt);
-    
+
     // Set flag and open window
     perplexityWindowOpen = true;
     window.open(`https://www.perplexity.ai/?q=${encodedPrompt}`, '_blank');
-    
+
     // Reset flag after delay
     setTimeout(() => {
         perplexityWindowOpen = false;
     }, 5000);
-    
+
     // Show instructions
-    showModal('Learning Plan Generation', 
+    showModal('Learning Plan Generation',
         'Perplexity will open with your prompt. Once you receive the JSON response, copy it and paste it in the Learning Dashboard tab.',
         [
             {
@@ -1759,35 +1762,35 @@ function generateCumulativeLearningPlan() {
 
     const savedJobs = getSavedJobs();
     const jobsWithAnalysis = savedJobs.filter(job => job.cvAnalysis);
-    
+
     if (jobsWithAnalysis.length === 0) {
         showModal('No Job Analysis', 'Please generate CVs for jobs first to identify skill gaps.');
         return;
     }
-    
+
     // Collect all skill gaps across jobs
     const allMissingSkills = {};
-    
+
     jobsWithAnalysis.forEach(job => {
         const missingSkills = job.cvAnalysis.skillGapAnalysis?.missingSkills || [];
         missingSkills.forEach(skill => {
             allMissingSkills[skill] = (allMissingSkills[skill] || 0) + 1;
         });
     });
-    
+
     // Convert to array and sort by frequency
     const sortedSkills = Object.entries(allMissingSkills)
         .sort((a, b) => b[1] - a[1])
         .map(item => item[0]);
-    
+
     if (sortedSkills.length === 0) {
         showModal('No Skill Gaps', 'No skill gaps identified across your jobs. Your skills match well!');
         return;
     }
-    
+
     // Get top skills (limit to 5)
     const topSkills = sortedSkills.slice(0, 5);
-    
+
     // Create prompt for Perplexity with structured JSON format
     let prompt = `Create a comprehensive career development plan focusing on these key skills that appear most frequently in my job search: ${topSkills.join(', ')}. 
 
@@ -1857,21 +1860,21 @@ Only respond with the JSON structure - no additional text before or after. Make 
             job_count: jobsWithAnalysis.length
         });
     }
-    
+
     // Encode the prompt for URL
     const encodedPrompt = encodeURIComponent(prompt);
-    
+
     // Set flag and open window
     perplexityWindowOpen = true;
     window.open(`https://www.perplexity.ai/?q=${encodedPrompt}`, '_blank');
-    
+
     // Reset flag after delay
     setTimeout(() => {
         perplexityWindowOpen = false;
     }, 5000);
-    
+
     // Show instructions
-    showModal('Career Development Plan', 
+    showModal('Career Development Plan',
         'Perplexity will open with your prompt. Once you receive the JSON response, copy it and paste it in the Learning Dashboard tab.',
         [
             {
@@ -1890,45 +1893,45 @@ Only respond with the JSON structure - no additional text before or after. Make 
 }
 
 // Initialize prompts functionality for learning plans
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Hook into existing "Create Learning Plan" buttons
     const insightsLearningPlanBtn = document.getElementById('create-learning-plan');
     if (insightsLearningPlanBtn) {
         // Replace existing event listener with our new one
         const newLearningPlanBtn = insightsLearningPlanBtn.cloneNode(true);
         insightsLearningPlanBtn.parentNode.replaceChild(newLearningPlanBtn, insightsLearningPlanBtn);
-        
+
         // Add our event listener
         newLearningPlanBtn.addEventListener('click', generateLearningPlanPrompt);
     }
-    
+
     // Hook into cumulative learning plan button
     const cumulativeLearningPlanBtn = document.getElementById('create-cumulative-learning-plan');
     if (cumulativeLearningPlanBtn) {
         // Replace existing event listener with our new one
         const newCumulativePlanBtn = cumulativeLearningPlanBtn.cloneNode(true);
         cumulativeLearningPlanBtn.parentNode.replaceChild(newCumulativePlanBtn, cumulativeLearningPlanBtn);
-        
+
         // Add our event listener
         newCumulativePlanBtn.addEventListener('click', generateCumulativeLearningPlan);
     }
 });
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Directly find existing buttons and attach event listeners
     const cvButton = document.getElementById('generate-cv-gemini');
     if (cvButton) {
-        cvButton.addEventListener('click', function() {
+        cvButton.addEventListener('click', function () {
             console.log('Generate CV button clicked');  // Debug log
             generateCVWithGemini();
         });
     } else {
         console.log('CV button not found in DOM');  // Debug log
     }
-    
+
     const coverLetterButton = document.getElementById('generate-cover-letter-gemini');
     if (coverLetterButton) {
-        coverLetterButton.addEventListener('click', function() {
+        coverLetterButton.addEventListener('click', function () {
             console.log('Generate Cover Letter button clicked');  // Debug log
             generateCoverLetterWithGemini();
         });
