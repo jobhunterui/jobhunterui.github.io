@@ -3,531 +3,314 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Hunter - Find and track job opportunities your way</title>
-    <meta name="description" content="Find and apply to jobs with ease using our web app or browser extension with multiple search platforms and automated CV/cover letter generation">
+    <title>JobHunter - Making the job search journey less overwhelming</title>
+    <meta name="description" content="JobHunter helps you navigate the entire job search journey - from discovering opportunities to crafting personalized applications - all in one place.">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="icon" href="images/favicon.ico" type="image/x-icon">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="images/site.webmanifest">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-TH7Y2W8GC4"></script>
     <script src="js/analytics.js"></script>
 </head>
 <body>
     <header>
-        <div class="header-content">
+        <div class="container">
             <div class="logo">
-                <img src="images/logo.png" alt="Job Hunter Logo">
-                <h1>Job Hunter</h1>
+                <img src="images/logo.png" alt="JobHunter Logo">
+                <span>JobHunter</span>
             </div>
-            <div class="cta-buttons">
-                <a href="/app" class="web-app-button">Use Web App</a>
-                <a href="https://addons.mozilla.org/en-US/firefox/addon/job-hunter-assistant/" target="_blank" class="install-button">Get Extension</a>
-                <a href="https://twitter.com/osioke" target="_blank" class="contact-link" title="Contact @osioke">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
-                    </svg>
-                </a>
+            <nav>
+                <ul>
+                    <li><a href="#features">How It Works</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="https://twitter.com/osioke" target="_blank">Feedback</a></li>
+                </ul>
+            </nav>
+            <div class="cta">
+                <a href="/app" class="button primary">Get Started</a>
             </div>
         </div>
     </header>
 
     <main>
+        <!-- Hero Section -->
         <section class="hero">
-            <div class="hero-container">
+            <div class="container">
                 <div class="hero-content">
-                    <h1>Find Your Next Job Opportunity - Your Way</h1>
-                    <p>Premium job search tools that others charge for - completely free</p>
-                    <div class="hero-features">
-                        <div class="hero-feature">
-                            <div class="feature-tag">Free</div>
-                            <span>ATS-Optimization ($29.99/mo elsewhere)</span>
-                        </div>
-                        <div class="hero-feature">
-                            <div class="feature-tag">Free</div>
-                            <span>AI Cover Letters ($24-29/mo elsewhere)</span>
-                        </div>
-                        <div class="hero-feature">
-                            <div class="feature-tag">Free</div>
-                            <span>Job Application Tracking ($9-29/mo elsewhere)</span>
-                        </div>
-                    </div>
+                    <h1>Finding a job shouldn't feel like a second job.</h1>
+                    <p>JobHunter helps you navigate the entire journey - from discovering opportunities to crafting personalized applications - all in one place.</p>
                     <div class="hero-cta">
-                        <a href="/app" class="primary-button">Use Web App</a>
-                        <a href="https://addons.mozilla.org/en-US/firefox/addon/job-hunter-assistant/" target="_blank" class="secondary-button">Get Firefox Extension</a>
+                        <a href="/app" class="button primary">Get Started</a>
+                        <a href="#features" class="button secondary">See How It Works</a>
                     </div>
                 </div>
                 <div class="hero-image">
-                    <div class="dual-display">
-                        <img src="images/webapp-interface.png" alt="Job Hunter Web App Interface" class="webapp-img">
-                        <img src="images/extension-interface.png" alt="Job Hunter Extension Interface" class="extension-img">
+                    <img src="images/hero-illustration.svg" alt="Person navigating job search journey">
+                </div>
+            </div>
+        </section>
+
+        <!-- Pain Points Section -->
+        <section class="pain-points" id="challenges">
+            <div class="container">
+                <h2>The Job Search Challenge</h2>
+                <p class="section-intro">Job hunting is a journey with many obstacles. We've been there too.</p>
+                
+                <div class="challenges-grid">
+                    <div class="challenge-card">
+                        <div class="challenge-icon">🔍</div>
+                        <h3>Finding Opportunities</h3>
+                        <p>Job listings scattered across dozens of platforms, making it hard to find the right opportunities.</p>
+                    </div>
+                    
+                    <div class="challenge-card">
+                        <div class="challenge-icon">📝</div>
+                        <h3>Endless Applications</h3>
+                        <p>Having to customize your CV and cover letter for each application, over and over again.</p>
+                    </div>
+                    
+                    <div class="challenge-card">
+                        <div class="challenge-icon">📊</div>
+                        <h3>Tracking Progress</h3>
+                        <p>Losing track of where you've applied, which versions of your CV you sent, and when to follow up.</p>
+                    </div>
+                    
+                    <div class="challenge-card">
+                        <div class="challenge-icon">😔</div>
+                        <h3>Emotional Toll</h3>
+                        <p>Feeling discouraged after sending dozens of applications with no response.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="features">
-            <h2>Everything You Need For Your Job Search</h2>
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">🔍</div>
-                    <h3>Multi-Platform Search</h3>
-                    <p>Find jobs on LinkedIn, Google Job Search, and discover hidden opportunities others miss</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📝</div>
-                    <h3>Free Resume Tailoring</h3>
-                    <p>Services charge $20+ per application - we offer unlimited CV customisation for free</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🚀</div>
-                    <h3>Beat ATS Systems</h3>
-                    <p>Our CV generator creates ATS-optimised applications that pass screening filters</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🌐</div>
-                    <h3>Find Remote Opportunities</h3>
-                    <p>Discover remote jobs hidden in company docs, Notion pages, and Google Docs</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🤖</div>
-                    <h3>AI-Powered Applications</h3>
-                    <p>Generate tailored cover letters that highlight your most relevant experience</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📊</div>
-                    <h3>Track Applications</h3>
-                    <p>Organise your job search with our application tracking system</p>
-                </div>
-            </div>
-            <div class="feature-cta">
-                <p>All features completely free - no subscriptions, no limits</p>
-                <div class="dual-cta-buttons">
-                    <a href="/app" class="cta-button web-app-cta">Use Web App</a>
-                    <a href="https://addons.mozilla.org/en-US/firefox/addon/job-hunter-assistant/" target="_blank" class="cta-button">Install Firefox Extension</a>
+        <!-- Features Section -->
+        <section class="features" id="features">
+            <div class="container">
+                <h2>How JobHunter Helps</h2>
+                <p class="section-intro">Tools designed with your job search journey in mind.</p>
+                
+                <div class="features-tabs">
+                    <div class="tabs-nav">
+                        <button class="tab-button active" data-tab="search">Find Jobs</button>
+                        <button class="tab-button" data-tab="apply">Create Applications</button>
+                        <button class="tab-button" data-tab="track">Track & Learn</button>
+                    </div>
+                    
+                    <div class="tab-content active" id="search-tab">
+                        <div class="tab-grid">
+                            <div class="tab-info">
+                                <h3>Find the Right Opportunities</h3>
+                                <p>Stop jumping between different job sites. JobHunter brings everything together.</p>
+                                <ul class="feature-list">
+                                    <li>Search across LinkedIn, job boards, and company sites</li>
+                                    <li>Discover hidden jobs in company docs and Notion pages</li>
+                                    <li>Use AI to generate effective search queries</li>
+                                    <li>Filter by experience level and location</li>
+                                </ul>
+                            </div>
+                            <div class="tab-image">
+                                <img src="images/feature-search.png" alt="Job search interface">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="apply-tab">
+                        <div class="tab-grid">
+                            <div class="tab-info">
+                                <h3>Create Tailored Applications</h3>
+                                <p>Stand out with personalized CVs and cover letters for each position you apply to.</p>
+                                <ul class="feature-list">
+                                    <li>AI-powered CV customization for each job</li>
+                                    <li>Automatic cover letter generation</li>
+                                    <li>ATS optimization to get past filtering systems</li>
+                                    <li>Interview preparation assistance</li>
+                                </ul>
+                            </div>
+                            <div class="tab-image">
+                                <img src="images/feature-apply.png" alt="Application creation interface">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="track-tab">
+                        <div class="tab-grid">
+                            <div class="tab-info">
+                                <h3>Track Progress & Develop Skills</h3>
+                                <p>Keep everything organized and learn what skills can help advance your career.</p>
+                                <ul class="feature-list">
+                                    <li>Track all your applications in one place</li>
+                                    <li>Identify skill gaps based on jobs you're interested in</li>
+                                    <li>Get personalized learning recommendations</li>
+                                    <li>Monitor your career development progress</li>
+                                </ul>
+                            </div>
+                            <div class="tab-image">
+                                <img src="images/feature-track.png" alt="Application tracking and career insights interface">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <section id="app" class="app-container">
-            <div class="tabs">
-                <button class="tab-button active" data-tab="features">Features</button>
-                <button class="tab-button" data-tab="about">About</button>
-                <button class="tab-button" data-tab="webapp">Web App</button>
-                <button class="tab-button" data-tab="extension">Extension</button>
-            </div>
-            
-            <!-- Features Tab -->
-            <div id="features" class="tab-content active">
-                <h2>Choose Your Job Search Experience</h2>
-                <p class="intro-text">Job Hunter provides two ways to enhance your job search - our powerful web app or our comprehensive browser extension. Compare the features below to decide which experience works best for you.</p>
+        <!-- Experience Options Section -->
+        <section class="experience" id="options">
+            <div class="container">
+                <h2>Choose Your Experience</h2>
+                <p class="section-intro">Two ways to use JobHunter, depending on your preference.</p>
                 
-                <div class="comparison-table-container">
-                    <table class="comparison-table">
-                        <thead>
-                            <tr>
-                                <th>Feature</th>
-                                <th class="web-app-column">Web App</th>
-                                <th class="extension-column">Browser Extension</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="feature-name">Multi-Platform Job Search</td>
-                                <td class="check">✓</td>
-                                <td class="check">✓</td>
-                            </tr>
-                            <tr>
-                                <td class="feature-name">Hidden Job Discovery</td>
-                                <td class="check">✓</td>
-                                <td class="check">✓</td>
-                            </tr>
-                            <tr>
-                                <td class="feature-name">AI Search Assistance</td>
-                                <td class="check">✓</td>
-                                <td class="check">✓</td>
-                            </tr>
-                            <tr>
-                                <td class="feature-name">Local Data Storage</td>
-                                <td class="check">✓</td>
-                                <td class="check">✓</td>
-                            </tr>
-                            <tr>
-                                <td class="feature-name">Save Jobs with One Click</td>
-                                <td class="partial">Manual Entry</td>
-                                <td class="check">✓</td>
-                            </tr>
-                            <tr>
-                                <td class="feature-name">Auto-Extract Job Details</td>
-                                <td class="cross">✗</td>
-                                <td class="check">✓</td>
-                            </tr>
-                            <tr>
-                                <td class="feature-name">Application Tracking</td>
-                                <td class="check">✓</td>
-                                <td class="check">✓</td>
-                            </tr>
-                            <tr>
-                                <td class="feature-name">CV/Resume Storage</td>
-                                <td class="check">✓</td>
-                                <td class="check">✓</td>
-                            </tr>
-                            <tr>
-                                <td class="feature-name">AI Cover Letter Generation</td>
-                                <td class="check">✓</td>
-                                <td class="check">✓</td>
-                            </tr>
-                            <tr>
-                                <td class="feature-name">ATS-Optimised Applications</td>
-                                <td class="check">✓</td>
-                                <td class="check">✓</td>
-                            </tr>
-                            <tr>
-                                <td class="feature-name">Interview Preparation</td>
-                                <td class="check">✓</td>
-                                <td class="check">✓</td>
-                            </tr>
-                            <tr>
-                                <td class="feature-name">Right-Click Job Saving</td>
-                                <td class="cross">✗</td>
-                                <td class="check">✓</td>
-                            </tr>
-                            <tr>
-                                <td class="feature-name">Browser Context Menu Integration</td>
-                                <td class="cross">✗</td>
-                                <td class="check">✓</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="comparison-cta">
-                    <div class="cta-card webapp-cta">
-                        <h3>Use Web App</h3>
-                        <p>Perfect for quick job searches and application management from any device with a browser.</p>
-                        <a href="/app" class="cta-button">Launch Web App</a>
-                    </div>
-                    
-                    <div class="cta-card extension-cta">
-                        <h3>Install Extension</h3>
-                        <p>Get the full experience with one-click job saving and automatic data extraction.</p>
-                        <a href="https://addons.mozilla.org/en-US/firefox/addon/job-hunter-assistant/" target="_blank" class="cta-button">Get Firefox Extension</a>
-                    </div>
-                </div>
-                
-                <div class="workflow-comparison">
-                    <h3>How It Works: Web App vs Extension</h3>
-                    
-                    <div class="workflow-steps">
-                        <div class="workflow webapp-workflow">
-                            <h4>Web App Workflow</h4>
-                            <ol>
-                                <li>Search for jobs across multiple platforms</li>
-                                <li>Manually copy job details into Job Hunter</li>
-                                <li>Store your CV and track applications</li>
-                                <li>Generate tailored applications</li>
-                            </ol>
+                <div class="experience-options">
+                    <div class="experience-card">
+                        <div class="experience-icon">
+                            <img src="images/webapp-icon.png" alt="Web App Icon">
                         </div>
-                        
-                        <div class="workflow extension-workflow">
-                            <h4>Extension Workflow</h4>
-                            <ol>
-                                <li>Search for jobs across multiple platforms</li>
-                                <li>Save jobs with a single click while browsing</li>
-                                <li>Store your CV and track applications</li>
-                                <li>Generate tailored applications</li>
-                            </ol>
+                        <h3>Web App</h3>
+                        <p class="experience-description">Access JobHunter from any browser, on any device. Perfect if you prefer a simple, accessible experience.</p>
+                        <ul class="experience-features">
+                            <li>No installation required</li>
+                            <li>Works on any device with a browser</li>
+                            <li>Manual job entry and organization</li>
+                        </ul>
+                        <a href="/app" class="button primary">Use Web App</a>
+                    </div>
+                    
+                    <div class="experience-card">
+                        <div class="experience-icon">
+                            <img src="images/extension-icon.png" alt="Browser Extension Icon">
+                        </div>
+                        <h3>Browser Extension</h3>
+                        <p class="experience-description">Add JobHunter to your Firefox browser for enhanced functionality and a more integrated experience.</p>
+                        <ul class="experience-features">
+                            <li>Save jobs with one click while browsing</li>
+                            <li>Auto-extract job details from listings</li>
+                            <li>Right-click context menu integration</li>
+                        </ul>
+                        <a href="https://addons.mozilla.org/en-US/firefox/addon/job-hunter-assistant/" target="_blank" class="button primary">Get Firefox Extension</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials Section (for future) -->
+        <section class="testimonials" id="stories">
+            <div class="container">
+                <h2>Success Stories</h2>
+                <p class="section-intro">From those who've used JobHunter in their journey.</p>
+                
+                <div class="testimonial-slider">
+                    <div class="testimonial">
+                        <div class="testimonial-content">
+                            <p>"The CV tailoring feature saved me so much time. I could apply to more positions with personalized applications instead of just sending the same generic CV everywhere."</p>
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="author-info">
+                                <h4>Maria J.</h4>
+                                <p>Software Developer</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="testimonial">
+                        <div class="testimonial-content">
+                            <p>"I was spending hours searching different job sites every day. JobHunter brought everything into one place and even found opportunities I would have missed otherwise."</p>
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="author-info">
+                                <h4>James T.</h4>
+                                <p>Marketing Specialist</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="testimonial">
+                        <div class="testimonial-content">
+                            <p>"The career insights helped me identify skills I needed to develop, which ultimately made me more competitive. I'm now in a job I love thanks to JobHunter's guidance."</p>
+                        </div>
+                        <div class="testimonial-author">
+                            <div class="author-info">
+                                <h4>Priya M.</h4>
+                                <p>Data Analyst</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- About Tab -->
-            <div id="about" class="tab-content">
-                <h2>About Job Hunter</h2>
+        </section>
+
+        <!-- Why It's Free Section -->
+        <section class="why-free" id="about">
+            <div class="container">
+                <h2>Our Vision</h2>
                 <div class="about-content">
-                    <p>Job Hunter offers premium job search features that other services charge for, completely free. We've built tools to help you find opportunities, create tailored applications, and organise your job search in one place.</p>
-                    
-                    <div class="pricing-comparison">
-                        <h3>What Others Charge For, We Offer Free</h3>
-                        <div class="pricing-table">
-                            <div class="pricing-header">
-                                <div class="pricing-feature">Feature</div>
-                                <div class="pricing-competitor">Other Services</div>
-                                <div class="pricing-ours">Job Hunter</div>
-                            </div>
-                            <div class="pricing-row">
-                                <div class="pricing-feature">Resume Tailoring</div>
-                                <div class="pricing-competitor">$10-29/month subscription</div>
-                                <div class="pricing-ours">Free <span class="checkmark">✓</span></div>
-                            </div>
-                            <div class="pricing-row">
-                                <div class="pricing-feature">Cover Letter Generation</div>
-                                <div class="pricing-competitor">$24-29/month subscription</div>
-                                <div class="pricing-ours">Free <span class="checkmark">✓</span></div>
-                            </div>
-                            <div class="pricing-row">
-                                <div class="pricing-feature">ATS Optimisation</div>
-                                <div class="pricing-competitor">$29.99/month (JobScan)</div>
-                                <div class="pricing-ours">Free <span class="checkmark">✓</span></div>
-                            </div>
-                            <div class="pricing-row">
-                                <div class="pricing-feature">Job Application Automation</div>
-                                <div class="pricing-competitor">$25-99/month (AIApply, LazyApply)</div>
-                                <div class="pricing-ours">Free <span class="checkmark">✓</span></div>
-                            </div>
-                            <div class="pricing-row">
-                                <div class="pricing-feature">Application Tracking</div>
-                                <div class="pricing-competitor">$9-29/month (Teal HQ)</div>
-                                <div class="pricing-ours">Free <span class="checkmark">✓</span></div>
-                            </div>
-                            <div class="pricing-row">
-                                <div class="pricing-feature">Interview Preparation</div>
-                                <div class="pricing-competitor">$99/month (FinalRound AI)</div>
-                                <div class="pricing-ours">Free <span class="checkmark">✓</span></div>
-                            </div>
-                        </div>
+                    <div class="about-info">
+                        <p>We're building JobHunter to solve real problems in the job search process. By offering it for free while we develop, we can learn directly from job seekers like you about what works and what doesn't.</p>
+                        <p>Your feedback helps us create something truly valuable - and many features will always remain free, even as we refine our approach.</p>
+                        <p>We believe that finding meaningful work shouldn't be an overwhelming experience, and we're committed to making that vision a reality.</p>
+                        <a href="https://twitter.com/osioke" target="_blank" class="button secondary">Share Your Feedback</a>
                     </div>
-                    
-                    <h3>How Job Hunter Works</h3>
-                    <p>Choose between our web app or browser extension to get the job search experience that works best for you:</p>
-                    
-                    <div class="feature-comparison">
-                        <div class="web-features">
-                            <h4>Web App Features</h4>
-                            <ul>
-                                <li>Search multiple job platforms with a single click</li>
-                                <li>Discover hidden job opportunities in documents and online content</li>
-                                <li>Use AI to generate tailored job search queries</li>
-                                <li>Search for jobs with specific hiring phrases</li>
-                                <li>Manually save and track job applications</li>
-                                <li>Generate tailored CVs and cover letters</li>
-                            </ul>
-                        </div>
-                        <div class="extension-features">
-                            <h4>Firefox Extension Features</h4>
-                            <ul>
-                                <li>Everything in the web app, plus:</li>
-                                <li>Save and track job listings from any website with one click</li>
-                                <li>Automatically extract job details when browsing listings</li>
-                                <li>Right-click on job listings to save them instantly</li>
-                                <li>Never manually copy and paste job descriptions again</li>
-                                <li>Seamless integration with your browser experience</li>
-                            </ul>
-                        </div>
+                    <div class="about-image">
+                        <img src="images/about-illustration.svg" alt="JobHunter Vision">
                     </div>
+                </div>
+            </div>
+        </section>
 
-                    <div class="contact-info">
-                        <h3>Feedback & Feature Requests</h3>
-                        <p>Have suggestions or want to request a feature? I'd love to hear from you!</p>
-                        <a href="https://twitter.com/osioke" class="twitter-link" target="_blank">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
-                            </svg>
-                            Tweet @osioke
-                        </a>
-                    </div>
-                    
-                    <div class="cta-box">
-                        <h3>Get Started Today</h3>
-                        <p>Choose the option that works best for your job search process:</p>
-                        <div class="cta-box-buttons">
-                            <a href="/app" class="primary-button">Use Web App</a>
-                            <a href="https://addons.mozilla.org/en-US/firefox/addon/job-hunter-assistant/" class="secondary-button" target="_blank">Install Extension</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Web App Tab -->
-            <div id="webapp" class="tab-content">
-                <h2>Job Hunter Web App</h2>
-                <div class="webapp-content">
-                    <div class="webapp-info">
-                        <p>Our web app provides powerful job search tools accessible from any browser:</p>
-                        
-                        <ul>
-                            <li><strong>Search multiple platforms</strong> from a single interface</li>
-                            <li><strong>Discover hidden opportunities</strong> in company docs and pages</li>
-                            <li><strong>Save jobs manually</strong> to keep track of applications</li>
-                            <li><strong>Generate tailored applications</strong> with AI assistance</li>
-                            <li><strong>Create optimised CVs and cover letters</strong> that stand out</li>
-                        </ul>
-                        
-                        <div class="webapp-screenshots">
-                            <div class="screenshot">
-                                <img src="images/screenshots/webapp-1.png" alt="Job Hunter Web App - Job Search">
-                                <p>Powerful multi-platform search</p>
-                            </div>
-                            <div class="screenshot">
-                                <img src="images/screenshots/webapp-2.png" alt="Job Hunter Web App - Saved Jobs">
-                                <p>Manual job saving and tracking</p>
-                            </div>
-                            <div class="screenshot">
-                                <img src="images/screenshots/webapp-3.png" alt="Job Hunter Web App - Profile">
-                                <p>Store your CV and generate applications</p>
-                            </div>
-                        </div>
-                        
-                        <div class="webapp-benefits">
-                            <h3>Benefits of the Web App</h3>
-                            <ul>
-                                <li><strong>Universal Access</strong> - Use on any device with a browser</li>
-                                <li><strong>No Installation Required</strong> - Get started immediately</li>
-                                <li><strong>Manual Control</strong> - You decide exactly what to save</li>
-                                <li><strong>Cross-Platform</strong> - Works on all operating systems</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="download-section">
-                            <a href="/app" class="download-button">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M12 5v14M5 12l7 7 7-7"/>
-                                </svg>
-                                Launch Web App
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Extension Tab -->
-            <div id="extension" class="tab-content">
-                <h2>Get the Job Hunter Extension</h2>
-                <div class="extension-content">
-                    <div class="extension-info">
-                        <p>The Job Hunter browser extension enhances your job search with powerful features:</p>
-                        
-                        <ul>
-                            <li><strong>Save jobs</strong> from any website with a single click</li>
-                            <li><strong>Track applications</strong> and keep everything organised</li>
-                            <li><strong>Auto-extract job details</strong> from listings you browse</li>
-                            <li><strong>Generate personalised applications</strong> with AI assistance</li>
-                            <li><strong>Create ATS-optimised CVs</strong> that pass screening filters</li>
-                            <li><strong>Find hidden remote jobs</strong> that don't appear on major platforms</li>
-                        </ul>
-                        
-                        <div class="features-highlight">
-                            <h3>Everything You'd Pay For, But Free</h3>
-                            <div class="feature-blocks">
-                                <div class="feature-block">
-                                    <div class="feature-icon">💼</div>
-                                    <h4>CV/Resume Tailoring</h4>
-                                    <p>AI-powered CV customisation for each job application, optimised for ATS systems</p>
-                                </div>
-                                <div class="feature-block">
-                                    <div class="feature-icon">📝</div>
-                                    <h4>Cover Letter Generation</h4>
-                                    <p>Personalised cover letters that highlight your relevant experience</p>
-                                </div>
-                                <div class="feature-block">
-                                    <div class="feature-icon">🔍</div>
-                                    <h4>Hidden Job Discovery</h4>
-                                    <p>Find jobs in company docs, Notion pages, and other places competitors miss</p>
-                                </div>
-                                <div class="feature-block">
-                                    <div class="feature-icon">🎯</div>
-                                    <h4>Job Application Tracking</h4>
-                                    <p>Keep all your applications organised in one place</p>
-                                </div>
-                                <div class="feature-block">
-                                    <div class="feature-icon">🎙️</div>
-                                    <h4>Interview Preparation</h4>
-                                    <p>AI-powered interview coach that creates personalised practice sessions based on the job and your CV</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="download-section">
-                            <a href="https://addons.mozilla.org/en-US/firefox/addon/job-hunter-assistant/" class="download-button" target="_blank">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M12 5v14M5 12l7 7 7-7"/>
-                                </svg>
-                                Install on Firefox
-                            </a>
-                            
-                            <div class="feedback-section">
-                                <p>Interested in a Chrome version? Let us know!</p>
-                                <a href="https://twitter.com/osioke" class="twitter-link" target="_blank">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
-                                    </svg>
-                                    Tweet @osioke
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="extension-screenshots">
-                        <div class="screenshot">
-                            <img src="images/screenshots/extension-1.png" alt="Job Hunter Extension - Job Search">
-                            <p>Powerful search options</p>
-                        </div>
-                        <div class="screenshot">
-                            <img src="images/screenshots/extension-2.png" alt="Job Hunter Extension - Saved Jobs">
-                            <p>Track saved job listings</p>
-                        </div>
-                        <div class="screenshot">
-                            <img src="images/screenshots/extension-3.png" alt="Job Hunter Extension - CV Generation">
-                            <p>Generate tailored CVs</p>
-                        </div>
-                    </div>
+        <!-- Final CTA Section -->
+        <section class="final-cta">
+            <div class="container">
+                <h2>Start Your Better Job Search Journey Today</h2>
+                <p>Take the first step toward a more organized, less stressful job search experience.</p>
+                <div class="cta-buttons">
+                    <a href="/app" class="button primary">Use Web App</a>
+                    <a href="https://addons.mozilla.org/en-US/firefox/addon/job-hunter-assistant/" target="_blank" class="button secondary">Get Firefox Extension</a>
                 </div>
             </div>
         </section>
     </main>
 
     <footer>
-        <div class="footer-content">
-            <div class="footer-logo">
-                <img src="images/logo-small.png" alt="Job Hunter Logo">
-                <span>Job Hunter</span>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="images/logo-small.png" alt="JobHunter Logo">
+                    <span>JobHunter</span>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>Navigate</h3>
+                        <ul>
+                            <li><a href="#challenges">The Challenge</a></li>
+                            <li><a href="#features">How It Works</a></li>
+                            <li><a href="#features">Features</a></li>
+                            <li><a href="#about">About Us</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Get Started</h3>
+                        <ul>
+                            <li><a href="/app">Web App</a></li>
+                            <li><a href="https://addons.mozilla.org/en-US/firefox/addon/job-hunter-assistant/" target="_blank">Firefox Extension</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Connect</h3>
+                        <ul>
+                            <li><a href="https://twitter.com/osioke" target="_blank">Twitter</a></li>
+                            <li><a href="https://github.com/jobhunterui/jobhunterui.github.io" target="_blank">GitHub</a></li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-            <div class="footer-links">
-                <a href="#features">Features</a>
-                <a href="#about">About</a>
-                <a href="#webapp">Web App</a>
-                <a href="#extension">Extension</a>
-                <a href="/app">Launch Web App</a>
-                <a href="https://github.com/jobhunterui/jobhunterui.github.io" target="_blank">GitHub</a>
-                <a href="https://twitter.com/osioke" target="_blank">Contact @osioke</a>
+            <div class="copyright">
+                <p>&copy; <span id="current-year">2025</span> JobHunter. All rights reserved.</p>
             </div>
-            <div class="footer-social">
-                <a href="https://github.com/jobhunterui/jobhunterui.github.io" target="_blank" aria-label="GitHub">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-                    </svg>
-                </a>
-            </div>
-        </div>
-        <div class="copyright">
-            <p>&copy; <span id="current-year"></span> Job Hunter. All rights reserved.</p>
         </div>
     </footer>
 
-    <div id="extension-required-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h2>Extension Required</h2>
-            <p>This feature requires the Job Hunter Firefox extension to work.</p>
-            <div class="extension-benefits">
-                <h4>Why Install the Extension?</h4>
-                <ul>
-                    <li>Save job listings from any website with one click</li>
-                    <li>Generate tailored CVs and cover letters for free</li>
-                    <li>Track all your applications in one place</li>
-                    <li>Optimise your resume for ATS systems</li>
-                </ul>
-            </div>
-            <div class="modal-buttons">
-                <button id="cancel-modal" class="secondary-button">Cancel</button>
-                <a href="https://addons.mozilla.org/en-US/firefox/addon/job-hunter-assistant/" target="_blank" class="primary-button">Install Extension</a>
-            </div>
-        </div>
-    </div>
-
-    <script src="js/app.js"></script>
-    <script src="js/search.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
