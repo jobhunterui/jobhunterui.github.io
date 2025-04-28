@@ -72,6 +72,8 @@ function setupEventListeners() {
         });
     }
     
+    /* Commented out to troubleshoot duplicate calls to generateApplication and interviewPrep
+
     // Set up job action buttons
     const generateApplicationButton = document.getElementById('generate-application');
     if (generateApplicationButton) {
@@ -120,6 +122,8 @@ function setupEventListeners() {
             generateInterviewPrep();
         });
     }
+    
+    */
     
     const removeJobButton = document.getElementById('remove-job');
     if (removeJobButton) {

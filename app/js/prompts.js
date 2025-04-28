@@ -1916,26 +1916,3 @@ document.addEventListener('DOMContentLoaded', function () {
         newCumulativePlanBtn.addEventListener('click', generateCumulativeLearningPlan);
     }
 });
-
-document.addEventListener('DOMContentLoaded', function () {
-    // Directly find existing buttons and attach event listeners
-    const cvButton = document.getElementById('generate-cv-gemini');
-    if (cvButton) {
-        cvButton.addEventListener('click', function () {
-            console.log('Generate CV button clicked');  // Debug log
-            generateCVWithGemini();
-        });
-    } else {
-        console.log('CV button not found in DOM');  // Debug log
-    }
-
-    const coverLetterButton = document.getElementById('generate-cover-letter-gemini');
-    if (coverLetterButton) {
-        coverLetterButton.addEventListener('click', function () {
-            console.log('Generate Cover Letter button clicked');  // Debug log
-            generateCoverLetterWithGemini();
-        });
-    } else {
-        console.log('Cover Letter button not found in DOM');  // Debug log
-    }
-});
