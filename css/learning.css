@@ -68,18 +68,19 @@
 .learning-plan-title {
     font-size: 22px;
     color: #2c3e50;
-    margin: 0;
+    margin-bottom: 20px;
 }
 
 .learning-plan-meta {
     color: #7f8c8d;
     font-size: 14px;
-    margin-top: 5px;
+    margin: 10px 0;
 }
 
 .learning-header-actions {
     display: flex;
     gap: 10px;
+    margin: 10px 0;
 }
 
 /* Progress indicator */

@@ -449,30 +449,80 @@ select:focus {
     display: none !important; /* Hide the extension promo completely */
 }
 
-/* Desktop: Make tabs sticky */
+/* Desktop: Make tabs sticky and make content width consistent and align tabs with content */
 @media (min-width: 769px) {
-    /* Hide header on desktop */
+    /* Fixed tabs with consistent width */
+    .tabs {
+        position: fixed !important;
+        top: 0 !important;
+        width: 100% !important;
+        max-width: 1200px !important; /* Match max content width */
+        left: 50% !important;
+        transform: translateX(-50%) !important; /* Center the tabs */
+        z-index: 1000 !important;
+        background-color: var(--secondary-color) !important;
+        display: flex !important;
+    }
+    
+    /* Make tabs equal width */
+    .tab-button {
+        flex: 1 !important;
+        text-align: center !important;
+    }
+    
+    /* Set consistent content container width */
+    .tab-content {
+        max-width: 1200px !important;
+        margin: 0 auto !important;
+        padding: 2rem !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Adjust tab content to be full width with margins */
+    .tab-content {
+        width: 100% !important;
+        max-width: 1200px !important; /* Wide but not too wide */
+        margin: 0 auto !important;
+        padding: 70px 2rem 2rem 2rem !important; /* Top padding for fixed tabs */
+        box-sizing: border-box !important;
+    }
+    
+    /* Content container styling */
+    main.app-container,
+    .app-container {
+        width: 100%;
+        max-width: 1200px !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Form elements should stretch */
+    input[type="text"],
+    textarea,
+    select,
+    .form-control {
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Hide header */
     header {
         display: none !important;
     }
     
-    /* Simple sticky tabs */
-    .tabs {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
+    /* Make the content actually fill out within the container */
+    .form-group, 
+    .job-item, 
+    .info-text,
+    .search-buttons,
+    .toggle-section {
         width: 100% !important;
-        z-index: 1000 !important;
-        background-color: var(--secondary-color) !important;
+        max-width: 1200px !important;
+        box-sizing: border-box !important;
     }
     
-    /* Add padding to account for fixed tabs */
-    .tab-content.active {
-        padding-top: 70px !important;
-    }
-    
-    /* Keep footer at bottom */
+    /* Keep footer visible */
     footer {
         display: block !important;
     }
