@@ -22,12 +22,141 @@ const DATA_COLLECTION = {
     }
 };
 
+// Define priority levels for different types of events
+const EVENT_PRIORITIES = {
+    high: [
+        'job_saved', 'application_generated', 'extension_install_click',
+        'error', 'profile_saved', 'data_export', 'data_import', 'system_alert'
+    ],
+    medium: [
+        'generate_application_click', 'tab_switch', 'view_job_details',
+        'interview_prep_click'
+    ],
+    low: [
+        'scroll_depth', 'time_on_site', 'page_view', 'mouse_movement',
+        'feature_card_view', 'pricing_comparison_view'
+    ]
+};
+
+// Function to get priority level of an event
+function getEventPriority(eventType) {
+    if (EVENT_PRIORITIES.high.some(e => eventType.includes(e))) return 'high';
+    if (EVENT_PRIORITIES.medium.some(e => eventType.includes(e))) return 'medium';
+    if (EVENT_PRIORITIES.low.some(e => eventType.includes(e))) return 'low';
+    return 'medium'; // Default to medium for unknown events
+}
+
 // Queue state
 let dataQueue = [];                // Main queue of items to be sent
 let activeRequests = 0;            // Number of active requests
 let queueProcessor = null;         // Interval ID for queue processor
 let queueInitialized = false;      // Flag to prevent multiple initializations
 let lastQueuePersistence = 0;      // Last time queue was persisted to storage
+
+// Queue monitoring variables
+let queueOverflowCount = 0;
+let lastSystemAlertTime = 0;
+const SYSTEM_ALERT_COOLDOWN = 3600000; // 1 hour in milliseconds
+const HEALTH_REPORT_INTERVAL = 300000; // 5 minutes in milliseconds
+
+// Function to send system alerts directly (bypassing queue)
+function sendSystemAlert(alertName, details) {
+    // Avoid sending too many system alerts
+    const now = Date.now();
+    if (now - lastSystemAlertTime < SYSTEM_ALERT_COOLDOWN) {
+        return; // Still in cooldown period
+    }
+    
+    // Create system alert data
+    const systemAlertData = {
+        type: 'system_alert',
+        alert_name: alertName,
+        details: {
+            ...details,
+            timestamp: new Date().toISOString(),
+            user_agent: navigator.userAgent,
+            page_url: window.location.href
+        }
+    };
+    
+    // Send directly to the endpoint
+    fetch(DATA_COLLECTION.endpointUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        cache: 'no-cache',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(systemAlertData)
+    });
+    
+    // Update the last alert time
+    lastSystemAlertTime = now;
+}
+
+// Function to prune low-priority events when queue gets too full
+function pruneQueueIfNeeded() {
+    if (dataQueue.length > DATA_COLLECTION.queue.maxQueueSize * 0.8) {
+        // First drop low priority events
+        const originalLength = dataQueue.length;
+        dataQueue = dataQueue.filter(item => 
+            getEventPriority(item.data.type) !== 'low'
+        );
+        
+        // If still too full, also drop medium priority events
+        if (dataQueue.length > DATA_COLLECTION.queue.maxQueueSize * 0.9) {
+            dataQueue = dataQueue.filter(item => 
+                getEventPriority(item.data.type) === 'high'
+            );
+        }
+        
+        console.log(`Queue pruned: removed ${originalLength - dataQueue.length} events`);
+        
+        // If we had to prune, send a system alert
+        if (originalLength !== dataQueue.length) {
+            sendSystemAlert('queue_pruned', {
+                removed_events: originalLength - dataQueue.length,
+                remaining_events: dataQueue.length,
+                percentage_full: (dataQueue.length / DATA_COLLECTION.queue.maxQueueSize) * 100
+            });
+        }
+    }
+}
+
+// Setup queue health reporting
+function setupQueueHealthMonitoring() {
+    setInterval(() => {
+        if (!queueInitialized) return;
+        
+        // Calculate queue health metrics
+        const queueHealthData = {
+            type: 'queue_health',
+            queue_size: dataQueue.length,
+            queue_capacity_percentage: (dataQueue.length / DATA_COLLECTION.queue.maxQueueSize) * 100,
+            active_requests: activeRequests,
+            oldest_item_age_seconds: dataQueue.length > 0 ? (Date.now() - dataQueue[0].timestamp) / 1000 : 0,
+            pending_items: dataQueue.filter(item => item.status === 'pending').length,
+            processing_items: dataQueue.filter(item => item.status === 'processing').length,
+            waiting_items: dataQueue.filter(item => item.status === 'waiting').length,
+            failed_items: dataQueue.filter(item => item.status === 'failed').length,
+            timestamp: new Date().toISOString()
+        };
+        
+        // Only send if queue isn't empty (to avoid unnecessary reports)
+        if (dataQueue.length > 0 || activeRequests > 0) {
+            // Send directly, bypassing the queue
+            fetch(DATA_COLLECTION.endpointUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                cache: 'no-cache',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(queueHealthData)
+            });
+        }
+    }, HEALTH_REPORT_INTERVAL);
+}
 
 // Initialize the data collection system
 function initializeDataCollection() {
@@ -45,6 +174,9 @@ function initializeDataCollection() {
     
     // Start queue processor
     startQueueProcessor();
+    
+    // Set up queue health monitoring
+    setupQueueHealthMonitoring();
     
     // Mark as initialized
     queueInitialized = true;
@@ -87,9 +219,23 @@ function queueDataItem(dataItem) {
         initializeDataCollection();
     }
     
+    // Run queue pruning if needed
+    pruneQueueIfNeeded();
+    
     // Check queue size
     if (dataQueue.length >= DATA_COLLECTION.queue.maxQueueSize) {
         console.warn(`Queue size limit reached (${DATA_COLLECTION.queue.maxQueueSize}). Dropping oldest item.`);
+        queueOverflowCount++;
+        
+        // Send system alert if we're repeatedly hitting the limit
+        if (queueOverflowCount >= 5) {
+            sendSystemAlert('queue_overflow', {
+                overflow_count: queueOverflowCount,
+                queue_size: DATA_COLLECTION.queue.maxQueueSize
+            });
+            queueOverflowCount = 0; // Reset after alerting
+        }
+        
         dataQueue.shift(); // Remove oldest item
     }
     
@@ -99,6 +245,7 @@ function queueDataItem(dataItem) {
         status: 'pending',
         retryCount: 0,
         timestamp: Date.now(),
+        priority: getEventPriority(dataItem.type),
         id: 'item_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10)
     });
     
@@ -115,8 +262,22 @@ function processQueue() {
     
     // Process as many items as we can based on concurrency limit
     while (dataQueue.length > 0 && activeRequests < DATA_COLLECTION.queue.maxConcurrentRequests) {
-        // Find the next pending item
-        const itemIndex = dataQueue.findIndex(item => item.status === 'pending');
+        // Find the next pending item, prioritizing high priority events
+        let itemIndex = -1;
+        
+        // First try to find high priority pending items
+        itemIndex = dataQueue.findIndex(item => item.status === 'pending' && item.priority === 'high');
+        
+        // If no high priority items, look for medium priority
+        if (itemIndex === -1) {
+            itemIndex = dataQueue.findIndex(item => item.status === 'pending' && item.priority === 'medium');
+        }
+        
+        // If still no item found, take any pending item
+        if (itemIndex === -1) {
+            itemIndex = dataQueue.findIndex(item => item.status === 'pending');
+        }
+        
         if (itemIndex === -1) break; // No pending items
         
         const queueItem = dataQueue[itemIndex];
