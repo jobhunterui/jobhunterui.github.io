@@ -9,6 +9,15 @@
     <link rel="stylesheet" href="../css/app.css">
     <link rel="stylesheet" href="../css/learning.css">
     <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+
+    <!-- PWA meta tags and links -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#3498db">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="JobHunter">
+    <link rel="apple-touch-icon" href="/images/logo-192.png">
+
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-TH7Y2W8GC4"></script>
     <script>
@@ -225,7 +234,7 @@
                 <div id="job-actions" class="hidden">
                     <div class="job-actions-container">
                         <div class="job-actions-group">
-                            <h4 class="action-group-title">Quick Generation (AI)</h4>
+                            <h4 class="action-group-title">Auto Generation (Gemini Flash)</h4>
                             <p class="action-group-info">One-click AI generation - faster but less customizable</p>
                             <div class="action-buttons">
                                 <button id="generate-cv-gemini" class="primary-button gemini-button">Generate CV
@@ -235,17 +244,17 @@
                                     Letter</button>
                             </div>
                         </div>
-
+                
                         <div class="job-actions-group">
-                            <h4 class="action-group-title">Advanced Generation (Claude)</h4>
+                            <h4 class="action-group-title">Manual Generation (Claude 3.7)</h4>
                             <p class="action-group-info">Manual process with Claude - more control and higher quality
                             </p>
                             <div class="action-buttons">
-                                <button id="generate-application" class="primary-button claude-button">Generate with
-                                    Claude</button>
+                                <button id="generate-application" class="primary-button claude-button">Generate CV</button>
+                                <button id="generate-cover-letter-claude" class="primary-button claude-button">Generate Cover Letter</button>
                             </div>
                         </div>
-
+                
                         <div class="job-actions-group">
                             <h4 class="action-group-title">Other Actions</h4>
                             <div class="action-buttons">
@@ -573,6 +582,7 @@
     <script src="js/search.js"></script>
     <script src="js/prompts.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/pwa.js"></script>
     <script src="js/insights.js"></script>
     <script src="js/learning.js"></script>
 </body>

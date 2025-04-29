@@ -366,3 +366,137 @@ footer {
     font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.6);
 }
+
+/* Mobile-optimized tabs */
+@media (max-width: 480px) {
+    .tabs {
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+    }
+    
+    .tabs::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Edge */
+    }
+    
+    .tab-button {
+        padding: 12px 15px;
+        font-size: 0.85rem;
+        flex: 0 0 auto;
+    }
+    
+    /* Smaller header for mobile */
+    .header-content {
+        padding: 10px;
+    }
+    
+    .logo h1 {
+        font-size: 1.2rem;
+    }
+    
+    .logo img {
+        height: 30px;
+    }
+    
+    /* Smaller footer for mobile */
+    .footer-content {
+        padding: 15px 10px;
+    }
+    
+    /* Better modal buttons on mobile */
+    .modal-buttons {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .modal-buttons button {
+        width: 100%;
+        padding: 12px;
+        margin: 0;
+    }
+    
+    /* Make job cards more mobile-friendly */
+    .job-item {
+        padding: 12px;
+        margin-bottom: 15px;
+    }
+    
+    /* Text size adjustments for mobile */
+    .form-label, label {
+        font-size: 0.9rem;
+    }
+    
+    input[type="text"],
+    textarea,
+    select {
+        font-size: 16px; /* Prevents iOS zoom when focusing on inputs */
+        padding: 10px;
+    }
+    
+    /* Larger buttons for touch targets */
+    .primary-button, 
+    .secondary-button, 
+    .default-button, 
+    .danger-button {
+        padding: 12px 20px;
+        font-size: 16px;
+    }
+    
+    /* Welcome guidance styling */
+    .welcome-guidance h4 {
+        margin-top: 15px;
+        margin-bottom: 5px;
+        color: #3498db;
+    }
+    
+    .welcome-guidance ul {
+        padding-left: 20px;
+    }
+    
+    .welcome-guidance p {
+        margin-bottom: 10px;
+    }
+    
+    /* Save instructions styling */
+    .save-instructions {
+        margin-top: 10px;
+        font-size: 0.85rem;
+    }
+    
+    .save-instructions summary {
+        cursor: pointer;
+        color: #3498db;
+    }
+    
+    .save-instructions-content {
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        margin-top: 5px;
+    }
+}
+
+/* Make job action buttons easier to tap on mobile */
+@media (max-width: 768px) {
+    .job-actions-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .action-buttons button {
+        width: 100%;
+        margin-bottom: 10px;
+        padding: 12px;
+    }
+    
+    .action-group-title {
+        font-size: 16px;
+    }
+}

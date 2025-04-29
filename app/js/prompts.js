@@ -98,6 +98,93 @@ function generateApplication() {
     });
 }
 
+function generateCoverLetterWithClaude() {
+    const selectedJob = document.querySelector('.job-item.selected');
+
+    if (!selectedJob) {
+        showModal('No Job Selected', 'Please select a job from your saved jobs first.');
+        return;
+    }
+
+    const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
+    const savedJobs = getSavedJobs();
+    const job = savedJobs[jobIndex];
+
+    const profileData = getProfileData();
+    const cv = profileData.cv || '';
+
+    if (!cv.trim()) {
+        showModal('CV Missing', 'Please add your CV in the Profile tab first.', [
+            {
+                id: 'go-to-profile',
+                text: 'Go to Profile',
+                action: () => {
+                    document.querySelector('[data-tab="profile"]').click();
+                }
+            }
+        ]);
+        return;
+    }
+
+    // Save the last generated job for later reference
+    setStorageData('lastGeneratedJob', job);
+
+    // Create prompt for Claude
+    const prompt = createClaudeCoverLetterPrompt(job, cv);
+
+    // Function to handle successful clipboard copy
+    function handleSuccessfulCopy() {
+        // Open Claude in a new tab
+        window.open('https://claude.ai', '_blank');
+
+        // Show instructions
+        showModal('Prompt Copied', 'Cover letter prompt copied to clipboard! Paste it into Claude, then copy the cover letter text to use.', [
+            {
+                id: 'ok-prompt',
+                text: 'OK'
+            }
+        ]);
+
+        // Track cover letter generation
+        if (typeof trackEvent === 'function') {
+            trackEvent('cover_letter_generated', {
+                method: 'claude',
+                job_title: job.title || '',
+                company: job.company || '',
+                has_cv: cv ? 'yes' : 'no'
+            });
+        }
+    }
+
+    // Try modern clipboard API first
+    copyToClipboard(prompt).then(() => {
+        handleSuccessfulCopy();
+    }).catch(error => {
+        console.error('Error copying to clipboard:', error);
+
+        // Alternative method for clipboard
+        const textArea = document.createElement('textarea');
+        textArea.value = prompt;
+        textArea.style.position = 'fixed';
+        document.body.appendChild(textArea);
+        textArea.select();
+
+        try {
+            const success = document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            if (success) {
+                handleSuccessfulCopy();
+            } else {
+                showModal('Error', 'Could not copy the prompt. Please try again or copy it manually.');
+            }
+        } catch (err) {
+            document.body.removeChild(textArea);
+            showModal('Error', 'Could not copy the prompt. Please try again or copy it manually.');
+        }
+    });
+}
+
 // Helper function to copy to clipboard using Clipboard API
 function copyToClipboard(text) {
     return navigator.clipboard.writeText(text);
@@ -160,9 +247,8 @@ function createClaudePrompt(job, cv) {
     
     First, please write me a great cover letter for this job that highlights my relevant experience and why I'm a good fit. Make it professional but engaging. Format the cover letter so it's ready to copy and paste directly into Google Docs or another word processor, with proper paragraphing, spacing, and a professional layout. Include my contact information at the top, the date, recipient details (if available from the job), and proper salutation and closing.
     
-    Then, please provide my CV information in this exact JSON format that I'll copy back to my extension. It's critical that the JSON is well-formed and follows this exact structure:
+    Then, please provide my CV information in JSON format in an artifact. The JSON must follow this exact structure:
     
-    \`\`\`json
     {
       "fullName": "Your full name from my CV",
       "jobTitle": "A title that matches the job I'm applying for",
@@ -212,14 +298,37 @@ function createClaudePrompt(job, cv) {
         "overallMatch": 85
       }
     }
-    \`\`\`
     
-    Make sure the JSON follows this exact structure as my extension will parse it automatically. Prioritize skills and experience that are most relevant to the job description. For each experience and education item, add a relevanceScore from 0-100 indicating how relevant it is to this specific job. Also include the skillGapAnalysis section to help me understand my fit for the role.`;
+    Make sure the JSON follows this exact structure as my app will parse it automatically. Prioritize skills and experience that are most relevant to the job description. For each experience and education item, add a relevanceScore from 0-100 indicating how relevant it is to this specific job. Also include the skillGapAnalysis section to help me understand my fit for the role.`;
 }
 
 function processCVJson(jsonData) {
     try {
-        const cvData = JSON.parse(jsonData);
+        // First, try to clean the input by removing common issues
+        let cleanedJson = jsonData.trim();
+        
+        // Remove markdown code block syntax if present
+        if (cleanedJson.startsWith('```json')) {
+            cleanedJson = cleanedJson.substring(7);
+        } else if (cleanedJson.startsWith('```')) {
+            cleanedJson = cleanedJson.substring(3);
+        }
+        
+        if (cleanedJson.endsWith('```')) {
+            cleanedJson = cleanedJson.substring(0, cleanedJson.length - 3);
+        }
+        
+        // Find JSON object boundaries - look for the first { and last }
+        const firstBrace = cleanedJson.indexOf('{');
+        const lastBrace = cleanedJson.lastIndexOf('}');
+        
+        if (firstBrace !== -1 && lastBrace !== -1 && firstBrace < lastBrace) {
+            // Extract just the JSON object
+            cleanedJson = cleanedJson.substring(firstBrace, lastBrace + 1);
+        }
+        
+        // Parse the cleaned JSON
+        const cvData = JSON.parse(cleanedJson);
 
         // Save analysis to the currently selected job
         const selectedJob = document.querySelector('.job-item.selected');
@@ -240,6 +349,27 @@ function processCVJson(jsonData) {
         return cvData;
     } catch (error) {
         console.error('Error parsing CV JSON:', error);
+        
+        // Create a more helpful error message
+        let errorMessage = 'There was an error parsing the JSON. ';
+        
+        if (jsonData.includes('```')) {
+            errorMessage += 'The JSON contains code block markers (```). Please remove these backticks. ';
+        }
+        
+        if (!/^\s*{/.test(jsonData)) {
+            errorMessage += 'The JSON should start with an opening brace {. ';
+        }
+        
+        if (!/}\s*$/.test(jsonData)) {
+            errorMessage += 'The JSON should end with a closing brace }. ';
+        }
+        
+        errorMessage += '\n\nA valid JSON should look like:\n{\n  "fullName": "Your Name",\n  ...\n}';
+        
+        // Show the error message to the user
+        showModal('JSON Parsing Error', errorMessage);
+        
         return null;
     }
 }
@@ -387,6 +517,27 @@ function generateCVHtml(data) {
             cursor: pointer;
             border-radius: 4px;
             margin: 5px;
+        }
+        
+        /* Save instructions */
+        .save-instructions {
+            max-width: 800px;
+            margin: 0 auto 20px auto;
+            background: #f0f7ff;
+            border: 1px solid #d0e3ff;
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .save-instructions summary {
+            cursor: pointer;
+            font-weight: bold;
+            color: #0077B5;
+        }
+        
+        .save-instructions div {
+            margin-top: 10px;
         }
         
         /* Header section */
@@ -683,7 +834,7 @@ function generateCVHtml(data) {
                 max-width: 100%;
             }
             
-            .print-controls, .feedback-section {
+            .print-controls, .feedback-section, .save-instructions {
                 display: none;
             }
             
@@ -715,6 +866,17 @@ function generateCVHtml(data) {
     </style>
 </head>
 <body>
+    <div class="save-instructions">
+        <details>
+            <summary>How to save this document</summary>
+            <div>
+                <p><strong>On iPhone/iPad:</strong> Tap the share icon, select "Options" and change to "PDF", then tap "Done". Now select "Save to Files" in the share menu.</p>
+                <p><strong>On Android:</strong> Tap the print button below or use the browser's print option, then select "Save as PDF".</p>
+                <p><strong>On Computer:</strong> Use the Print button and select "Save as PDF" or print to a physical printer.</p>
+            </div>
+        </details>
+    </div>
+
     <div class="print-controls">
         <button onclick="window.print()">Print CV</button>
         <button onclick="window.close()">Close</button>
@@ -943,6 +1105,70 @@ Include a mix of:
 If I'm using a mobile device, remind me I can record my voice response instead of typing.
 
 At the end, provide overall feedback and tips to improve. Let's start the interview preparation now.`;
+}
+
+// Create cover letter prompt for Claude
+function createClaudeCoverLetterPrompt(job, cv) {
+    return `I need you to create a professional cover letter for a job application based on my CV and the job details.
+
+JOB DETAILS:
+Title: ${job.title}
+Company: ${job.company}
+Location: ${job.location || 'Not specified'}
+Description: ${job.description || 'Not provided'}
+
+MY CURRENT CV:
+${cv}
+
+Please write a compelling cover letter that:
+1. Is addressed properly to the hiring manager or company
+2. Includes today's date and my contact information from the CV
+3. Highlights my most relevant experiences and skills for this position
+4. Demonstrates clear understanding of the company and role
+5. Expresses genuine interest in the position
+6. Concludes with a professional closing and call to action
+7. Is no longer than one page in length
+
+Write the cover letter in a professional, confident but not arrogant tone. Make it specific to this job and company - avoid generic language that could apply to any position. Don't explicitly mention every requirement from the job description, but highlight my qualifications that best match their needs.
+
+Format the cover letter so it's ready to copy and paste directly into Google Docs or another word processor, with proper spacing, paragraphing, and professional layout.`;
+}
+
+// Add this to the document.addEventListener('DOMContentLoaded') function at the bottom of prompts.js
+// Cover Letter generation button for Claude
+const coverLetterClaudeButton = document.getElementById('generate-cover-letter-claude');
+if (coverLetterClaudeButton) {
+    // Remove any existing event listeners
+    const newCoverLetterClaudeButton = coverLetterClaudeButton.cloneNode(true);
+    if (coverLetterClaudeButton.parentNode) {
+        coverLetterClaudeButton.parentNode.replaceChild(newCoverLetterClaudeButton, coverLetterClaudeButton);
+    }
+
+    // Add our event listener with tracking
+    newCoverLetterClaudeButton.addEventListener('click', function() {
+        // Get selected job data for tracking
+        const selectedJob = document.querySelector('.job-item.selected');
+        let trackingData = {
+            method: 'claude',
+            generation_type: 'cover_letter'
+        };
+        
+        if (selectedJob) {
+            const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
+            const savedJobs = getSavedJobs();
+            if (savedJobs[jobIndex]) {
+                trackingData.job_title = savedJobs[jobIndex].title || 'Unknown';
+                trackingData.company = savedJobs[jobIndex].company || 'Unknown';
+            }
+        }
+        
+        // Track event before generating
+        if (typeof trackEvent === 'function') {
+            trackEvent('claude_cover_letter_generation_click', trackingData);
+        }
+        
+        generateCoverLetterWithClaude();
+    });
 }
 
 // Add one-click CV generation with Gemini

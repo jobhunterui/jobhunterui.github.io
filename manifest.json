@@ -1,0 +1,21 @@
+{
+    "name": "JobHunter",
+    "short_name": "JobHunter",
+    "description": "Track job applications and generate tailored CVs and cover letters",
+    "start_url": "/app/index.html",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#3498db",
+    "icons": [
+        {
+            "src": "/images/logo-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/logo-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

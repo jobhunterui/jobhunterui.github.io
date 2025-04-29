@@ -18,6 +18,9 @@ function initApp() {
     
     // Show extension promotion in strategic locations
     showExtensionPromo('job-save');
+
+    // Check if this is the first visit and show welcome guidance
+    showFirstTimeGuidance();
     
     // Track page view
     trackEvent('web_app_page_view', { 
@@ -132,6 +135,53 @@ function setupEventListeners() {
             trackEvent('remove_job_click');
             removeSelectedJob();
         });
+    }
+}
+
+// Show first-time guidance modal for new users
+function showFirstTimeGuidance() {
+    // Check if user has seen the guidance
+    const hasSeenGuidance = getStorageData('hasSeenGuidance', false);
+    
+    if (!hasSeenGuidance) {
+        // Show guidance modal
+        const guidanceModal = showModal('Welcome to JobHunter!', `
+            <div class="welcome-guidance">
+                <p>JobHunter helps you find and apply for jobs more efficiently. Here's how to get started:</p>
+                
+                <h4>1. Set Up Your Profile</h4>
+                <p>Go to the Profile tab and paste your CV/resume text. This information will be used to generate tailored applications.</p>
+                
+                <h4>2. Find Jobs</h4>
+                <p>Use the Find Jobs tab to search for opportunities across LinkedIn, job boards, and document sites.</p>
+                
+                <h4>3. Save Jobs</h4>
+                <p>When you find a job, copy the details and save it in the Apply tab.</p>
+                
+                <h4>4. Generate Documents</h4>
+                <p>Use either:</p>
+                <ul>
+                    <li><strong>Auto Generation</strong>: One-click CV and cover letter generation (no account needed)</li>
+                    <li><strong>Manual Generation</strong>: Copy our prompt to Claude for more customization</li>
+                </ul>
+                
+                <p>Your data is saved in your browser - consider exporting it as a backup.</p>
+            </div>
+        `, [
+            {
+                id: 'got-it-btn',
+                text: 'Got it!',
+                class: 'primary-button'
+            }
+        ]);
+        
+        // Mark guidance as seen
+        setStorageData('hasSeenGuidance', true);
+        
+        // Track this event
+        if (typeof trackEvent === 'function') {
+            trackEvent('first_time_guidance_shown');
+        }
     }
 }
 

@@ -52,7 +52,7 @@ function setupExportImport() {
     
     if (profileTab) {
         const exportImportSection = document.createElement('div');
-        exportImportSection.className = 'export-import-section';
+        exportImportSection.className = 'export-import-section hidden';
         exportImportSection.innerHTML = `
             <h3>Export/Import Data</h3>
             <p class="info-text">Export your data to back it up or transfer it to another device.</p>
@@ -155,9 +155,33 @@ function showStorageWarning(usedKB) {
     });
 }
 
-// Show a modal with message
+// Show a modal with message - improved for mobile
 function showModal(title, message, buttons = []) {
-    // Create modal element
+    // Check if we're on mobile and should use browser-native prompts
+    const isMobile = window.innerWidth < 768 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    
+    if (isMobile && message.length < 150 && buttons.length <= 2 && !message.includes('<')) {
+        // Use browser-native confirm for simple cases on mobile
+        if (buttons.length === 1) {
+            // Simple alert with OK button
+            alert(`${title}\n\n${message}`);
+            if (buttons[0] && buttons[0].action) {
+                buttons[0].action();
+            }
+            return null;
+        } else if (buttons.length === 2) {
+            // Confirm dialog with two options
+            const confirmed = confirm(`${title}\n\n${message}`);
+            if (confirmed && buttons[1] && buttons[1].action) {
+                buttons[1].action(); // Usually the "confirm" action is second
+            } else if (!confirmed && buttons[0] && buttons[0].action) {
+                buttons[0].action(); // First button is usually "cancel"
+            }
+            return null;
+        }
+    }
+    
+    // For complex cases or desktop, use custom modal
     const modal = document.createElement('div');
     modal.className = 'modal';
     
@@ -170,9 +194,10 @@ function showModal(title, message, buttons = []) {
         <div class="modal-content">
             <span class="close-modal">&times;</span>
             <h2>${title}</h2>
-            <p>${message}</p>
+            <div class="modal-message">${message}</div>
             <div class="modal-buttons">
                 ${buttonHtml}
+                ${buttons.length === 0 ? '<button class="default-button modal-ok-button">OK</button>' : ''}
             </div>
         </div>
     `;
@@ -186,19 +211,32 @@ function showModal(title, message, buttons = []) {
     }, 10);
     
     // Set up close button
-    modal.querySelector('.close-modal').addEventListener('click', () => {
-        closeModal(modal);
-    });
+    const closeBtn = modal.querySelector('.close-modal');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            closeModal(modal);
+        });
+    }
+    
+    // Set up default OK button if no buttons were provided
+    const okBtn = modal.querySelector('.modal-ok-button');
+    if (okBtn) {
+        okBtn.addEventListener('click', () => {
+            closeModal(modal);
+        });
+    }
     
     // Set up action buttons
     buttons.forEach(button => {
         const buttonElement = modal.querySelector(`#${button.id}`);
-        buttonElement.addEventListener('click', () => {
-            if (button.action) {
-                button.action();
-            }
-            closeModal(modal);
-        });
+        if (buttonElement) {
+            buttonElement.addEventListener('click', () => {
+                if (button.action) {
+                    button.action();
+                }
+                closeModal(modal);
+            });
+        }
     });
     
     // Close when clicking outside
