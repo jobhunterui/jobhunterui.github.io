@@ -144,64 +144,95 @@ function showFirstTimeGuidance() {
     const hasSeenGuidance = getStorageData('hasSeenGuidance', false);
     
     if (!hasSeenGuidance) {
-        // Show guidance modal
-        const guidanceModal = showModal('Welcome to JobHunter!', `
-            <div class="welcome-guidance">
-                <div class="welcome-content-scrollable">
-                    <p>JobHunter helps you find and apply for jobs more efficiently. Here's how to get started:</p>
-                    
-                    <h4>1. Set Up Your Profile</h4>
-                    <p>Go to the Profile tab and paste your CV/resume text. This information will be used to generate tailored applications.</p>
-                    
-                    <h4>2. Find Jobs</h4>
-                    <p>Use the Find Jobs tab to search for opportunities across LinkedIn, job boards, and document sites.</p>
-                    
-                    <h4>3. Save Jobs</h4>
-                    <p>When you find a job, copy the details and save it in the Apply tab.</p>
-                    
-                    <h4>4. Generate Documents</h4>
-                    <p>Use either:</p>
-                    <ul>
-                        <li><strong>Auto Generation</strong>: One-click CV and cover letter generation (no account needed)</li>
-                        <li><strong>Manual Generation</strong>: Copy our prompt to Claude for more customization</li>
-                    </ul>
-                    
-                    <h4>5. Using Claude for Manual Generation</h4>
-                    <p>When using the manual process with Claude:</p>
-                    <ol>
-                        <li>Click "Generate CV" or "Generate Cover Letter"</li>
-                        <li>Paste the copied prompt into Claude</li>
-                        <li>Claude will generate a CV in JSON format or a cover letter</li>
-                        <li>Copy the JSON content (from Claude's artifact or the JSON between curly braces)</li>
-                        <li>Go to the Profile tab and paste it in the "Tailored JSON" field</li>
-                        <li>Click "Preview CV" to see your tailored CV</li>
-                    </ol>
-                    
-                    <h4>6. Career Insights</h4>
-                    <p>After generating a CV, check the Career Insights tab to:</p>
-                    <ul>
-                        <li>See how well your skills match the job requirements</li>
-                        <li>Identify skill gaps to improve your chances</li>
-                        <li>Get personalized learning recommendations</li>
-                        <li>View which of your experiences are most relevant</li>
-                    </ul>
-                    
-                    <h4>7. Learning Dashboard</h4>
-                    <p>Use the Learning tab to create and track personalized learning plans based on the skill gaps identified in Career Insights. Generate plans with Perplexity and track your progress.</p>
-                    
-                    <p class="notes">Your data is saved in your browser, if your clear your browser data, you'll lose it.</p>
+        // Create modal element
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.id = 'welcome-guidance-modal';
+        
+        // Add modal content
+        modal.innerHTML = `
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Welcome to JobHunter!</h2>
+                <div class="welcome-guidance">
+                    <div class="welcome-content-scrollable">
+                        <p>JobHunter helps you find and apply for jobs more efficiently. Here's how to get started:</p>
+                        
+                        <h4>1. Set Up Your Profile</h4>
+                        <p>Go to the Profile tab and paste your CV/resume text. This information will be used to generate tailored applications.</p>
+                        
+                        <h4>2. Find Jobs</h4>
+                        <p>Use the Find Jobs tab to search for opportunities across LinkedIn, job boards, and document sites.</p>
+                        
+                        <h4>3. Save Jobs</h4>
+                        <p>When you find a job, copy the details and save it in the Apply tab.</p>
+                        
+                        <h4>4. Generate Documents</h4>
+                        <p>Use either:</p>
+                        <ul>
+                            <li><strong>Auto Generation</strong>: One-click CV and cover letter generation (no account needed)</li>
+                            <li><strong>Manual Generation</strong>: Copy our prompt to Claude for more customization</li>
+                        </ul>
+                        
+                        <h4>5. Using Claude for Manual Generation</h4>
+                        <p>When using the manual process with Claude:</p>
+                        <ol>
+                            <li>Click "Generate CV" or "Generate Cover Letter"</li>
+                            <li>Paste the copied prompt into Claude</li>
+                            <li>Claude will generate a CV in JSON format or a cover letter</li>
+                            <li>Copy the JSON content (from Claude's artifact or the JSON between curly braces)</li>
+                            <li>Go to the Profile tab and paste it in the "Tailored JSON" field</li>
+                            <li>Click "Preview CV" to see your tailored CV</li>
+                        </ol>
+                        
+                        <h4>6. Career Insights</h4>
+                        <p>After generating a CV, check the Career Insights tab to:</p>
+                        <ul>
+                            <li>See how well your skills match the job requirements</li>
+                            <li>Identify skill gaps to improve your chances</li>
+                            <li>Get personalized learning recommendations</li>
+                            <li>View which of your experiences are most relevant</li>
+                        </ul>
+                        
+                        <h4>7. Learning Dashboard</h4>
+                        <p>Use the Learning tab to create and track personalized learning plans based on the skill gaps identified in Career Insights.</p>
+                        
+                        <p class="notes">Your data is saved in your browser. If you clear your browser data, you'll lose it.</p>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button id="got-it-btn" class="primary-button welcome-button">Got it!</button>
                 </div>
             </div>
-        `, [
-            {
-                id: 'got-it-btn',
-                text: 'Got it!',
-                class: 'primary-button welcome-button'
-            }
-        ]);
+        `;
         
-        // Mark guidance as seen
-        setStorageData('hasSeenGuidance', true);
+        // Add modal to document
+        document.body.appendChild(modal);
+        
+        // Show modal with slight delay to allow CSS transitions
+        setTimeout(() => {
+            modal.classList.add('active');
+        }, 50);
+        
+        // Set up close button
+        const closeBtn = modal.querySelector('.close-modal');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                closeModal(modal);
+                // Mark guidance as seen
+                setStorageData('hasSeenGuidance', true);
+            });
+        }
+        
+        // Set up Got it button
+        const gotItBtn = document.getElementById('got-it-btn');
+        if (gotItBtn) {
+            gotItBtn.addEventListener('click', () => {
+                closeModal(modal);
+                // Mark guidance as seen
+                setStorageData('hasSeenGuidance', true);
+            });
+        }
         
         // Track this event
         if (typeof trackEvent === 'function') {

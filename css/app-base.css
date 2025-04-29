@@ -285,95 +285,6 @@ select:focus {
     color: var(--light-text);
 }
 
-/* Enhanced Modal */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    overflow: auto;
-}
-
-.modal-content {
-    background-color: white;
-    margin: 10% auto;
-    padding: 2rem;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-    max-width: 500px;
-    position: relative;
-}
-
-.close-modal {
-    position: absolute;
-    top: 0.5rem;
-    right: 1rem;
-    font-size: 1.5rem;
-    font-weight: bold;
-    cursor: pointer;
-    color: var(--light-text);
-    transition: color 0.3s;
-}
-
-.close-modal:hover {
-    color: var(--text-color);
-}
-
-.modal-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin: 20px 0 10px 0; /* Add bottom margin to create space */
-    padding: 0 15px; /* Add horizontal padding */
-}
-
-.modal-buttons button {
-    padding: 10px 20px; /* Ensure buttons have proper internal padding */
-    border-radius: 4px;
-}
-
-.modal-buttons .secondary-button {
-    background-color: var(--medium-gray);
-    color: var(--text-color);
-}
-
-.modal-buttons .primary-button {
-    background-color: var(--extension-color);
-}
-
-.welcome-button {
-    margin: 15px !important;
-    padding: 12px 24px !important;
-}
-
-/* Specific styles for welcome modal */
-.welcome-guidance .modal-buttons {
-    padding: 15px; /* Additional padding for welcome guidance modal */
-    margin-top: 20px;
-}
-
-/* Make the Got it button more prominent */
-#got-it-btn {
-    padding: 12px 24px;
-    margin-right: 15px; /* Add space on the right */
-}
-
-/* For mobile devices, ensure the welcome modal has proper styling */
-@media (max-width: 768px) {
-    .welcome-content-scrollable {
-        padding-bottom: 15px; /* Add padding at the bottom of scrollable content */
-    }
-    
-    .modal-buttons {
-        margin-top: 15px;
-        padding: 0 15px 15px 15px; /* Add padding at the bottom */
-    }
-}
-
 .hidden {
     display: none;
 }
@@ -555,34 +466,6 @@ select:focus {
     }
 }
 
-.welcome-content-scrollable {
-    max-height: 70vh;
-    overflow-y: auto;
-    padding-right: 10px;
-}
-
-.welcome-guidance h4 {
-    margin-top: 15px;
-    margin-bottom: 5px;
-    color: #3498db;
-}
-
-.welcome-guidance ul, .welcome-guidance ol {
-    padding-left: 20px;
-    margin-bottom: 10px;
-}
-
-.welcome-guidance p {
-    margin-bottom: 10px;
-}
-
-.welcome-guidance .notes {
-    font-style: italic;
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 1px solid #eee;
-}
-
 /* Mobile-optimized tabs */
 @media (max-width: 480px) {
     .tabs {
@@ -621,20 +504,6 @@ select:focus {
         padding: 15px 10px;
     }
     
-    /* Better modal buttons on mobile */
-    .modal-buttons {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .modal-buttons button {
-        width: 100%;
-        padding: 12px;
-        margin: 0;
-    }
-    
     /* Make job cards more mobile-friendly */
     .job-item {
         padding: 12px;
@@ -660,31 +529,6 @@ select:focus {
     .danger-button {
         padding: 12px 20px;
         font-size: 16px;
-    }
-    
-    /* Welcome guidance styling */
-    .welcome-content-scrollable {
-        max-height: 60vh;
-    }
-    
-    .welcome-guidance h4 {
-        margin-top: 15px;
-        margin-bottom: 5px;
-        color: #3498db;
-    }
-    
-    .welcome-guidance ul {
-        padding-left: 20px;
-    }
-    
-    .welcome-guidance p {
-        margin-bottom: 10px;
-    }
-
-    .modal-content {
-        width: 95%;
-        margin: 5% auto;
-        padding: 15px;
     }
     
     /* Save instructions styling */

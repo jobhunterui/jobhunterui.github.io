@@ -251,9 +251,15 @@ function showModal(title, message, buttons = []) {
 
 // Close a modal
 function closeModal(modal) {
+    // Add a closing class for transition
+    modal.classList.add('closing');
     modal.classList.remove('active');
+    
+    // Wait for transition to complete before removing
     setTimeout(() => {
-        modal.remove();
+        if (modal && modal.parentNode) {
+            modal.parentNode.removeChild(modal);
+        }
     }, 300);
 }
 
