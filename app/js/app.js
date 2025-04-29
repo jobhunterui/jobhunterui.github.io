@@ -196,7 +196,7 @@ function showFirstTimeGuidance() {
             {
                 id: 'got-it-btn',
                 text: 'Got it!',
-                class: 'primary-button'
+                class: 'primary-button welcome-button'
             }
         ]);
         
