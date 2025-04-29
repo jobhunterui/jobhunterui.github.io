@@ -1107,9 +1107,58 @@ If I'm using a mobile device, remind me I can record my voice response instead o
 At the end, provide overall feedback and tips to improve. Let's start the interview preparation now.`;
 }
 
+/**
+ * Previews a cover letter from JSON input in the profile tab
+ */
+function previewCoverLetterFromJson() {
+    const jsonInput = document.getElementById('cv-json');
+
+    if (!jsonInput || !jsonInput.value.trim()) {
+        showModal('JSON Missing', 'Please paste the JSON output from Claude first.');
+        return;
+    }
+
+    try {
+        // Parse the JSON data
+        const data = processCVJson(jsonInput.value);
+
+        if (!data) {
+            showModal('Error', 'Error processing JSON data. Please make sure you pasted the correct format from Claude.');
+            return;
+        }
+
+        // Check if there's a coverLetter field in the JSON
+        if (!data.coverLetter && !data.cover_letter) {
+            showModal('Missing Cover Letter', 'The JSON does not contain a cover letter. Make sure you used the cover letter generation prompt.');
+            return;
+        }
+
+        // Use the coverLetter field or cover_letter field
+        const coverLetterText = data.coverLetter || data.cover_letter;
+
+        // Get job information if available
+        const job = getStorageData('lastGeneratedJob') || {
+            title: data.jobTitle || "Position",
+            company: data.company || "Company"
+        };
+
+        // Track this preview creation
+        if (typeof trackEvent === 'function') {
+            trackEvent('preview_cover_letter', { method: 'claude_json' });
+        }
+
+        // Generate and show the cover letter preview
+        const htmlContent = generateCoverLetterHtml(coverLetterText, job);
+        createAndOpenPreview(htmlContent, 'Cover Letter');
+
+    } catch (e) {
+        showModal('Error', 'Error parsing JSON. Please make sure you pasted the correct format from Claude: ' + e.message);
+    }
+}
+
 // Create cover letter prompt for Claude
 function createClaudeCoverLetterPrompt(job, cv) {
-    return `I need you to create a professional cover letter for a job application based on my CV and the job details.
+    return `I need you to create a professional cover letter based on my CV and the job details, and return it in a JSON format that my app can parse.
 
 JOB DETAILS:
 Title: ${job.title}
@@ -1120,18 +1169,28 @@ Description: ${job.description || 'Not provided'}
 MY CURRENT CV:
 ${cv}
 
-Please write a compelling cover letter that:
-1. Is addressed properly to the hiring manager or company
-2. Includes today's date and my contact information from the CV
-3. Highlights my most relevant experiences and skills for this position
-4. Demonstrates clear understanding of the company and role
-5. Expresses genuine interest in the position
-6. Concludes with a professional closing and call to action
-7. Is no longer than one page in length
+Please create a response with TWO parts:
 
-Write the cover letter in a professional, confident but not arrogant tone. Make it specific to this job and company - avoid generic language that could apply to any position. Don't explicitly mention every requirement from the job description, but highlight my qualifications that best match their needs.
+1. First, write the cover letter directly, formatted and ready to use
 
-Format the cover letter so it's ready to copy and paste directly into Google Docs or another word processor, with proper spacing, paragraphing, and professional layout.`;
+2. Then, in an artifact, provide the same content in JSON format, like this:
+{
+  "jobTitle": "${job.title}",
+  "company": "${job.company}",
+  "fullName": "My name from the CV",
+  "coverLetter": "Full text of the cover letter you wrote above"
+}
+
+The cover letter should:
+1. Be addressed properly to the hiring manager or company
+2. Include today's date and my contact information from the CV
+3. Highlight my most relevant experiences and skills for this position
+4. Demonstrate clear understanding of the company and role
+5. Express genuine interest in the position
+6. Conclude with a professional closing and call to action
+7. Be no longer than one page in length
+
+Write the cover letter in a professional, confident but not arrogant tone. Make it specific to this job and company - avoid generic language that could apply to any position.`;
 }
 
 // Add this to the document.addEventListener('DOMContentLoaded') function at the bottom of prompts.js
@@ -2251,6 +2310,27 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             
             previewCV();
+        });
+    }
+
+    // Set up Preview Cover Letter button
+    const previewCoverLetterButton = document.getElementById('preview-cover-letter');
+    if (previewCoverLetterButton) {
+        // Remove any existing event listeners
+        const newPreviewCoverLetterButton = previewCoverLetterButton.cloneNode(true);
+        previewCoverLetterButton.parentNode.replaceChild(newPreviewCoverLetterButton, previewCoverLetterButton);
+
+        // Add our event listener with tracking
+        newPreviewCoverLetterButton.addEventListener('click', function() {
+            // Track event before previewing
+            if (typeof trackEvent === 'function') {
+                trackEvent('preview_cover_letter_click', {
+                    method: 'manual_json',
+                    page: 'profile_tab'
+                });
+            }
+            
+            previewCoverLetterFromJson();
         });
     }
     

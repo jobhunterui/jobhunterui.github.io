@@ -317,12 +317,14 @@
 
             <!-- JSON input in profile tab -->
             <div class="form-group">
-                <label for="cv-json" class="form-label">Tailored CV JSON:</label>
+                <label for="cv-json" class="form-label">Tailored CV/Cover Letter JSON:</label>
                 <textarea id="cv-json" name="cv-json" class="form-textarea" rows="5"
                     placeholder="Paste the JSON from Claude here..."></textarea>
-                <p class="form-info">After generating an application with Claude, paste the JSON response here to
-                    preview your CV.</p>
-                <button id="preview-cv" class="primary-button">Preview CV</button>
+                <p class="form-info">After generating with Claude, paste the JSON response here to preview your document.</p>
+                <div class="preview-buttons">
+                    <button id="preview-cv" class="primary-button">Preview CV</button>
+                    <button id="preview-cover-letter" class="primary-button">Preview Cover Letter</button>
+                </div>
             </div>
 
             <!-- Export/Import section will be added by setupExportImport() in ui.js -->
