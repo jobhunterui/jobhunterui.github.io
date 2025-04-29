@@ -286,7 +286,7 @@ function loadSavedJobs() {
             savedJobsList.appendChild(jobItem);
         });
     } else {
-        savedJobsList.innerHTML = '<div class="empty-state">No saved jobs yet.</div>';
+        savedJobsList.innerHTML = '<div class="empty-state">No saved jobs yet. Add a new job below.</div>';
         
         if (jobActions) {
             jobActions.classList.add('hidden');
