@@ -245,9 +245,7 @@ function createClaudePrompt(job, cv) {
     MY CURRENT CV:
     ${cv}
     
-    First, please write me a great cover letter for this job that highlights my relevant experience and why I'm a good fit. Make it professional but engaging. Format the cover letter so it's ready to copy and paste directly into Google Docs or another word processor, with proper paragraphing, spacing, and a professional layout. Include my contact information at the top, the date, recipient details (if available from the job), and proper salutation and closing.
-    
-    Then, please provide my CV information in JSON format in an artifact. The JSON must follow this exact structure:
+    Please provide my CV information in JSON format in an artifact. The JSON must follow this exact structure:
     
     {
       "fullName": "Your full name from my CV",
