@@ -457,6 +457,38 @@ function extractDataFromClaudeResponse(jsonData) {
     }
 }
 
+// Function to parse skill categories from skill strings
+function parseSkillCategories(skills) {
+    if (!Array.isArray(skills)) return [];
+
+    const parsedSkills = [];
+
+    // Process each skill string
+    skills.forEach(skillString => {
+        // Check if the skill string contains a category (indicated by ":")
+        const colonIndex = skillString.indexOf(':');
+
+        if (colonIndex > 0) {
+            // Split into category and skills
+            const category = skillString.substring(0, colonIndex).trim();
+            const skillsList = skillString.substring(colonIndex + 1).split(',').map(s => s.trim());
+
+            parsedSkills.push({
+                category: category,
+                skills: skillsList
+            });
+        } else {
+            // If no category found, add as "Other" category
+            parsedSkills.push({
+                category: "Other",
+                skills: [skillString.trim()]
+            });
+        }
+    });
+
+    return parsedSkills;
+}
+
 // Generate HTML for CV preview
 function generateCVHtml(data) {
     return `<!DOCTYPE html>
@@ -819,6 +851,39 @@ function generateCVHtml(data) {
             border-radius: 4px;
             margin-top: 10px;
         }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .skill-category-container {
+            margin-bottom: 8px;
+        }
+
+        .skill-category-title {
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+
+        .skill-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .skill-item {
+            background-color: #f5f5f5;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
         
         /* Print styles */
         @media print {
@@ -844,6 +909,12 @@ function generateCVHtml(data) {
             
             h2 {
                 font-size: 16px;
+            }
+
+            .skill-item {
+                background-color: #f5f5f5 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
             
             .summary, .job-description, .job-achievements, .education-item, .skills-list {
@@ -939,9 +1010,16 @@ function generateCVHtml(data) {
                 `).join('') : ''}
         
                 <h3 class="section-title">Skills</h3>
-                <div class="skills-list">
-                    ${data.skills ? data.skills.map(skill => `
-                        <p>${skill}</p>
+                <div class="skills-grid">
+                    ${data.skills ? parseSkillCategories(data.skills).map(skillCategory => `
+                        <div class="skill-category-container">
+                            <div class="skill-category-title">${skillCategory.category}</div>
+                            <div class="skill-items">
+                                ${skillCategory.skills.map(skill => `
+                                    <span class="skill-item">${skill}</span>
+                                `).join('')}
+                            </div>
+                        </div>
                     `).join('') : ''}
                 </div>
         
