@@ -855,34 +855,40 @@ function generateCVHtml(data) {
         .skills-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 12px;
+            gap: 18px; /* Increased gap between categories */
             margin-bottom: 15px;
         }
 
         .skill-category-container {
-            margin-bottom: 8px;
+            margin-bottom: 12px; /* Increased bottom margin */
+            border-bottom: 1px solid #f0f0f0; /* Light separator line */
+            padding-bottom: 12px; /* Padding after the category */
         }
 
         .skill-category-title {
-            font-weight: 600;
+            font-weight: 700; /* Bolder font for category titles */
             color: var(--secondary-color);
-            margin-bottom: 5px;
+            margin-bottom: 8px; /* More space after the title */
             font-size: 13px;
+            letter-spacing: 0.5px; /* Slight letter spacing for emphasis */
+            border-left: 3px solid var(--accent-color); /* Accent border on the left */
+            padding-left: 6px; /* Padding to account for the border */
         }
 
         .skill-items {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 8px; /* Increased gap between skill items */
         }
 
         .skill-item {
             background-color: #f5f5f5;
-            padding: 3px 8px;
-            border-radius: 3px;
+            padding: 4px 10px; /* Slightly more padding */
+            border-radius: 4px; /* Slightly more rounded corners */
             font-size: 12px;
             display: inline-block;
             margin-bottom: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* Subtle shadow for depth */
         }
         
         /* Print styles */
@@ -913,6 +919,13 @@ function generateCVHtml(data) {
 
             .skill-item {
                 background-color: #f5f5f5 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                box-shadow: none !important; /* Remove shadow when printing */
+            }
+
+            .skill-category-title {
+                border-left-color: var(--accent-color) !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
