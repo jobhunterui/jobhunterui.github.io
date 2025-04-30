@@ -852,43 +852,46 @@ function generateCVHtml(data) {
             margin-top: 10px;
         }
 
+        /* Space-Efficient Skills Section */
         .skills-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 18px; /* Increased gap between categories */
+            gap: 8px; /* Reduced gap between categories */
             margin-bottom: 15px;
         }
 
         .skill-category-container {
-            margin-bottom: 12px; /* Increased bottom margin */
-            border-bottom: 1px solid #f0f0f0; /* Light separator line */
-            padding-bottom: 12px; /* Padding after the category */
+            margin-bottom: 6px; /* Reduced bottom margin */
+            padding-bottom: 6px; /* Reduced padding */
+            border-bottom: none; /* Remove bottom border to save space */
         }
 
         .skill-category-title {
-            font-weight: 700; /* Bolder font for category titles */
+            font-weight: 600; /* Slightly less bold */
             color: var(--secondary-color);
-            margin-bottom: 8px; /* More space after the title */
-            font-size: 13px;
-            letter-spacing: 0.5px; /* Slight letter spacing for emphasis */
-            border-left: 3px solid var(--accent-color); /* Accent border on the left */
-            padding-left: 6px; /* Padding to account for the border */
+            margin-bottom: 4px; /* Less space after title */
+            font-size: 12px; /* Slightly smaller font */
+            display: inline-block; /* Allow items to flow beside if space permits */
+            margin-right: 8px; /* Space to the right of title */
+            border-left: 2px solid var(--accent-color); /* Thinner accent border */
+            padding-left: 4px; /* Less padding */
         }
 
         .skill-items {
-            display: flex;
+            display: inline-flex; /* Allow items to flow in line with category if space permits */
             flex-wrap: wrap;
-            gap: 8px; /* Increased gap between skill items */
+            gap: 4px; /* Tighter spacing between items */
         }
 
         .skill-item {
             background-color: #f5f5f5;
-            padding: 4px 10px; /* Slightly more padding */
-            border-radius: 4px; /* Slightly more rounded corners */
-            font-size: 12px;
+            padding: 2px 8px; /* Less vertical padding */
+            border-radius: 3px; /* Slightly less rounded */
+            font-size: 11px; /* Smaller font size */
             display: inline-block;
-            margin-bottom: 4px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* Subtle shadow for depth */
+            margin-bottom: 2px; /* Less bottom margin */
+            box-shadow: none; /* Remove shadow to reduce visual weight */
+            line-height: 1.3; /* Tighter line height */
         }
         
         /* Print styles */
@@ -921,7 +924,6 @@ function generateCVHtml(data) {
                 background-color: #f5f5f5 !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
-                box-shadow: none !important; /* Remove shadow when printing */
             }
 
             .skill-category-title {
