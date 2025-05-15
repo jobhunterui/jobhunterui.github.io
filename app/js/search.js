@@ -249,6 +249,8 @@ function storeLastSearch(platform, role, location, experience, selectedSites = [
 }
 
 // Search functions
+
+// Search on LinkedIn
 function searchOnLinkedIn() {
     if (!validateSearchForm()) return;
     
@@ -256,7 +258,17 @@ function searchOnLinkedIn() {
     const location = encodeURIComponent(document.getElementById('location').value.trim());
     const experience = document.getElementById('experience').value;
 
-    // Track this search
+    // Track feature usage
+    if (typeof trackFeatureUsage === 'function') {
+        trackFeatureUsage('job_search', {
+            search_platform: 'linkedin',
+            search_role: document.getElementById('role').value.trim(),
+            search_location: document.getElementById('location').value.trim(),
+            search_experience: experience || 'any'
+        });
+    }
+    
+    // Track this search (keep your existing tracking)
     storeLastSearch('linkedin', role, location, experience);
     
     let url = `https://www.linkedin.com/jobs/search/?keywords=${role}&location=${location}`;
@@ -287,7 +299,18 @@ function searchOnLinkedInFeed() {
     
     if (!selectedPhrases) return;
     
-    // Track this search
+    // Track feature usage
+    if (typeof trackFeatureUsage === 'function') {
+        trackFeatureUsage('job_search', {
+            search_platform: 'linkedin_feed',
+            search_role: role,
+            search_location: location,
+            search_experience: experience || 'any',
+            phrase_count: selectedPhrases.length
+        });
+    }
+    
+    // Track this search (keep your existing tracking)
     storeLastSearch('linkedin_feed', role, location, experience);
     
     // Select a random phrase from selected options
@@ -325,6 +348,17 @@ function searchOnGoogle() {
         'jobs.smartrecruiters.com'
     ];
     
+    // Track feature usage
+    if (typeof trackFeatureUsage === 'function') {
+        trackFeatureUsage('job_search', {
+            search_platform: 'job_boards',
+            search_role: role,
+            search_location: location,
+            search_experience: experience || 'any',
+            selected_sites: selectedJobSites.length > 0 ? selectedJobSites.join(',') : 'all'
+        });
+    }
+    
     // Track this search with selected sites info
     storeLastSearch('job_boards', role, location, experience, selectedJobSites.length > 0 ? selectedJobSites : []);
     
@@ -359,6 +393,18 @@ function searchInDocsAndPages() {
         'coda.io'
     ];
     
+    // Track feature usage
+    if (typeof trackFeatureUsage === 'function') {
+        trackFeatureUsage('job_search', {
+            search_platform: 'docs_and_pages',
+            search_role: role,
+            search_location: location,
+            search_experience: experience || 'any',
+            selected_sites: selectedDocSites.length > 0 ? selectedDocSites.join(',') : 'all',
+            phrase_count: selectedPhrases.length
+        });
+    }
+    
     // Track this search with selected sites info
     storeLastSearch('docs_and_pages', role, location, experience, selectedDocSites.length > 0 ? selectedDocSites : []);
     
@@ -386,6 +432,16 @@ function searchWithAI() {
     const role = document.getElementById('role').value.trim();
     const location = document.getElementById('location').value.trim();
     const experience = document.getElementById('experience').value;
+
+    // Track feature usage
+    if (typeof trackFeatureUsage === 'function') {
+        trackFeatureUsage('job_search', {
+            search_platform: 'perplexity_ai',
+            search_role: role,
+            search_location: location,
+            search_experience: experience || 'any'
+        });
+    }
 
     // Track this search
     storeLastSearch('AI', role, location, experience);

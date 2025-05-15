@@ -652,7 +652,7 @@ function saveJobFromForm() {
     
     if (!jobTitle || !jobCompany || !jobDescription) {
         showModal('Missing Information', 'Please fill in at least the job title, company, and description.');
-        return;
+        return null;
     }
     
     const jobData = {
@@ -682,20 +682,13 @@ function saveJobFromForm() {
         // Show success message
         showModal('Job Saved', 'The job has been saved successfully.');
         
-        // Track job save with comprehensive data
-        trackEvent('job_saved', {
-            job_title: jobData.title,
-            company: jobData.company,
-            location: jobData.location,
-            has_url: !!jobData.url,
-            url_domain: jobData.url ? new URL(jobData.url).hostname : 'none',
-            source: 'web_app_manual',
-            description_length: jobData.description.length,
-            status: jobData.status
-        });
+        // Track job save with new function
+        trackJobInteraction('job_saved', jobData);
+        
+        return jobData;
     } else {
         showModal('Error', 'There was an error saving the job. Please try again.');
-        trackEvent('job_save_error');
+        return null;
     }
 }
 
