@@ -31,6 +31,10 @@ function initApp() {
     console.log('Job Hunter Web App initialized');
 }
 
+let currentPage = 1;
+const jobsPerPage = 5;
+let currentFilter = 'all';
+
 // Set up event listeners for interactive elements
 function setupEventListeners() {
     // Set up job form save button
@@ -75,65 +79,75 @@ function setupEventListeners() {
         });
     }
     
-    /* Commented out to troubleshoot duplicate calls to generateApplication and interviewPrep
-
-    // Set up job action buttons
-    const generateApplicationButton = document.getElementById('generate-application');
-    if (generateApplicationButton) {
-        generateApplicationButton.addEventListener('click', function() {
-            // Track before generating application
-            const selectedJob = document.querySelector('.job-item.selected');
-            if (selectedJob) {
-                const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
-                const savedJobs = getSavedJobs();
-                if (savedJobs[jobIndex]) {
-                    trackEvent('generate_application_click', {
-                        job_title: savedJobs[jobIndex].title || 'Unknown',
-                        company: savedJobs[jobIndex].company || 'Unknown'
-                    });
-                } else {
-                    trackEvent('generate_application_click');
-                }
-            } else {
-                trackEvent('generate_application_click');
+    // Set up add job button
+    const addNewJobBtn = document.getElementById('add-new-job-btn');
+    if (addNewJobBtn) {
+        addNewJobBtn.addEventListener('click', function() {
+            // Scroll to the job entry form
+            const jobEntrySection = document.querySelector('.job-entry-section');
+            if (jobEntrySection) {
+                jobEntrySection.scrollIntoView({ behavior: 'smooth' });
             }
-            
-            generateApplication();
         });
     }
     
-    const interviewPrepButton = document.getElementById('interview-prep');
-    if (interviewPrepButton) {
-        interviewPrepButton.addEventListener('click', function() {
-            // Track before generating interview prep
-            const selectedJob = document.querySelector('.job-item.selected');
-            if (selectedJob) {
-                const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
-                const savedJobs = getSavedJobs();
-                if (savedJobs[jobIndex]) {
-                    trackEvent('interview_prep_click', {
-                        job_title: savedJobs[jobIndex].title || 'Unknown',
-                        company: savedJobs[jobIndex].company || 'Unknown'
-                    });
-                } else {
-                    trackEvent('interview_prep_click');
-                }
-            } else {
-                trackEvent('interview_prep_click');
-            }
-            
-            generateInterviewPrep();
-        });
-    }
-    
-    */
-    
+    //Set up remove job button
+    // This button should be hidden by default and only shown when a job is selected
     const removeJobButton = document.getElementById('remove-job');
     if (removeJobButton) {
         removeJobButton.addEventListener('click', function() {
             // Track job removal click
             trackEvent('remove_job_click');
             removeSelectedJob();
+        });
+    }
+
+    // Set up status filter
+    const statusFilter = document.getElementById('status-filter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            currentFilter = this.value;
+            currentPage = 1; // Reset to first page when filter changes
+            loadSavedJobs();
+            
+            // Track filter usage
+            trackEvent('filter_jobs_by_status', { status: currentFilter });
+        });
+    }
+
+    // Set up pagination buttons
+    const prevPageBtn = document.getElementById('prev-page');
+    if (prevPageBtn) {
+        prevPageBtn.addEventListener('click', function() {
+            if (currentPage > 1) {
+                currentPage--;
+                loadSavedJobs();
+                
+                // Track pagination usage
+                trackEvent('pagination_click', { direction: 'prev', page: currentPage });
+            }
+        });
+    }
+
+    const nextPageBtn = document.getElementById('next-page');
+    if (nextPageBtn) {
+        nextPageBtn.addEventListener('click', function() {
+            const savedJobs = getSavedJobs();
+            let filteredJobs = savedJobs;
+            
+            if (currentFilter !== 'all') {
+                filteredJobs = savedJobs.filter(job => job.status === currentFilter);
+            }
+            
+            const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
+            
+            if (currentPage < totalPages) {
+                currentPage++;
+                loadSavedJobs();
+                
+                // Track pagination usage
+                trackEvent('pagination_click', { direction: 'next', page: currentPage });
+            }
         });
     }
 }
@@ -245,20 +259,64 @@ function showFirstTimeGuidance() {
 function loadSavedJobs() {
     const savedJobsList = document.getElementById('saved-jobs-list');
     const jobActions = document.getElementById('job-actions');
+    const paginationControls = document.querySelector('.pagination-controls');
     
     if (!savedJobsList) return;
     
     const savedJobs = getSavedJobs();
     
-    if (savedJobs.length > 0) {
+    // Apply status filter
+    let filteredJobs = savedJobs;
+    if (currentFilter !== 'all') {
+        filteredJobs = savedJobs.filter(job => job.status === currentFilter);
+    }
+    
+    // Calculate pagination
+    const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
+    if (currentPage > totalPages && totalPages > 0) {
+        currentPage = totalPages;
+    }
+    
+    const startIndex = (currentPage - 1) * jobsPerPage;
+    const endIndex = Math.min(startIndex + jobsPerPage, filteredJobs.length);
+    const jobsToShow = filteredJobs.slice(startIndex, endIndex);
+    
+    // Update pagination controls
+    const pageInfo = document.getElementById('page-info');
+    if (pageInfo) {
+        pageInfo.textContent = `Page ${currentPage} of ${totalPages || 1}`;
+    }
+    
+    const prevPageBtn = document.getElementById('prev-page');
+    if (prevPageBtn) {
+        prevPageBtn.disabled = currentPage <= 1;
+    }
+    
+    const nextPageBtn = document.getElementById('next-page');
+    if (nextPageBtn) {
+        nextPageBtn.disabled = currentPage >= totalPages;
+    }
+    
+    // Show/hide pagination controls based on job count
+    if (paginationControls) {
+        if (filteredJobs.length > jobsPerPage) {
+            paginationControls.classList.remove('hidden');
+        } else {
+            paginationControls.classList.add('hidden');
+        }
+    }
+    
+    if (jobsToShow.length > 0) {
         // Clear empty state
         savedJobsList.innerHTML = '';
         
-        // Add job items
-        savedJobs.forEach((job, index) => {
+        // Add job items for current page
+        jobsToShow.forEach((job) => {
+            const actualIndex = savedJobs.indexOf(job); // Get original index for actions
+            
             const jobItem = document.createElement('div');
             jobItem.className = 'job-item';
-            jobItem.setAttribute('data-index', index);
+            jobItem.setAttribute('data-index', actualIndex);
             
             // Add job details to item
             const displayUrl = job.url ? 
@@ -297,7 +355,7 @@ function loadSavedJobs() {
                 // This will be used by the insights tab to update
                 const jobSelectedEvent = new CustomEvent('jobSelected', {
                     detail: {
-                        jobIndex: index
+                        jobIndex: actualIndex
                     }
                 });
                 document.dispatchEvent(jobSelectedEvent);
@@ -307,17 +365,21 @@ function loadSavedJobs() {
             const viewDetailsBtn = jobItem.querySelector('.view-details-btn');
             if (viewDetailsBtn) {
                 viewDetailsBtn.addEventListener('click', () => {
-                    showJobDetails(job, index);
+                    showJobDetails(job, actualIndex);
                 });
             }
             
             // Add status tracking
-            addStatusTracking(jobItem, job, index);
+            addStatusTracking(jobItem, job, actualIndex);
             
             savedJobsList.appendChild(jobItem);
         });
     } else {
-        savedJobsList.innerHTML = '<div class="empty-state">No saved jobs yet. Add a new job below.</div>';
+        if (currentFilter !== 'all') {
+            savedJobsList.innerHTML = `<div class="empty-state">No jobs found with status "${currentFilter}". Try another filter.</div>`;
+        } else {
+            savedJobsList.innerHTML = '<div class="empty-state">No saved jobs yet. Add a new job below.</div>';
+        }
         
         if (jobActions) {
             jobActions.classList.add('hidden');
@@ -396,6 +458,7 @@ function addStatusTracking(jobItem, job, index) {
 }
 
 // Update job status
+// Update job status
 function updateJobStatus(jobIndex, newStatus) {
     const savedJobs = getSavedJobs();
     
@@ -407,28 +470,8 @@ function updateJobStatus(jobIndex, newStatus) {
         const success = setStorageData(STORAGE_KEYS.SAVED_JOBS, savedJobs);
         
         if (success) {
-            // Update visual appearance
-            const jobItem = document.querySelector(`.job-item[data-index="${jobIndex}"]`);
-            if (jobItem) {
-                updateJobItemAppearance(jobItem, newStatus);
-                
-                // Update status indicator color
-                const statusIndicator = jobItem.querySelector('.status-indicator');
-                const statuses = [
-                    { value: 'reviewing', color: '#f39c12' },
-                    { value: 'applied', color: '#3498db' },
-                    { value: 'interviewing', color: '#9b59b6' },
-                    { value: 'offer', color: '#2ecc71' },
-                    { value: 'rejected', color: '#e74c3c' },
-                    { value: 'accepted', color: '#27ae60' },
-                    { value: 'declined', color: '#7f8c8d' }
-                ];
-                
-                const currentStatus = statuses.find(s => s.value === newStatus);
-                if (statusIndicator && currentStatus) {
-                    statusIndicator.style.backgroundColor = currentStatus.color;
-                }
-            }
+            // Reload jobs to reflect filter and pagination
+            loadSavedJobs();
             
             // Track this status change
             if (typeof trackEvent === 'function') {

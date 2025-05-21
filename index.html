@@ -206,7 +206,10 @@
 
         <!-- Apply Tab -->
         <div id="apply" class="tab-content">
-            <h2>Saved Job Postings</h2>
+            <div class="apply-header">
+                <h2>Saved Job Postings</h2>
+                <button id="add-new-job-btn" class="primary-button">Add New Job</button>
+            </div>
 
             <div class="saved-jobs-section">
                 <h3>Your Saved Jobs</h3>
@@ -223,9 +226,29 @@
                     </button>
                 </div>
 
+                <div class="job-filters">
+                    <label for="status-filter">Filter by status:</label>
+                    <select id="status-filter" class="job-status-select">
+                        <option value="all">All Statuses</option>
+                        <option value="reviewing">Reviewing</option>
+                        <option value="applied">Applied</option>
+                        <option value="interviewing">Interviewing</option>
+                        <option value="offer">Offer Received</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="accepted">Accepted</option>
+                        <option value="declined">Declined</option>
+                    </select>
+                </div>
+
                 <div id="saved-jobs-list">
                     <!-- Jobs will be listed here dynamically -->
                     <div class="empty-state">No saved jobs yet. Add a new job below.</div>
+                </div>
+
+                <div class="pagination-controls hidden">
+                    <button id="prev-page" class="default-button">&laquo; Previous</button>
+                    <span id="page-info">Page 1 of 1</span>
+                    <button id="next-page" class="default-button">Next &raquo;</button>
                 </div>
 
                 <div id="job-actions" class="hidden">
