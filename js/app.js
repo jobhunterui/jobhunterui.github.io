@@ -269,6 +269,34 @@ function loadSavedJobs() {
     let filteredJobs = savedJobs;
     if (currentFilter !== 'all') {
         filteredJobs = savedJobs.filter(job => job.status === currentFilter);
+    } else {
+        // When showing all statuses, sort by priority
+        filteredJobs = [...savedJobs].sort((a, b) => {
+            // Define status priority (lower number = higher priority)
+            const statusPriority = {
+                'accepted': 1,
+                'offer': 2,
+                'interviewing': 3,
+                'reviewing': 4,
+                'applied': 5,
+                'rejected': 6,
+                'declined': 7
+            };
+            
+            // Get priority for each job's status (default to lowest priority if undefined)
+            const priorityA = statusPriority[a.status || 'reviewing'] || 999;
+            const priorityB = statusPriority[b.status || 'reviewing'] || 999;
+            
+            // Sort by priority first
+            if (priorityA !== priorityB) {
+                return priorityA - priorityB;
+            }
+            
+            // If same priority, sort by date added (newest first)
+            const dateA = new Date(a.dateAdded || 0);
+            const dateB = new Date(b.dateAdded || 0);
+            return dateB - dateA;
+        });
     }
     
     // Calculate pagination
@@ -457,7 +485,6 @@ function addStatusTracking(jobItem, job, index) {
     updateJobItemAppearance(jobItem, job.status || 'reviewing');
 }
 
-// Update job status
 // Update job status
 function updateJobStatus(jobIndex, newStatus) {
     const savedJobs = getSavedJobs();
