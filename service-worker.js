@@ -1,7 +1,7 @@
 const CACHE_NAME = 'jobhunter-cache-v1';
 const CACHE_URLS = [
     // Core app pages
-    '/app/index.html',
+    '/index.html',
     
     // Styles
     '/css/app-base.css',
@@ -16,17 +16,17 @@ const CACHE_URLS = [
     '/images/logo-512.png',
     
     // App scripts
-    '/app/js/storage.js',
-    '/app/js/tracking.js',
-    '/app/js/unified-tracking.js',
-    '/app/js/ui.js',
-    '/app/js/cv-api.js',
-    '/app/js/search.js',
-    '/app/js/prompts.js',
-    '/app/js/app.js',
-    '/app/js/insights.js',
-    '/app/js/learning.js',
-    '/app/js/pwa.js'
+    '/js/storage.js',
+    '/js/tracking.js',
+    '/js/unified-tracking.js',
+    '/js/ui.js',
+    '/js/cv-api.js',
+    '/js/search.js',
+    '/js/prompts.js',
+    '/js/app.js',
+    '/js/insights.js',
+    '/js/learning.js',
+    '/js/pwa.js'
 ];
 
 // Install event - cache basic app shell
@@ -107,7 +107,7 @@ self.addEventListener('fetch', event => {
             .catch(() => {
                 // If both cache and network fail, show offline fallback
                 if (event.request.mode === 'navigate') {
-                    return caches.match('/app/index.html');
+                    return caches.match('/index.html');
                 }
 
                 // Return nothing for other resources
