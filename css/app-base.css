@@ -58,7 +58,8 @@ button {
 header {
     background-color: white;
     box-shadow: var(--shadow);
-    padding: 0.5rem;
+    padding: 8px 20px;
+    min-height: 40px;
 }
 
 .header-content {
@@ -67,7 +68,7 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.25rem 0;
+    padding: 0;
 }
 
 .logo {
@@ -294,9 +295,7 @@ select:focus {
 @media (min-width: 769px) {
     /* Desktop: Show a more compact footer */
     footer {
-        background-color: var(--secondary-color);
-        color: white;
-        padding: 1rem;  /* Reduced from 2rem */
+        display: none !important;
     }
     
     .footer-content {
@@ -417,11 +416,12 @@ select:focus {
         box-sizing: border-box !important;
     }
     
-    /* Hide header */
+    /* Hide header - removed
     header {
         display: none !important;
     }
-    
+    */
+
     /* Make the content actually fill out within the container */
     .form-group, 
     .job-item, 
@@ -843,4 +843,52 @@ select:focus {
     #user-name {
         font-size: 12px;
     }
+}
+
+.logo-icon {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    margin-right: 8px;
+}
+
+.sync-status {
+    background: rgba(127, 140, 141, 0.1);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-right: 12px;
+}
+
+.sync-status.local {
+    background: #7f8c8d;
+    color: white;
+}
+
+.sync-status.ready {
+    background: #f39c12;
+    color: white;
+}
+
+.sync-status.synced {
+    background: #27ae60;
+    color: white;
+}
+
+.tab.locked {
+    color: rgba(255,255,255,0.4);
+    cursor: not-allowed;
+}
+
+.tab.locked::after {
+    content: ' 🔒';
+    font-size: 10px;
 }

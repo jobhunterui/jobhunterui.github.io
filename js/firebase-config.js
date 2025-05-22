@@ -83,30 +83,18 @@ window.signOut = async function() {
 
 // Update UI functions
 window.updateUIForSignedInUser = function(user) {
-    const signInButton = document.getElementById('sign-in-button');
-    const userProfile = document.getElementById('user-profile');
-    const userAvatar = document.getElementById('user-avatar');
     const userName = document.getElementById('user-name');
-    const syncStatus = document.getElementById('sync-status-text');
+    const userAvatar = document.getElementById('user-avatar');
     
-    if (signInButton) signInButton.classList.add('hidden');
-    if (userProfile) userProfile.classList.remove('hidden');
     if (userName) userName.textContent = user.displayName || user.email || 'User';
     if (userAvatar && user.photoURL) userAvatar.src = user.photoURL;
-    if (syncStatus) syncStatus.textContent = 'Synced';
     
+    updateSyncStatus(); // Add this line
     console.log("UI updated for signed-in user");
 };
 
 window.updateUIForSignedOutUser = function() {
-    const signInButton = document.getElementById('sign-in-button');
-    const userProfile = document.getElementById('user-profile');
-    const syncStatus = document.getElementById('sync-status-text');
-    
-    if (signInButton) signInButton.classList.remove('hidden');
-    if (userProfile) userProfile.classList.add('hidden');
-    if (syncStatus) syncStatus.textContent = 'Offline';
-    
+    updateSyncStatus(); // Add this line
     console.log("UI updated for signed-out user");
 };
 

@@ -21,6 +21,8 @@ function initApp() {
 
     // Check if this is the first visit and show welcome guidance
     showFirstTimeGuidance();
+
+    updateSyncStatus();
     
     // Track page view
     trackEvent('web_app_page_view', { 
@@ -252,6 +254,31 @@ function showFirstTimeGuidance() {
         if (typeof trackEvent === 'function') {
             trackEvent('first_time_guidance_shown');
         }
+    }
+}
+
+function updateSyncStatus() {
+    const statusElement = document.getElementById('sync-status-text');
+    const syncContainer = document.getElementById('sync-status');
+    const signInButton = document.getElementById('sign-in-button');
+    const userProfile = document.getElementById('user-profile');
+    
+    if (window.currentUser) {
+        statusElement.textContent = 'Synced';
+        syncContainer.className = 'sync-status synced';
+        signInButton.classList.add('hidden');
+        userProfile.classList.remove('hidden');
+    } else {
+        const jobCount = getSavedJobs().length;
+        if (jobCount >= 2) {
+            statusElement.textContent = 'Sign in to sync';
+            syncContainer.className = 'sync-status ready';
+        } else {
+            statusElement.textContent = 'Local Storage';
+            syncContainer.className = 'sync-status local';
+        }
+        signInButton.classList.remove('hidden');
+        userProfile.classList.add('hidden');
     }
 }
 

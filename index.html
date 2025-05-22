@@ -37,10 +37,13 @@
     <header>
         <div class="header-content">
             <div class="logo">
-                <img src="images/logo.png" alt="Job Hunter Logo">
+                <div class="logo-icon">🎯</div>
                 <h1>Job Hunter</h1>
             </div>
             <div class="auth-container">
+                <div id="sync-status" class="sync-status local">
+                    <span id="sync-status-text">Local Storage</span>
+                </div>
                 <button id="sign-in-button" class="auth-button">
                     Sign in with Google
                 </button>
@@ -48,9 +51,6 @@
                     <img id="user-avatar" src="" alt="User Avatar">
                     <span id="user-name">User</span>
                     <button id="sign-out-button" class="sign-out-button">Sign Out</button>
-                </div>
-                <div id="sync-status" class="sync-status">
-                    <span id="sync-status-text">Offline</span>
                 </div>
             </div>
         </div>
