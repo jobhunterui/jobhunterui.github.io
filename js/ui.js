@@ -376,5 +376,63 @@ function dismissAllPromos() {
     });
 }
 
+// Update profile tab based on auth status
+function updateProfileAuthStatus() {
+    const authStatus = document.getElementById('auth-status');
+    if (!authStatus) return;
+    
+    if (window.currentUser) {
+        authStatus.innerHTML = `
+            <p>✅ Signed in as ${window.currentUser.email}</p>
+            <p>Last sync: <span id="last-sync-time">Just now</span></p>
+            <button id="sign-out-profile" class="secondary-button">Sign Out</button>
+        `;
+        
+        // Re-attach sign out handler
+        const signOutBtn = document.getElementById('sign-out-profile');
+        if (signOutBtn) {
+            signOutBtn.addEventListener('click', async () => {
+                try {
+                    await window.signOut();
+                } catch (error) {
+                    console.error('Sign-out error:', error);
+                }
+            });
+        }
+    } else {
+        authStatus.innerHTML = `
+            <p>📱 Sign in to sync across devices</p>
+            <button id="sign-in-profile" class="primary-button">Sign In with Google</button>
+        `;
+        
+        // Re-attach sign in handler
+        const signInBtn = document.getElementById('sign-in-profile');
+        if (signInBtn) {
+            signInBtn.addEventListener('click', async () => {
+                try {
+                    await window.signInWithGoogle();
+                } catch (error) {
+                    console.error('Sign-in error:', error);
+                }
+            });
+        }
+    }
+}
+
+// Call this function when auth state changes
+window.updateUIForSignedInUser = function(user) {
+    // Update header (already handled in firebase-config.js)
+    
+    // Update profile tab
+    updateProfileAuthStatus();
+};
+
+window.updateUIForSignedOutUser = function() {
+    // Update header (already handled in firebase-config.js)
+    
+    // Update profile tab
+    updateProfileAuthStatus();
+};
+
 // Initialize UI on page load
 document.addEventListener('DOMContentLoaded', initUI);

@@ -35,6 +35,147 @@ let currentPage = 1;
 const jobsPerPage = 5;
 let currentFilter = 'all';
 
+// Auth state management
+function handleAuthStateChange(user) {
+    if (user) {
+        // User is signed in
+        console.log('User signed in:', user.email);
+        window.currentUser = user;
+        
+        // Update UI elements
+        updateUIForSignedInUser(user);
+        
+        // Update tab content for authenticated user
+        updateTabContentForAuthState(true);
+        
+        // Track sign-in
+        trackEvent('user_session_start', {
+            user_id: user.uid,
+            email: user.email
+        });
+    } else {
+        // User is signed out
+        console.log('User signed out');
+        window.currentUser = null;
+        
+        // Update UI elements
+        updateUIForSignedOutUser();
+        
+        // Update tab content for unauthenticated user
+        updateTabContentForAuthState(false);
+    }
+}
+
+// Update tab content based on auth state
+function updateTabContentForAuthState(isSignedIn) {
+    const insightsContent = document.getElementById('insights');
+    const learningContent = document.getElementById('learning');
+    
+    if (!isSignedIn) {
+        // Show sign-in required content for Career Insights
+        if (insightsContent) {
+            const insightsWelcome = insightsContent.querySelector('.insights-welcome');
+            if (insightsWelcome) {
+                insightsWelcome.innerHTML = `
+                    <div class="sign-in-required">
+                        <h2>📊 Sign In Required</h2>
+                        <p>You need to sign in to view Career Insights. This feature uses your job application data to provide personalized recommendations and skill analysis.</p>
+                        <p>Your saved jobs and CV are required for this feature to work properly.</p>
+                        <button id="sign-in-from-insights" class="primary-button">Sign In with Google</button>
+                        <button id="go-back-insights" class="secondary-button">Go Back</button>
+                    </div>
+                `;
+                
+                // Attach event listeners
+                const signInBtn = document.getElementById('sign-in-from-insights');
+                if (signInBtn) {
+                    signInBtn.addEventListener('click', () => window.signInWithGoogle());
+                }
+                
+                const goBackBtn = document.getElementById('go-back-insights');
+                if (goBackBtn) {
+                    goBackBtn.addEventListener('click', () => {
+                        document.querySelector('[data-tab="apply"]').click();
+                    });
+                }
+            }
+        }
+        
+        // Show sign-in required content for Learning Dashboard
+        if (learningContent) {
+            const learningEmptyState = learningContent.querySelector('#learning-empty-state');
+            if (learningEmptyState) {
+                learningEmptyState.innerHTML = `
+                    <div class="sign-in-required">
+                        <h2>📊 Sign In Required</h2>
+                        <p>You need to sign in to view the Learning Dashboard. This feature uses your job application data to provide personalized learning recommendations.</p>
+                        <p>Your saved jobs and skill gap analysis are required for this feature to work properly.</p>
+                        <button id="sign-in-from-learning" class="primary-button">Sign In with Google</button>
+                        <button id="go-back-learning" class="secondary-button">Go Back</button>
+                    </div>
+                `;
+                
+                // Hide the actual dashboard if visible
+                const dashboard = document.getElementById('learning-dashboard');
+                if (dashboard) dashboard.style.display = 'none';
+                
+                // Attach event listeners
+                const signInBtn = document.getElementById('sign-in-from-learning');
+                if (signInBtn) {
+                    signInBtn.addEventListener('click', () => window.signInWithGoogle());
+                }
+                
+                const goBackBtn = document.getElementById('go-back-learning');
+                if (goBackBtn) {
+                    goBackBtn.addEventListener('click', () => {
+                        document.querySelector('[data-tab="apply"]').click();
+                    });
+                }
+            }
+        }
+    } else {
+        // Restore original content for signed-in users
+        if (insightsContent) {
+            const insightsWelcome = insightsContent.querySelector('.insights-welcome');
+            if (insightsWelcome && insightsWelcome.querySelector('.sign-in-required')) {
+                insightsWelcome.innerHTML = `
+                    <p>Select a job from the Apply tab to see personalized career insights and skill recommendations.</p>
+                `;
+            }
+        }
+        
+        if (learningContent) {
+            const learningEmptyState = learningContent.querySelector('#learning-empty-state');
+            if (learningEmptyState && learningEmptyState.querySelector('.sign-in-required')) {
+                // Restore the original learning empty state
+                learningEmptyState.innerHTML = `
+                    <h3>Track Your Professional Learning Journey</h3>
+                    <p>Create a personalized learning plan based on the skill gaps identified in your Career Insights.
+                        Generate a learning plan with Perplexity, then paste the JSON here to build your interactive
+                        dashboard.</p>
+                    <div class="learning-json-input">
+                        <label for="learning-plan-json" class="form-label">Paste Learning Plan JSON:</label>
+                        <textarea id="learning-plan-json" class="form-textarea"
+                            placeholder="Paste the learning plan JSON from Perplexity here..."></textarea>
+                        <p class="form-info">Generate a plan in Career Insights tab, paste it to Perplexity, then paste the
+                            JSON response back here.</p>
+                        <button id="load-learning-plan" class="primary-button">Load Learning Plan</button>
+                    </div>
+                    <div class="learning-empty-actions">
+                        <button id="go-to-insights" class="secondary-button">Go to Career Insights</button>
+                        <button id="view-example-plan" class="default-button">View Example Plan</button>
+                    </div>
+                `;
+                
+                // Re-initialize learning.js event listeners if needed
+                if (window.LearningDashboard && window.LearningDashboard.init) {
+                    window.LearningDashboard.init();
+                }
+            }
+        }
+    }
+}
+
 // Set up event listeners for interactive elements
 function setupEventListeners() {
     // Set up job form save button
@@ -147,6 +288,29 @@ function setupEventListeners() {
                 
                 // Track pagination usage
                 trackEvent('pagination_click', { direction: 'next', page: currentPage });
+            }
+        });
+    }
+
+    // Set up auth buttons in profile tab
+    const signInProfileBtn = document.getElementById('sign-in-profile');
+    if (signInProfileBtn) {
+        signInProfileBtn.addEventListener('click', async () => {
+            try {
+                await window.signInWithGoogle();
+            } catch (error) {
+                console.error('Sign-in error:', error);
+            }
+        });
+    }
+
+    const signOutProfileBtn = document.getElementById('sign-out-profile');
+    if (signOutProfileBtn) {
+        signOutProfileBtn.addEventListener('click', async () => {
+            try {
+                await window.signOut();
+            } catch (error) {
+                console.error('Sign-out error:', error);
             }
         });
     }

@@ -111,15 +111,35 @@ window.updateUIForSignedOutUser = function() {
 };
 
 // Auth state observer
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     if (user) {
         console.log("User signed in:", user.email);
         window.currentUser = user;
         updateUIForSignedInUser(user);
+        
+        // Handle auth state in app.js
+        if (window.handleAuthStateChange) {
+            window.handleAuthStateChange(user);
+        }
+        
+        // Enable auto-sync
+        if (window.enableAutoSync) {
+            window.enableAutoSync();
+        }
+        
+        // Migrate local data to cloud on sign-in
+        if (window.migrateLocalToCloud) {
+            await window.migrateLocalToCloud();
+        }
     } else {
         console.log("User signed out");
         window.currentUser = null;
         updateUIForSignedOutUser();
+        
+        // Handle auth state in app.js
+        if (window.handleAuthStateChange) {
+            window.handleAuthStateChange(null);
+        }
     }
 });
 

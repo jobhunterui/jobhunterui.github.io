@@ -360,16 +360,58 @@ select:focus {
     display: none !important; /* Hide the extension promo completely */
 }
 
-/* Desktop: Make tabs sticky and make content width consistent and align tabs with content */
+/* Desktop: Dual sticky header and tabs */
 @media (min-width: 769px) {
-    /* Fixed tabs with consistent width */
-    .tabs {
-        position: fixed !important;
+    /* Make header visible and sticky */
+    header {
+        display: block !important;
+        position: sticky !important;
         top: 0 !important;
+        z-index: 1001 !important;
+        background-color: white !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+        padding: 8px 20px !important;
+        min-height: 40px !important;
+    }
+    
+    /* Keep the header content compact and centered */
+    .header-content {
+        max-width: 1200px !important;
+        margin: 0 auto !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 0 !important;
+    }
+    
+    /* Compact logo for desktop */
+    .logo h1 {
+        font-size: 1.1rem !important;
+        margin: 0 !important;
+    }
+    
+    .logo img {
+        height: 28px !important;
+    }
+    
+    /* Main container consistent width */
+    .app-container {
+        overflow: visible !important;
+        max-width: 1200px !important;
+        margin: 0 auto !important;
         width: 100% !important;
-        max-width: 1200px !important; /* Match max content width */
-        left: 50% !important;
-        transform: translateX(-50%) !important; /* Center the tabs */
+        background-color: white !important;
+        box-shadow: var(--shadow) !important;
+        border-radius: var(--border-radius) !important;
+    }
+    
+    /* Tabs with consistent width matching content */
+    .tabs {
+        position: sticky !important;
+        top: 40px !important;
+        width: 100% !important;
+        max-width: 1200px !important;  /* Match content width */
+        margin: 0 auto !important;      /* Center the tabs */
         z-index: 1000 !important;
         background-color: var(--secondary-color) !important;
         display: flex !important;
@@ -381,34 +423,16 @@ select:focus {
         text-align: center !important;
     }
     
-    /* Set consistent content container width */
+    /* Adjust content padding */
     .tab-content {
+        width: 100% !important;
         max-width: 1200px !important;
         margin: 0 auto !important;
         padding: 2rem !important;
         box-sizing: border-box !important;
     }
     
-    /* Adjust tab content to be full width with margins */
-    .tab-content {
-        width: 100% !important;
-        max-width: 1200px !important; /* Wide but not too wide */
-        margin: 0 auto !important;
-        padding: 70px 2rem 2rem 2rem !important; /* Top padding for fixed tabs */
-        box-sizing: border-box !important;
-    }
-    
-    /* Content container styling */
-    main.app-container,
-    .app-container {
-        width: 100%;
-        max-width: 1200px !important;
-        margin: 0 auto !important;
-        padding: 0 !important;
-        box-sizing: border-box !important;
-    }
-
-    /* Form elements should stretch */
+    /* Form elements should stretch within their container */
     input[type="text"],
     textarea,
     select,
@@ -417,25 +441,19 @@ select:focus {
         box-sizing: border-box !important;
     }
     
-    /* Hide header */
-    header {
-        display: none !important;
-    }
-    
-    /* Make the content actually fill out within the container */
+    /* Content elements consistent width */
     .form-group, 
     .job-item, 
     .info-text,
     .search-buttons,
     .toggle-section {
         width: 100% !important;
-        max-width: 1200px !important;
         box-sizing: border-box !important;
     }
     
-    /* Keep footer visible */
+    /* Hide footer as per Phase 3 requirements */
     footer {
-        display: block !important;
+        display: none !important;
     }
 }
 
@@ -824,23 +842,61 @@ select:focus {
     display: none !important;
 }
 
-/* Mobile adjustments */
+/* Mobile: Enhanced header with auth elements */
 @media (max-width: 768px) {
-    .auth-container {
-        gap: 0.5rem;
+    /* Keep header compact but ensure auth elements fit */
+    header {
+        padding: 0.5rem !important;
+        background-color: white !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
     }
     
+    .header-content {
+        padding: 5px !important;
+        flex-wrap: wrap !important;  /* Allow wrapping if needed */
+        gap: 8px !important;
+    }
+    
+    /* Ensure auth container fits in mobile header */
+    .auth-container {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        font-size: 0.85rem !important;
+    }
+    
+    /* Smaller auth button for mobile */
     .auth-button {
-        padding: 6px 12px;
-        font-size: 12px;
+        padding: 6px 12px !important;
+        font-size: 12px !important;
+    }
+    
+    /* Compact user profile for mobile */
+    .user-profile {
+        gap: 6px !important;
     }
     
     .user-profile img {
-        width: 24px;
-        height: 24px;
+        width: 24px !important;
+        height: 24px !important;
     }
     
     #user-name {
-        font-size: 12px;
+        font-size: 12px !important;
+        max-width: 80px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+    
+    /* Compact sync status */
+    .sync-status {
+        font-size: 11px !important;
+    }
+    
+    /* Sign out button */
+    .sign-out-button {
+        padding: 2px 6px !important;
+        font-size: 11px !important;
     }
 }

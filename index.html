@@ -348,6 +348,25 @@
                 <button id="save-profile" class="primary-button">Save CV</button>
             </div>
 
+            <!-- Auth Status Section -->
+            <div class="auth-status-section">
+                <h3>Account Status</h3>
+                <div id="auth-status">
+                    <!-- Content will be dynamically updated based on auth state -->
+                    <p>📱 Sign in to sync across devices</p>
+                    <button id="sign-in-profile" class="primary-button">Sign In with Google</button>
+                </div>
+            </div>
+
+            <!-- Subscription Section (Placeholder for Phase 4) -->
+            <div class="subscription-section">
+                <h3>Subscription</h3>
+                <div id="subscription-status">
+                    <p>Current plan: <strong>Free</strong></p>
+                    <!-- Placeholder for Phase 4 premium upgrade -->
+                </div>
+            </div>
+
             <!-- JSON input in profile tab -->
             <div class="form-group">
                 <label for="cv-json" class="form-label">Tailored CV/Cover Letter JSON:</label>
@@ -610,6 +629,7 @@
         });
     </script>
     <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/cloud-sync.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/tracking.js"></script>
     <script src="js/unified-tracking.js"></script>
