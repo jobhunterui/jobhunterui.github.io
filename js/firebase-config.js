@@ -164,3 +164,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log("Auth event listeners set up");
 });
+
+// Export Firestore functions for use in cloud-sync.js
+window.firestoreExports = {
+    doc,
+    setDoc,
+    getDoc,
+    serverTimestamp
+};

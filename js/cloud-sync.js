@@ -1,17 +1,22 @@
 // Cloud sync functionality for JobHunter
 
+// Import Firestore functions from the global scope (already loaded by firebase-config.js)
+const { doc, setDoc, getDoc, serverTimestamp } = window.firestoreExports || {};
+
 // Sync data to Firebase Firestore
 window.syncDataToCloud = async function(userData) {
     if (!window.currentUser || !window.db) return false;
     
     try {
-        // Use the Firestore instance from window.db
-        const userDocRef = window.db.collection('users').doc(window.currentUser.uid);
+        updateSyncStatus('syncing');
         
-        await userDocRef.set({
+        // Use v11 syntax with doc() and setDoc()
+        const userDocRef = doc(window.db, 'users', window.currentUser.uid);
+        
+        await setDoc(userDocRef, {
             savedJobs: userData.savedJobs || [],
             profileData: userData.profileData || {},
-            lastSync: new Date().toISOString(),
+            lastSync: serverTimestamp(),
             version: '1.0.0',
             email: window.currentUser.email
         }, { merge: true });
@@ -31,10 +36,11 @@ window.loadDataFromCloud = async function() {
     if (!window.currentUser || !window.db) return null;
     
     try {
-        const userDocRef = window.db.collection('users').doc(window.currentUser.uid);
-        const docSnap = await userDocRef.get();
+        // Use v11 syntax with doc() and getDoc()
+        const userDocRef = doc(window.db, 'users', window.currentUser.uid);
+        const docSnap = await getDoc(userDocRef);
         
-        if (docSnap.exists) {
+        if (docSnap.exists()) {
             console.log('Data loaded from cloud');
             return docSnap.data();
         } else {
