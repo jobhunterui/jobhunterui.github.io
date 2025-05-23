@@ -18,7 +18,8 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
 
-// Suppress Cross-Origin-Opener-Policy warnings from Google Sign-In
+// Suppress Cross-Origin-Opener-Policy warnings from Google Sign-In during development.
+// Consider if this is needed or how to handle it long-term for production.
 const originalError = console.error;
 console.error = function(...args) {
     if (args[0]?.includes?.('Cross-Origin-Opener-Policy')) {
@@ -27,7 +28,7 @@ console.error = function(...args) {
     originalError.apply(console, args);
 };
 
-// Your Firebase configuration
+// Firebase configuration for the application
 const firebaseConfig = {
     apiKey: "AIzaSyCyCYzbja2jnuxIdI_qSok1G9o_AnT9UGY",
     authDomain: "jobhunterui.firebaseapp.com",
@@ -38,19 +39,20 @@ const firebaseConfig = {
     measurementId: "G-HM10WMT8X9"
 };
 
-// Initialize Firebase
+// Initialize Firebase services
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const auth = getAuth(app);
-const db = getFirestore(app);
+const analytics = getAnalytics(app); // Initialize Analytics
+const auth = getAuth(app);        // Firebase Authentication service
+const db = getFirestore(app);     // Firestore Database service
 
-// Global variables
+// --- Global Variables ---
+// Expose auth and db instances for other scripts that might need them directly.
 window.auth = auth;
 window.db = db;
-window.currentUser = null;
+window.currentUser = null; // Holds the currently authenticated user object.
 
-// Export Firestore functions for use in cloud-sync.js
-// Make sure these are available immediately
+// Expose specific Firestore functions for use in cloud-sync.js or other modules.
+// This helps ensure modularity and clear dependencies.
 window.firestoreExports = {
     doc,
     setDoc,
@@ -58,20 +60,72 @@ window.firestoreExports = {
     serverTimestamp
 };
 
-console.log("Firebase initialized successfully");
-console.log("Firestore exports available:", !!window.firestoreExports);
+console.info("[FirebaseSetup] Firebase initialized. Firestore functions exported:", !!window.firestoreExports);
 
-// Authentication functions
+// --- Header UI Update Functions ---
+// These functions are responsible ONLY for updating the header's authentication-related UI elements.
+
+/**
+ * Updates the main application header UI for a signed-in user.
+ * Shows user profile, hides sign-in button, updates user name/avatar.
+ * @param {object} user - The Firebase user object.
+ */
+window.updateAuthHeaderUIForSignedInUser = function(user) {
+    const signInButton = document.getElementById('sign-in-button');
+    const userProfile = document.getElementById('user-profile');
+    const userAvatar = document.getElementById('user-avatar');
+    const userName = document.getElementById('user-name');
+    const syncStatus = document.getElementById('sync-status-text');
+
+    if (signInButton) signInButton.classList.add('hidden');
+    if (userProfile) userProfile.classList.remove('hidden');
+    
+    if (user) {
+        if (userName) userName.textContent = user.displayName || user.email || 'User';
+        if (userAvatar && user.photoURL) userAvatar.src = user.photoURL;
+    }
+    
+    if (syncStatus) syncStatus.textContent = 'Connected'; // Reflects connection due to sign-in
+
+    console.info("[UIHeader] Header UI updated for signed-in state.");
+};
+
+/**
+ * Updates the main application header UI for a signed-out user.
+ * Hides user profile, shows sign-in button, clears user info.
+ */
+window.updateAuthHeaderUIForSignedOutUser = function() {
+    const signInButton = document.getElementById('sign-in-button');
+    const userProfile = document.getElementById('user-profile');
+    const userAvatar = document.getElementById('user-avatar');
+    const userName = document.getElementById('user-name');
+    const syncStatus = document.getElementById('sync-status-text');
+
+    if (signInButton) signInButton.classList.remove('hidden');
+    if (userProfile) userProfile.classList.add('hidden');
+    if (userAvatar) userAvatar.src = ""; // Clear avatar
+    if (userName) userName.textContent = "User"; // Reset display name
+    if (syncStatus) syncStatus.textContent = 'Offline';
+
+    console.info("[UIHeader] Header UI updated for signed-out state.");
+};
+
+// --- Authentication Business Logic ---
+
+/**
+ * Initiates Google Sign-In popup flow.
+ * @returns {Promise<object|null>} Firebase user object on success, or null/throws on error.
+ */
 window.signInWithGoogle = async function() {
     const provider = new GoogleAuthProvider();
     
     try {
         const result = await signInWithPopup(auth, provider);
-        console.log("Sign-in successful:", result.user);
+        console.info("[FirebaseAuth] Sign-in successful:", result.user.email);
         
-        // Track sign-in event
-        if (typeof trackEvent === 'function') {
-            trackEvent('user_signed_in', { 
+        // Track sign-in event if trackEvent function is available
+        if (typeof window.trackEvent === 'function') {
+            window.trackEvent('user_signed_in', { 
                 method: 'google',
                 new_user: result._tokenResponse?.isNewUser || false
             });
@@ -79,123 +133,104 @@ window.signInWithGoogle = async function() {
         
         return result.user;
     } catch (error) {
-        console.error('Sign-in error:', error);
+        console.error('[FirebaseAuth] Sign-in error:', error.code, error.message);
         
-        // Handle popup blocked error
         if (error.code === 'auth/popup-blocked') {
             alert('Popup was blocked. Please allow popups for this site to sign in.');
         } else if (error.code === 'auth/popup-closed-by-user') {
-            console.log('User closed the sign-in popup');
+            // User closed popup, usually not an error to show them.
+            console.info('[FirebaseAuth] Sign-in popup closed by user.');
         } else {
             alert('Sign-in failed: ' + error.message);
         }
         
-        throw error;
+        throw error; // Re-throw for other potential error handlers
     }
 };
 
+/**
+ * Signs out the current user.
+ * @returns {Promise<void>}
+ */
 window.signOut = async function() {
     try {
         await firebaseSignOut(auth);
-        console.log("Sign-out successful");
+        console.info("[FirebaseAuth] Sign-out successful.");
         
-        // Clear sync status
+        // Clear sync status in UI (though updateAuthHeaderUIForSignedOutUser also handles this)
         const syncStatus = document.getElementById('sync-status-text');
         if (syncStatus) syncStatus.textContent = 'Offline';
         
-        // Track sign-out event
-        if (typeof trackEvent === 'function') {
-            trackEvent('user_signed_out');
+        // Track sign-out event if trackEvent function is available
+        if (typeof window.trackEvent === 'function') {
+            window.trackEvent('user_signed_out');
         }
     } catch (error) {
-        console.error('Sign out error:', error);
-        throw error;
+        console.error('[FirebaseAuth] Sign-out error:', error.code, error.message);
+        throw error; // Re-throw for other potential error handlers
     }
 };
 
-// Update UI functions
-window.updateUIForSignedInUser = function(user) {
-    const signInButton = document.getElementById('sign-in-button');
-    const userProfile = document.getElementById('user-profile');
-    const userAvatar = document.getElementById('user-avatar');
-    const userName = document.getElementById('user-name');
-    const syncStatus = document.getElementById('sync-status-text');
-    
-    if (signInButton) signInButton.classList.add('hidden');
-    if (userProfile) userProfile.classList.remove('hidden');
-    if (userName) userName.textContent = user.displayName || user.email || 'User';
-    if (userAvatar && user.photoURL) userAvatar.src = user.photoURL;
-    if (syncStatus) syncStatus.textContent = 'Connected';
-    
-    console.log("UI updated for signed-in user");
-};
-
-window.updateUIForSignedOutUser = function() {
-    const signInButton = document.getElementById('sign-in-button');
-    const userProfile = document.getElementById('user-profile');
-    const syncStatus = document.getElementById('sync-status-text');
-    
-    if (signInButton) signInButton.classList.remove('hidden');
-    if (userProfile) userProfile.classList.add('hidden');
-    if (syncStatus) syncStatus.textContent = 'Offline';
-    
-    console.log("UI updated for signed-out user");
-};
-
-// Auth state observer
+// --- Auth State Observer ---
+// This is the primary listener for authentication state changes.
+// It updates the global currentUser, calls UI update functions, and triggers other app logic.
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        console.log("User signed in:", user.email);
+        // User is signed in
+        console.info("[FirebaseAuth] Auth state changed: User signed in -", user.email);
         window.currentUser = user;
-        updateUIForSignedInUser(user);
+        updateAuthHeaderUIForSignedInUser(user); // Update header UI elements
         
-        // Handle auth state in app.js
+        // Notify other parts of the app (e.g., app.js for profile tab UI)
         if (window.handleAuthStateChange) {
             window.handleAuthStateChange(user);
         }
         
-        // Enable auto-sync with a delay to ensure everything is loaded
+        // Delayed actions to ensure app components are ready
         setTimeout(() => {
             if (window.enableAutoSync) {
+                console.info("[FirebaseAuth] Enabling auto-sync post sign-in.");
                 window.enableAutoSync();
             }
             
-            // Migrate local data to cloud on sign-in
             if (window.migrateLocalToCloud) {
+                console.info("[FirebaseAuth] Initiating local to cloud data migration post sign-in.");
                 window.migrateLocalToCloud();
             }
-        }, 1000);
+        }, 1000); // 1-second delay allows other scripts to potentially load and register their functions
         
     } else {
-        console.log("User signed out");
+        // User is signed out
+        console.info("[FirebaseAuth] Auth state changed: User signed out.");
         window.currentUser = null;
-        updateUIForSignedOutUser();
+        updateAuthHeaderUIForSignedOutUser(); // Update header UI elements
         
-        // Handle auth state in app.js
+        // Notify other parts of the app
         if (window.handleAuthStateChange) {
             window.handleAuthStateChange(null);
         }
     }
 });
 
-// Set up event listeners when DOM loads
+// --- DOM Event Listeners ---
+// Setup for UI elements like sign-in/sign-out buttons in the header.
 document.addEventListener('DOMContentLoaded', function() {
     const signInButton = document.getElementById('sign-in-button');
-    const signOutButton = document.getElementById('sign-out-button');
+    const signOutButton = document.getElementById('sign-out-button'); // In the user profile dropdown
     
     if (signInButton) {
         signInButton.addEventListener('click', () => {
-            console.log("Sign-in button clicked");
+            console.info("[UIAction] Header Sign-in button clicked.");
             signInWithGoogle();
         });
     }
     
     if (signOutButton) {
         signOutButton.addEventListener('click', () => {
-            console.log("Sign-out button clicked");
+            console.info("[UIAction] Header Sign-out button clicked.");
             signOut();
         });
     }
     
-    console.log("Auth event listeners set up");
+    console.info("[FirebaseSetup] Auth-related DOM event listeners configured.");
 });
