@@ -1,14 +1,37 @@
 // Cloud sync functionality for JobHunter
 
-// Import Firestore functions from the global scope (already loaded by firebase-config.js)
-const { doc, setDoc, getDoc, serverTimestamp } = window.firestoreExports || {};
+// Wait for Firestore functions to be available
+function getFirestoreFunctions() {
+    if (window.firestoreExports) {
+        return window.firestoreExports;
+    }
+    // Return empty object with console warnings if not available
+    console.warn('Firestore functions not yet available');
+    return {
+        doc: () => console.error('Firestore not initialized'),
+        setDoc: () => console.error('Firestore not initialized'),
+        getDoc: () => console.error('Firestore not initialized'),
+        serverTimestamp: () => console.error('Firestore not initialized')
+    };
+}
 
 // Sync data to Firebase Firestore
 window.syncDataToCloud = async function(userData) {
-    if (!window.currentUser || !window.db) return false;
+    if (!window.currentUser || !window.db) {
+        console.log('Cannot sync: user not signed in or database not ready');
+        return false;
+    }
     
     try {
         updateSyncStatus('syncing');
+        
+        // Get Firestore functions when needed
+        const { doc, setDoc, serverTimestamp } = getFirestoreFunctions();
+        
+        // Check if functions are actually available
+        if (!doc || !setDoc || !serverTimestamp) {
+            throw new Error('Firestore functions not available');
+        }
         
         // Use v11 syntax with doc() and setDoc()
         const userDocRef = doc(window.db, 'users', window.currentUser.uid);
@@ -33,9 +56,20 @@ window.syncDataToCloud = async function(userData) {
 
 // Load data from Firebase Firestore
 window.loadDataFromCloud = async function() {
-    if (!window.currentUser || !window.db) return null;
+    if (!window.currentUser || !window.db) {
+        console.log('Cannot load: user not signed in or database not ready');
+        return null;
+    }
     
     try {
+        // Get Firestore functions when needed
+        const { doc, getDoc } = getFirestoreFunctions();
+        
+        // Check if functions are actually available
+        if (!doc || !getDoc) {
+            throw new Error('Firestore functions not available');
+        }
+        
         // Use v11 syntax with doc() and getDoc()
         const userDocRef = doc(window.db, 'users', window.currentUser.uid);
         const docSnap = await getDoc(userDocRef);
@@ -126,6 +160,8 @@ window.migrateLocalToCloud = async function() {
             // Refresh UI
             if (typeof loadSavedJobs === 'function') loadSavedJobs();
             if (typeof loadProfileData === 'function') loadProfileData();
+            
+            console.log('Migration completed successfully');
         }
         
         return success;
@@ -154,6 +190,8 @@ function mergeJobs(cloudJobs, localJobs) {
 // Auto-sync on data changes
 window.enableAutoSync = function() {
     if (!window.currentUser) return;
+    
+    console.log('Enabling auto-sync for user:', window.currentUser.email);
     
     // Override storage functions to include sync
     const originalSaveJob = window.saveJob;
@@ -186,4 +224,6 @@ window.enableAutoSync = function() {
         }
         return result;
     };
+    
+    console.log('Auto-sync enabled');
 };

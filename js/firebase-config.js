@@ -18,6 +18,15 @@ import {
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
 
+// Suppress Cross-Origin-Opener-Policy warnings from Google Sign-In
+const originalError = console.error;
+console.error = function(...args) {
+    if (args[0]?.includes?.('Cross-Origin-Opener-Policy')) {
+        return;
+    }
+    originalError.apply(console, args);
+};
+
 // Your Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyCyCYzbja2jnuxIdI_qSok1G9o_AnT9UGY",
@@ -40,7 +49,17 @@ window.auth = auth;
 window.db = db;
 window.currentUser = null;
 
+// Export Firestore functions for use in cloud-sync.js
+// Make sure these are available immediately
+window.firestoreExports = {
+    doc,
+    setDoc,
+    getDoc,
+    serverTimestamp
+};
+
 console.log("Firebase initialized successfully");
+console.log("Firestore exports available:", !!window.firestoreExports);
 
 // Authentication functions
 window.signInWithGoogle = async function() {
@@ -61,7 +80,16 @@ window.signInWithGoogle = async function() {
         return result.user;
     } catch (error) {
         console.error('Sign-in error:', error);
-        alert('Sign-in failed: ' + error.message);
+        
+        // Handle popup blocked error
+        if (error.code === 'auth/popup-blocked') {
+            alert('Popup was blocked. Please allow popups for this site to sign in.');
+        } else if (error.code === 'auth/popup-closed-by-user') {
+            console.log('User closed the sign-in popup');
+        } else {
+            alert('Sign-in failed: ' + error.message);
+        }
+        
         throw error;
     }
 };
@@ -70,6 +98,10 @@ window.signOut = async function() {
     try {
         await firebaseSignOut(auth);
         console.log("Sign-out successful");
+        
+        // Clear sync status
+        const syncStatus = document.getElementById('sync-status-text');
+        if (syncStatus) syncStatus.textContent = 'Offline';
         
         // Track sign-out event
         if (typeof trackEvent === 'function') {
@@ -93,7 +125,7 @@ window.updateUIForSignedInUser = function(user) {
     if (userProfile) userProfile.classList.remove('hidden');
     if (userName) userName.textContent = user.displayName || user.email || 'User';
     if (userAvatar && user.photoURL) userAvatar.src = user.photoURL;
-    if (syncStatus) syncStatus.textContent = 'Synced';
+    if (syncStatus) syncStatus.textContent = 'Connected';
     
     console.log("UI updated for signed-in user");
 };
@@ -122,15 +154,18 @@ onAuthStateChanged(auth, async (user) => {
             window.handleAuthStateChange(user);
         }
         
-        // Enable auto-sync
-        if (window.enableAutoSync) {
-            window.enableAutoSync();
-        }
+        // Enable auto-sync with a delay to ensure everything is loaded
+        setTimeout(() => {
+            if (window.enableAutoSync) {
+                window.enableAutoSync();
+            }
+            
+            // Migrate local data to cloud on sign-in
+            if (window.migrateLocalToCloud) {
+                window.migrateLocalToCloud();
+            }
+        }, 1000);
         
-        // Migrate local data to cloud on sign-in
-        if (window.migrateLocalToCloud) {
-            await window.migrateLocalToCloud();
-        }
     } else {
         console.log("User signed out");
         window.currentUser = null;
@@ -164,11 +199,3 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log("Auth event listeners set up");
 });
-
-// Export Firestore functions for use in cloud-sync.js
-window.firestoreExports = {
-    doc,
-    setDoc,
-    getDoc,
-    serverTimestamp
-};
