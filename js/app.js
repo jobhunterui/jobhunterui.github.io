@@ -230,18 +230,6 @@ function setupEventListeners() {
         });
     }
 
-    // Set up auth buttons in profile tab
-    const signInProfileBtn = document.getElementById('sign-in-profile');
-    if (signInProfileBtn) {
-        signInProfileBtn.addEventListener('click', async () => {
-            try {
-                await window.signInWithGoogle();
-            } catch (error) {
-                console.error('Sign-in error:', error);
-            }
-        });
-    }
-
     const signOutProfileBtn = document.getElementById('sign-out-profile');
     if (signOutProfileBtn) {
         signOutProfileBtn.addEventListener('click', async () => {

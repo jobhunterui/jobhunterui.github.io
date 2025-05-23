@@ -119,11 +119,21 @@ window.updateAuthHeaderUIForSignedOutUser = function() {
 window.signInWithGoogle = async function() {
     const provider = new GoogleAuthProvider();
     
+    // --- Visual Feedback: Get the button that might have been clicked ---
+    // This is a general approach; if multiple sign-in buttons exist, ensure this targets the right one
+    // or pass the button element as an argument.
+    const clickedSignInButton = window.lastClickedSignInButton || document.getElementById('sign-in-button');
+    let originalButtonText = '';
+    if (clickedSignInButton) {
+        originalButtonText = clickedSignInButton.innerHTML;
+        clickedSignInButton.innerHTML = 'Signing In...'; // Or add a spinner icon
+        clickedSignInButton.disabled = true;
+    }
+
     try {
         const result = await signInWithPopup(auth, provider);
         console.info("[FirebaseAuth] Sign-in successful:", result.user.email);
         
-        // Track sign-in event if trackEvent function is available
         if (typeof window.trackEvent === 'function') {
             window.trackEvent('user_signed_in', { 
                 method: 'google',
@@ -131,21 +141,30 @@ window.signInWithGoogle = async function() {
             });
         }
         
+        // No need to reset button here, onAuthStateChanged will update UI
         return result.user;
     } catch (error) {
         console.error('[FirebaseAuth] Sign-in error:', error.code, error.message);
         
+        // --- Visual Feedback: Reset button on error ---
+        if (clickedSignInButton) {
+            clickedSignInButton.innerHTML = originalButtonText;
+            clickedSignInButton.disabled = false;
+        }
+
         if (error.code === 'auth/popup-blocked') {
             alert('Popup was blocked. Please allow popups for this site to sign in.');
         } else if (error.code === 'auth/popup-closed-by-user') {
-            // User closed popup, usually not an error to show them.
             console.info('[FirebaseAuth] Sign-in popup closed by user.');
         } else {
             alert('Sign-in failed: ' + error.message);
         }
         
-        throw error; // Re-throw for other potential error handlers
+        throw error;
     }
+    // Note: Successful sign-in will trigger onAuthStateChanged, which calls
+    // updateAuthHeaderUIForSignedInUser, automatically handling the button's state/visibility.
+    // So, we only explicitly reset the button here on error.
 };
 
 /**
@@ -215,14 +234,28 @@ onAuthStateChanged(auth, async (user) => {
 // --- DOM Event Listeners ---
 // Setup for UI elements like sign-in/sign-out buttons in the header.
 document.addEventListener('DOMContentLoaded', function() {
-    const signInButton = document.getElementById('sign-in-button');
-    const signOutButton = document.getElementById('sign-out-button'); // In the user profile dropdown
+    const headerSignInButton = document.getElementById('sign-in-button');
+    // For the Profile Tab sign-in button (if it exists and needs this too)
+    const profileSignInButton = document.getElementById('sign-in-profile'); 
+    const signOutButton = document.getElementById('sign-out-button');
     
-    if (signInButton) {
-        signInButton.addEventListener('click', () => {
-            console.info("[UIAction] Header Sign-in button clicked.");
-            signInWithGoogle();
-        });
+    function attachSignInListener(button) {
+        if (button) {
+            button.addEventListener('click', () => {
+                console.info(`[UIAction] Sign-in button clicked (ID: ${button.id}).`);
+                window.lastClickedSignInButton = button; // Store which button was clicked
+                signInWithGoogle().catch(() => {
+                    // Error is handled in signInWithGoogle, button reset there too.
+                    // Clear the stored button if needed, or let onAuthStateChanged handle UI.
+                    window.lastClickedSignInButton = null;
+                });
+            });
+        }
+    }
+
+    attachSignInListener(headerSignInButton);
+    if (profileSignInButton) { // If you have a sign-in button in the profile tab
+        attachSignInListener(profileSignInButton); // js/app.js also adds a listener, ensure no conflict or consolidate
     }
     
     if (signOutButton) {
