@@ -852,17 +852,62 @@ select:focus {
     }
     
     .header-content {
-        padding: 5px !important;
-        flex-wrap: wrap !important;  /* Allow wrapping if needed */
-        gap: 8px !important;
+        padding: 5px; /* Keep user's padding */
+        flex-wrap: wrap; /* Allow .logo and .auth-container to wrap if header-content is too narrow */
+        gap: 8px; /* Keep user's gap for .header-content children */
     }
-    
-    /* Ensure auth container fits in mobile header */
+
     .auth-container {
-        display: flex !important;
-        align-items: center !important;
-        gap: 8px !important;
-        font-size: 0.85rem !important;
+        display: flex;
+        align-items: center;   /* Vertically center items within auth-container */
+        flex-wrap: nowrap;     /* CRUCIAL: Prevent items inside .auth-container from wrapping to new lines */
+        flex-shrink: 1;        /* Allow .auth-container itself to shrink if space is tight next to the logo */
+        min-width: 0;          /* Essential for flex-shrink to work effectively and allow truncation */
+        /* Removed gap from here; will use margin on children for more control if needed */
+        font-size: 0.85rem;    /* Keep user's font-size */
+    }
+
+    /* Styling for the Sign-in Button OR the User Profile block when visible */
+    .auth-container > .auth-button,
+    .auth-container > .user-profile {
+        flex-shrink: 1;         /* Allow this element (button or profile block) to shrink */
+        min-width: 0;           /* Allows it to shrink smaller than its content's natural width */
+        white-space: nowrap;    /* Keep content on one line */
+        overflow: hidden;       /* Hide overflow */
+        text-overflow: ellipsis;/* Show '...' if content is too long */
+        margin-right: 8px;      /* Space between this element and the sync status */
+    }
+
+    /* Specifics for the Sign-in button if it needs different padding/font from its general class */
+    .auth-container > .auth-button {
+        padding: 6px 10px; /* Slightly reduced padding for extremely small screens if needed */
+        font-size: 12px;
+    }
+
+    /* Specifics for the user profile block (avatar, name, sign-out) */
+    .auth-container > .user-profile {
+        /* user-profile already has display:flex and gap from general styles, which is fine */
+        /* Ensure it doesn't grow and also shrinks/truncates */
+        flex-grow: 0;
+    }
+
+    /* Styling for the user's name SPAN within the user-profile block */
+    .auth-container #user-name { /* Targeting the span directly */
+        display: inline-block; /* Or block, if it's the only text element */
+        max-width: 60px;       /* Adjust this based on testing for very small screens */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: middle; /* Align with avatar if needed */
+        font-size: 12px;       /* Consistent with other mobile header text */
+    }
+
+    /* Styling for the sync status text */
+    .auth-container .sync-status {
+        flex-shrink: 0;         /* Prevent sync status text ("Offline", "Synced") from shrinking/wrapping */
+        white-space: nowrap;
+        font-size: 11px;        /* Keep user's font-size */
+        /* color: #666; /* Already defined in general .sync-status */
     }
     
     /* Smaller auth button for mobile */

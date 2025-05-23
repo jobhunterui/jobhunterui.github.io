@@ -92,20 +92,45 @@ window.updateAuthHeaderUIForSignedInUser = function(user) {
 
 /**
  * Updates the main application header UI for a signed-out user.
- * Hides user profile, shows sign-in button, clears user info.
+ * Hides user profile, shows sign-in button, clears user info, and resets button states.
  */
-window.updateAuthHeaderUIForSignedOutUser = function() {
-    const signInButton = document.getElementById('sign-in-button');
+window.updateAuthHeaderUIForSignedOutUser = function () {
+    const headerSignInButton = document.getElementById('sign-in-button');
     const userProfile = document.getElementById('user-profile');
     const userAvatar = document.getElementById('user-avatar');
     const userName = document.getElementById('user-name');
     const syncStatus = document.getElementById('sync-status-text');
 
-    if (signInButton) signInButton.classList.remove('hidden');
+    // Explicitly reset the header sign-in button to its default state
+    if (headerSignInButton) {
+        headerSignInButton.classList.remove('hidden');
+        headerSignInButton.innerHTML = 'Sign in with Google'; // Default text
+        headerSignInButton.disabled = false;                // Re-enable
+    }
+
+    // Hide user profile section in header
     if (userProfile) userProfile.classList.add('hidden');
-    if (userAvatar) userAvatar.src = ""; // Clear avatar
-    if (userName) userName.textContent = "User"; // Reset display name
+    if (userAvatar) userAvatar.src = "";
+    if (userName) userName.textContent = "User";
     if (syncStatus) syncStatus.textContent = 'Offline';
+
+    // Clear the reference to any button that might have been in a "Signing in..." state
+    // This helps if signInWithGoogle was initiated from a modal or another button
+    // that isn't the header button but was stored in lastClickedSignInButton.
+    if (window.lastClickedSignInButton) {
+        if (window.lastClickedSignInButton !== headerSignInButton &&
+            document.body.contains(window.lastClickedSignInButton) && // Check if element still exists
+            window.lastClickedSignInButton.innerHTML.includes('Signing In...')) {
+            try {
+                // Attempt to reset its text if it still exists and is in the loading state
+                window.lastClickedSignInButton.innerHTML = 'Sign In with Google'; // Or its original text
+                window.lastClickedSignInButton.disabled = false;
+            } catch (e) {
+                console.warn("[UIHeader] Could not reset a non-header lastClickedSignInButton on sign-out:", e);
+            }
+        }
+        window.lastClickedSignInButton = null; // Always clear after handling
+    }
 
     console.info("[UIHeader] Header UI updated for signed-out state.");
 };
