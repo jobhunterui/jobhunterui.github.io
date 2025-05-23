@@ -1,3 +1,14 @@
+const CACHE_VERSION = 'v1.1'; // Increment this when you want to force cache update
+const CACHE_NAME = `jobhunter-cache-${CACHE_VERSION}`;
+
+// Resources that should never be cached
+const NO_CACHE_URLS = [
+    '/js/firebase-config.js',
+    '/js/cloud-sync.js',
+    'firestore.googleapis.com',
+    'identitytoolkit.googleapis.com'
+];
+
 // Register the service worker for PWA functionality
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {

@@ -13,7 +13,15 @@ function setupTabs() {
     const tabContents = document.querySelectorAll('.tab-content');
     
     tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
+        button.addEventListener('click', (e) => {
+            const tabId = button.getAttribute('data-tab');
+            
+            // Check if user has access to this tab
+            if (!checkTabAccess(tabId)) {
+                e.preventDefault();
+                return; // Don't switch tabs
+            }
+            
             // Get the current active tab
             const currentActiveTab = document.querySelector('.tab-button.active');
             const currentTabId = currentActiveTab ? currentActiveTab.getAttribute('data-tab') : null;
@@ -24,7 +32,6 @@ function setupTabs() {
             
             // Add active class to clicked button and corresponding content
             button.classList.add('active');
-            const tabId = button.getAttribute('data-tab');
             document.getElementById(tabId).classList.add('active');
             
             // Use the new tracking function

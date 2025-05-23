@@ -1,16 +1,17 @@
 // Cloud sync functionality for JobHunter
-import { doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
 
 // Sync data to Firebase Firestore
 window.syncDataToCloud = async function(userData) {
     if (!window.currentUser || !window.db) return false;
     
     try {
-        const userDoc = doc(window.db, 'users', window.currentUser.uid);
-        await setDoc(userDoc, {
+        // Use the Firestore instance from window.db
+        const userDocRef = window.db.collection('users').doc(window.currentUser.uid);
+        
+        await userDocRef.set({
             savedJobs: userData.savedJobs || [],
             profileData: userData.profileData || {},
-            lastSync: serverTimestamp(),
+            lastSync: new Date().toISOString(),
             version: '1.0.0',
             email: window.currentUser.email
         }, { merge: true });
@@ -30,10 +31,10 @@ window.loadDataFromCloud = async function() {
     if (!window.currentUser || !window.db) return null;
     
     try {
-        const userDoc = doc(window.db, 'users', window.currentUser.uid);
-        const docSnap = await getDoc(userDoc);
+        const userDocRef = window.db.collection('users').doc(window.currentUser.uid);
+        const docSnap = await userDocRef.get();
         
-        if (docSnap.exists()) {
+        if (docSnap.exists) {
             console.log('Data loaded from cloud');
             return docSnap.data();
         } else {
@@ -84,43 +85,49 @@ window.migrateLocalToCloud = async function() {
     console.log('Starting local to cloud migration...');
     updateSyncStatus('syncing');
     
-    // Get local data
-    const localData = {
-        savedJobs: getSavedJobs(),
-        profileData: getProfileData()
-    };
-    
-    // Get cloud data
-    const cloudData = await window.loadDataFromCloud();
-    
-    let mergedData;
-    if (!cloudData || cloudData.savedJobs.length === 0) {
-        // No cloud data, use local data
-        mergedData = localData;
-        console.log('Using local data for initial sync');
-    } else {
-        // Merge data - preferring cloud data but adding any local jobs not in cloud
-        mergedData = {
-            savedJobs: mergeJobs(cloudData.savedJobs, localData.savedJobs),
-            profileData: cloudData.profileData.cv ? cloudData.profileData : localData.profileData
+    try {
+        // Get local data
+        const localData = {
+            savedJobs: getSavedJobs(),
+            profileData: getProfileData()
         };
-        console.log('Merged local and cloud data');
-    }
-    
-    // Sync merged data to cloud
-    const success = await window.syncDataToCloud(mergedData);
-    
-    if (success) {
-        // Update local storage with merged data
-        setStorageData(STORAGE_KEYS.SAVED_JOBS, mergedData.savedJobs);
-        setStorageData(STORAGE_KEYS.PROFILE_DATA, mergedData.profileData);
         
-        // Refresh UI
-        if (typeof loadSavedJobs === 'function') loadSavedJobs();
-        if (typeof loadProfileData === 'function') loadProfileData();
+        // Get cloud data
+        const cloudData = await window.loadDataFromCloud();
+        
+        let mergedData;
+        if (!cloudData || !cloudData.savedJobs || cloudData.savedJobs.length === 0) {
+            // No cloud data, use local data
+            mergedData = localData;
+            console.log('Using local data for initial sync');
+        } else {
+            // Merge data - preferring cloud data but adding any local jobs not in cloud
+            mergedData = {
+                savedJobs: mergeJobs(cloudData.savedJobs, localData.savedJobs),
+                profileData: cloudData.profileData.cv ? cloudData.profileData : localData.profileData
+            };
+            console.log('Merged local and cloud data');
+        }
+        
+        // Sync merged data to cloud
+        const success = await window.syncDataToCloud(mergedData);
+        
+        if (success) {
+            // Update local storage with merged data
+            setStorageData(STORAGE_KEYS.SAVED_JOBS, mergedData.savedJobs);
+            setStorageData(STORAGE_KEYS.PROFILE_DATA, mergedData.profileData);
+            
+            // Refresh UI
+            if (typeof loadSavedJobs === 'function') loadSavedJobs();
+            if (typeof loadProfileData === 'function') loadProfileData();
+        }
+        
+        return success;
+    } catch (error) {
+        console.error('Migration error:', error);
+        updateSyncStatus('error');
+        return false;
     }
-    
-    return success;
 };
 
 // Merge jobs from cloud and local, avoiding duplicates
