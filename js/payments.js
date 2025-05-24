@@ -94,16 +94,16 @@ function updateUserSubscriptionUI(userData) {
     if (userData && userData.subscription) {
         const sub = userData.subscription;
         let planName = sub.tier || "Free";
-        if (planName.startsWith("premium_")) {
-            planName = planName.replace("premium_", "");
-            planName = planName.charAt(0).toUpperCase() + planName.slice(1) + " Premium";
+        if (planName.startsWith("pro_")) {
+            planName = planName.replace("pro_", "");
+            planName = planName.charAt(0).toUpperCase() + planName.slice(1) + " Pro";
         } else if (planName === "free") {
             planName = "Free";
         }
         currentPlanEl.textContent = planName;
 
         if (sub.tier !== "free" && sub.status === "active") {
-            subscriptionOptionsEl.classList.add('hidden'); // Hide upgrade options if already premium
+            subscriptionOptionsEl.classList.add('hidden'); // Hide upgrade options if already pro
             // manageSubscriptionEl.classList.remove('hidden'); // Show manage options
             if (sub.current_period_ends_at) {
                 try {
@@ -128,8 +128,8 @@ function updateUserSubscriptionUI(userData) {
                 }
             }
         } else if (sub.status === "non-renewing" && sub.tier !== "free") {
-            // User is on a premium plan that will not renew
-            subscriptionOptionsEl.classList.add('hidden'); // Still on premium, don't show upgrade yet
+            // User is on a pro plan that will not renew
+            subscriptionOptionsEl.classList.add('hidden'); // Still on pro, don't show upgrade yet
             // manageSubscriptionEl.classList.remove('hidden');
             if (sub.cancellation_effective_date) {
                 let effectiveDate;
