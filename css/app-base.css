@@ -945,3 +945,75 @@ select:focus {
         font-size: 11px !important;
     }
 }
+
+/* Subscription Section Styles */
+.subscription-section {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--medium-gray);
+}
+
+#subscription-status-details p {
+    margin-bottom: 0.5rem;
+}
+
+#subscription-options {
+    margin-top: 1rem;
+}
+
+.plan-card-container {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+.plan-card {
+    border: 1px solid var(--medium-gray);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    flex: 1; /* Distribute space equally */
+    min-width: 250px; /* Minimum width before wrapping */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+.plan-card h5 {
+    color: var(--primary-color);
+    margin-bottom: 0.75rem;
+    font-size: 1.2rem;
+}
+
+.plan-price {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--secondary-color);
+    margin-bottom: 0.5rem;
+}
+
+.plan-interval {
+    font-size: 0.9rem;
+    font-weight: normal;
+    color: var(--light-text);
+}
+
+.plan-description {
+    font-size: 0.9rem;
+    color: var(--text-color);
+    margin-bottom: 1rem;
+    flex-grow: 1; /* Pushes button to bottom */
+}
+
+.subscribe-button {
+    width: 100%;
+    padding: 0.8rem;
+    margin-top: auto; /* Pushes button to bottom if content above varies */
+}
+
+#user-plan-expiry.hidden,
+#subscription-options.hidden,
+#manage-subscription-options.hidden {
+    display: none !important;
+}

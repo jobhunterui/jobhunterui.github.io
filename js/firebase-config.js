@@ -15,7 +15,8 @@ import {
     getDoc, 
     collection, 
     getDocs,
-    serverTimestamp
+    serverTimestamp,
+    onSnapshot
 } from "https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js";
 
 // Suppress Cross-Origin-Opener-Policy warnings from Google Sign-In during development.
@@ -57,7 +58,8 @@ window.firestoreExports = {
     doc,
     setDoc,
     getDoc,
-    serverTimestamp
+    serverTimestamp,
+    onSnapshot
 };
 
 console.info("[FirebaseSetup] Firebase initialized. Firestore functions exported:", !!window.firestoreExports);

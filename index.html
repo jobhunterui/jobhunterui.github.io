@@ -379,9 +379,29 @@
             <!-- Subscription Section (Placeholder for Phase 4) -->
             <div class="subscription-section">
                 <h3>Subscription</h3>
-                <div id="subscription-status">
-                    <p>Current plan: <strong>Free</strong></p>
-                    <!-- Placeholder for Phase 4 premium upgrade -->
+                <div id="subscription-status-details">
+                    <p>Current plan: <strong id="user-current-plan">Free</strong></p>
+                    <p id="user-plan-expiry" class="hidden">Expires on: <span id="user-plan-expiry-date"></span></p>
+                    <p id="user-plan-message"></p>
+                </div>
+                <div id="subscription-options" class="hidden">
+                    <h4>Upgrade to Premium:</h4>
+                    <div class="plan-card-container">
+                        <div class="plan-card" data-plan-identifier="monthly">
+                            <h5>Premium Monthly</h5>
+                            <p class="plan-price">NGN X,XXX<span class="plan-interval">/month</span></p>
+                            <p class="plan-description">Full access to all premium features, billed monthly.</p>
+                            <button class="subscribe-button primary-button" data-plan="monthly">Subscribe Monthly</button>
+                        </div>
+                        <div class="plan-card" data-plan-identifier="yearly">
+                            <h5>Premium Yearly</h5>
+                            <p class="plan-price">NGN XX,XXX<span class="plan-interval">/year</span></p>
+                            <p class="plan-description">Get 2 months free! Full access, billed annually.</p>
+                            <button class="subscribe-button primary-button" data-plan="yearly">Subscribe Yearly</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="manage-subscription-options" class="hidden">
                 </div>
             </div>
 
@@ -653,6 +673,7 @@
     <script src="js/unified-tracking.js" defer></script>
     <script src="js/ui.js" defer></script>
     <script src="js/cv-api.js" defer></script>
+    <script src="js/payments.js" defer></script>
     <script src="js/search.js" defer></script>
     <script src="js/prompts.js" defer></script>
     <script src="js/app.js" defer></script>

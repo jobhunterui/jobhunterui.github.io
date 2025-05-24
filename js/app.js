@@ -37,32 +37,139 @@ let currentFilter = 'all';
 
 // Auth state management
 function handleAuthStateChange(user) {
+    const authStatusDiv = document.getElementById('auth-status'); // In Profile Tab
+    
     if (user) {
-        // User is signed in
-        console.log('User signed in:', user.email);
+        console.log('User signed in (app.js handleAuthStateChange):', user.email);
         window.currentUser = user;
         
-        // Update UI elements
-        updateUIForSignedInUser(user);
+        // This function will now handle fetching user data and updating subscription UI
+        displayUserProfile(user); 
         
-        // Update tab content for authenticated user
         updateTabContentForAuthState(true);
         
+        if (authStatusDiv) { // From your existing app.js logic for profile tab auth status
+            authStatusDiv.innerHTML = `
+                <p>Signed in as: <strong>${user.email}</strong></p>
+                <p>User ID: <small>${user.uid}</small></p>
+                <button id="sign-out-profile-appjs" class="secondary-button">Sign Out from Profile Tab</button>
+            `;
+            const signOutBtnAppJs = document.getElementById('sign-out-profile-appjs');
+            if (signOutBtnAppJs) {
+                signOutBtnAppJs.addEventListener('click', async () => {
+                    if (window.signOut) await window.signOut();
+                });
+            }
+        }
+        
         // Track sign-in
-        trackEvent('user_session_start', {
-            user_id: user.uid,
-            email: user.email
-        });
+        if (typeof trackEvent === 'function') { // Ensure trackEvent is available
+            trackEvent('user_session_start', { 
+                user_id: user.uid,
+                email: user.email
+            });
+        }
     } else {
-        // User is signed out
-        console.log('User signed out');
+        console.log('User signed out (app.js handleAuthStateChange)');
+        if (window.currentUser && window.firestoreUnsubscribeUser && window.firestoreUnsubscribeUser[window.currentUser.uid]) {
+            console.log(`[Firestore] Unsubscribing listener for user ${window.currentUser.uid} on sign-out.`);
+            window.firestoreUnsubscribeUser[window.currentUser.uid](); // Unsubscribe from the listener
+            delete window.firestoreUnsubscribeUser[window.currentUser.uid]; // Clean up
+        }
         window.currentUser = null;
         
-        // Update UI elements
-        updateUIForSignedOutUser();
+        if (authStatusDiv) { // From your existing app.js logic for profile tab auth status
+            authStatusDiv.innerHTML = `
+                <p>📱 Sign in to sync across devices and manage your subscription.</p>
+                <button id="sign-in-profile-appjs" class="primary-button">Sign In with Google</button>
+            `;
+            const signInBtnAppJs = document.getElementById('sign-in-profile-appjs');
+            if (signInBtnAppJs) {
+                signInBtnAppJs.addEventListener('click', () => {
+                    if(window.signInWithGoogle) window.signInWithGoogle();
+                });
+            }
+        }
         
-        // Update tab content for unauthenticated user
+        if (typeof window.updateUserSubscriptionUI === 'function') {
+            window.updateUserSubscriptionUI(null); // Clear subscription UI for signed-out user
+        }
         updateTabContentForAuthState(false);
+    }
+}
+
+// Expose handleAuthStateChange to global scope so firebase-config.js can call it
+window.handleAuthStateChange = handleAuthStateChange;
+// Ensure firebase-config.js uses window.handleAppAuthStateChange or rename this to window.handleAuthStateChange
+
+// Object to store unsubscribe functions for Firestore listeners
+window.firestoreUnsubscribeUser = {};
+
+// Function to display user profile details including subscription
+async function displayUserProfile(user) {
+    if (window.db && user && window.firestoreExports && window.firestoreExports.onSnapshot) {
+        try {
+            const userDocRef = window.firestoreExports.doc(window.db, "users", user.uid);
+
+            // Unsubscribe from any previous listener for this user to avoid multiple listeners
+            if (window.firestoreUnsubscribeUser[user.uid]) {
+                console.log(`[Firestore] Unsubscribing previous listener for user ${user.uid}`);
+                window.firestoreUnsubscribeUser[user.uid](); // Call the unsubscribe function
+            }
+
+            // Set up a new real-time listener
+            console.log(`[Firestore] Setting up onSnapshot listener for user ${user.uid}`);
+            window.firestoreUnsubscribeUser[user.uid] = window.firestoreExports.onSnapshot(
+                userDocRef, 
+                (docSnapshot) => { // Renamed 'doc' to 'docSnapshot' to avoid conflict if 'doc' function is in scope
+                    if (docSnapshot.exists()) {
+                        const userDataFromFirestore = docSnapshot.data();
+                        console.log("[Firestore] User data updated via onSnapshot:", userDataFromFirestore);
+
+                        // Convert Firestore timestamps for subscription fields
+                        if (userDataFromFirestore.subscription) {
+                            const sub = userDataFromFirestore.subscription;
+                            const dateFields = ['current_period_ends_at', 'current_period_starts_at', 'cancellation_effective_date', 'updated_at'];
+                            dateFields.forEach(field => {
+                                if (sub[field] && typeof sub[field].toDate === 'function') {
+                                    sub[field] = sub[field].toDate();
+                                }
+                            });
+                        }
+                        
+                        if (typeof window.updateUserSubscriptionUI === 'function') {
+                            window.updateUserSubscriptionUI(userDataFromFirestore);
+                        }
+                    } else {
+                        console.log("[Firestore] User document does not exist (onSnapshot). User might be new or data deleted.");
+                        // Handle case where user doc might not exist yet.
+                        // Backend's get_or_create_user should create it.
+                        // For UI, assume free tier until data appears.
+                        if (typeof window.updateUserSubscriptionUI === 'function') {
+                            window.updateUserSubscriptionUI({ subscription: { tier: 'free', status: 'active' } });
+                        }
+                    }
+                },
+                (error) => {
+                    console.error("[Firestore] Error in onSnapshot listener for user profile:", error);
+                    // Optionally, handle the error more gracefully in the UI
+                    if (typeof window.updateUserSubscriptionUI === 'function') {
+                        window.updateUserSubscriptionUI(null); // Show default on error
+                    }
+                }
+            );
+
+        } catch (error) {
+            console.error("Error setting up onSnapshot listener for user profile:", error);
+            if (typeof window.updateUserSubscriptionUI === 'function') {
+                window.updateUserSubscriptionUI(null); // Show default free state on error
+            }
+        }
+    } else {
+        console.warn("[Firestore] Cannot display user profile: Firebase DB, user, onSnapshot, or firestoreExports not available.");
+        if (typeof window.updateUserSubscriptionUI === 'function') {
+            window.updateUserSubscriptionUI(null); // No user or DB, show default free state
+        }
     }
 }
 
@@ -230,16 +337,26 @@ function setupEventListeners() {
         });
     }
 
-    const signOutProfileBtn = document.getElementById('sign-out-profile');
-    if (signOutProfileBtn) {
-        signOutProfileBtn.addEventListener('click', async () => {
-            try {
-                await window.signOut();
-            } catch (error) {
-                console.error('Sign-out error:', error);
+    // Add listeners for subscription buttons
+    setupSubscriptionButtonListeners();
+}
+
+// Function to set up listeners for subscribe buttons
+function setupSubscriptionButtonListeners() {
+    const subscribeButtons = document.querySelectorAll('.subscribe-button');
+    subscribeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const planIdentifier = this.dataset.plan;
+            if (planIdentifier && typeof window.initializePaystackTransaction === 'function') {
+                const planMessageElement = document.getElementById('user-plan-message');
+                if (planMessageElement) planMessageElement.textContent = ''; // Clear previous messages
+                window.initializePaystackTransaction(planIdentifier);
+            } else {
+                console.error('Plan identifier missing or initializePaystackTransaction not found for plan:', planIdentifier);
+                if (typeof showModal === 'function') showModal("Error", "Could not process subscription request for this plan.");
             }
         });
-    }
+    });
 }
 
 // Show first-time guidance modal for new users
