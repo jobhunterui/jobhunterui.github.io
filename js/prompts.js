@@ -2,6 +2,60 @@
 
 let perplexityWindowOpen = false;
 
+// Helper: Check if a feature is pro and user has access
+function canAccessFeature(featureIdentifier) {
+    // Revised featureDisplayNames as discussed
+    const featureDisplayNames = {
+        "gemini_cv_generation": "Gemini CV Generation",
+        "gemini_cover_letter_generation": "Gemini Cover Letter Generation"
+        // Add other feature display names here if they become Pro and require specific naming
+    };
+    // Default displayName if not in the map, converted to Title Case
+    const displayName = featureDisplayNames[featureIdentifier] ||
+        featureIdentifier.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+
+    if (!window.currentUser) {
+        showModal("Sign In Required", `Please sign in to use the "${displayName}" feature.`, [
+            { id: 'sign-in-feature-prompt', text: 'Sign In', class: 'primary-button', action: () => window.signInWithGoogle() }
+        ]);
+        return false;
+    }
+
+    const subscription = window.currentUserSubscription;
+    // These feature identifiers should match those in backend config.py PREMIUM_FEATURES
+    const backendProFeatures = ["gemini_cv_generation", "gemini_cover_letter_generation"];
+
+    if (backendProFeatures.includes(featureIdentifier)) {
+        let userHasActivePro = false;
+        if (subscription && subscription.tier && subscription.tier.toLowerCase() !== 'free' && subscription.status === 'active') {
+            if (subscription.current_period_ends_at) {
+                userHasActivePro = new Date(subscription.current_period_ends_at) > new Date();
+            } else {
+                userHasActivePro = true; // E.g., lifetime plan with no specific end date
+            }
+        }
+
+        if (!userHasActivePro) {
+            showModal(
+                "Upgrade to Pro",
+                `The "${displayName}" feature requires a Pro plan. Please upgrade your plan.`,
+                [
+                    {
+                        id: 'upgrade-prompt-btn', text: 'Upgrade Plan', class: 'primary-button',
+                        action: () => {
+                            document.querySelector('.tab-button[data-tab="profile"]').click();
+                            setTimeout(() => document.querySelector('.subscription-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
+                        }
+                    },
+                    { id: 'cancel-prompt-btn', text: 'Maybe Later', class: 'default-button' }
+                ]
+            );
+            return false;
+        }
+    }
+    return true;
+}
+
 // Generate application with Claude
 function generateApplication() {
     const selectedJob = document.querySelector('.job-item.selected');
@@ -304,27 +358,27 @@ function processCVJson(jsonData) {
     try {
         // First, try to clean the input by removing common issues
         let cleanedJson = jsonData.trim();
-        
+
         // Remove markdown code block syntax if present
         if (cleanedJson.startsWith('```json')) {
             cleanedJson = cleanedJson.substring(7);
         } else if (cleanedJson.startsWith('```')) {
             cleanedJson = cleanedJson.substring(3);
         }
-        
+
         if (cleanedJson.endsWith('```')) {
             cleanedJson = cleanedJson.substring(0, cleanedJson.length - 3);
         }
-        
+
         // Find JSON object boundaries - look for the first { and last }
         const firstBrace = cleanedJson.indexOf('{');
         const lastBrace = cleanedJson.lastIndexOf('}');
-        
+
         if (firstBrace !== -1 && lastBrace !== -1 && firstBrace < lastBrace) {
             // Extract just the JSON object
             cleanedJson = cleanedJson.substring(firstBrace, lastBrace + 1);
         }
-        
+
         // Parse the cleaned JSON
         const cvData = JSON.parse(cleanedJson);
 
@@ -347,27 +401,27 @@ function processCVJson(jsonData) {
         return cvData;
     } catch (error) {
         console.error('Error parsing CV JSON:', error);
-        
+
         // Create a more helpful error message
         let errorMessage = 'There was an error parsing the JSON. ';
-        
+
         if (jsonData.includes('```')) {
             errorMessage += 'The JSON contains code block markers (```). Please remove these backticks. ';
         }
-        
+
         if (!/^\s*{/.test(jsonData)) {
             errorMessage += 'The JSON should start with an opening brace {. ';
         }
-        
+
         if (!/}\s*$/.test(jsonData)) {
             errorMessage += 'The JSON should end with a closing brace }. ';
         }
-        
+
         errorMessage += '\n\nA valid JSON should look like:\n{\n  "fullName": "Your Name",\n  ...\n}';
-        
+
         // Show the error message to the user
         showModal('JSON Parsing Error', errorMessage);
-        
+
         return null;
     }
 }
@@ -1295,14 +1349,14 @@ if (coverLetterClaudeButton) {
     }
 
     // Add our event listener with tracking
-    newCoverLetterClaudeButton.addEventListener('click', function() {
+    newCoverLetterClaudeButton.addEventListener('click', function () {
         // Get selected job data for tracking
         const selectedJob = document.querySelector('.job-item.selected');
         let additionalParams = {
             method: 'claude',
             generation_type: 'cover_letter'
         };
-        
+
         if (selectedJob) {
             const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
             const savedJobs = getSavedJobs();
@@ -1311,14 +1365,14 @@ if (coverLetterClaudeButton) {
                 additionalParams.company = savedJobs[jobIndex].company || 'Unknown';
             }
         }
-        
+
         // Track feature usage
         if (typeof trackFeatureUsage === 'function') {
             trackFeatureUsage('cover_letter_generation', additionalParams);
         } else if (typeof trackEvent === 'function') {
             trackEvent('claude_cover_letter_generation_click', additionalParams);
         }
-        
+
         generateCoverLetterWithClaude();
     });
 }
@@ -1327,37 +1381,28 @@ if (coverLetterClaudeButton) {
 async function generateCVWithGemini(feedback = "") {
     console.log('generateCVWithGemini function called');
 
-    const selectedJob = document.querySelector('.job-item.selected');
+    const featureIdentifier = "gemini_cv_generation";
+    if (!canAccessFeature(featureIdentifier)) return;
 
+    const selectedJob = document.querySelector('.job-item.selected');
     if (!selectedJob) {
         showModal('No Job Selected', 'Please select a job from your saved jobs first.');
         return;
     }
-
     const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
     const savedJobs = getSavedJobs();
     const job = savedJobs[jobIndex];
-
     const profileData = getProfileData();
     const cv = profileData.cv || '';
 
     if (!cv.trim()) {
         showModal('CV Missing', 'Please add your CV in the Profile tab first.', [
-            {
-                id: 'go-to-profile',
-                text: 'Go to Profile',
-                action: () => {
-                    document.querySelector('[data-tab="profile"]').click();
-                }
-            }
+            { id: 'go-to-profile', text: 'Go to Profile', action: () => document.querySelector('[data-tab="profile"]').click() }
         ]);
         return;
     }
-
-    // Save the last generated job for later matching
     setStorageData('lastGeneratedJob', job);
 
-    // Show improved loading modal with progress indication
     const loadingModal = showModal('Generating CV',
         `<div class="loading-message">
             <p>Please wait while we generate your tailored CV...</p>
@@ -1369,124 +1414,101 @@ async function generateCVWithGemini(feedback = "") {
             </div>
         </div>`, []);
 
-    // Progress simulation for better UX
     let currentStep = 0;
-    const loadingSteps = document.querySelectorAll('.loading-step');
-    const progressInterval = setInterval(() => {
-        if (loadingSteps && currentStep < loadingSteps.length - 1) {
+    const loadingStepsNodeList = loadingModal ? loadingModal.querySelectorAll('.loading-step') : null;
+    const loadingSteps = loadingStepsNodeList ? Array.from(loadingStepsNodeList) : []; // Convert NodeList to Array
+
+    const progressInterval = loadingSteps.length > 0 ? setInterval(() => {
+        if (currentStep < loadingSteps.length - 1) {
             loadingSteps[currentStep].classList.remove('current');
             currentStep++;
             loadingSteps[currentStep].classList.add('current');
         }
-    }, 2000);
+    }, 3000) : null; // Adjusted interval time for simulation
 
     try {
-        // Call the API
-        const result = await generateCV(job.description, cv, feedback);
+        const result = await window.generateCV(job.description, cv, feedback); // Uses cv-api.js
 
-        // Clear the progress interval
-        clearInterval(progressInterval);
+        if (progressInterval) clearInterval(progressInterval);
+        if (loadingModal) closeModal(loadingModal);
 
-        // Close loading modal
-        if (loadingModal) {
-            closeModal(loadingModal);
-        }
-
-        // Extract data for tracking from the response
-        if (typeof trackEvent === 'function') {
+        if (typeof trackEvent === 'function' && result.cv_data) {
             extractDataFromGeminiResponse(result.cv_data, job, cv);
         }
 
-        // NEW: Save CV data for career insights
-        if (typeof CareerInsights !== 'undefined' && CareerInsights.saveCVAnalysis) {
+        if (typeof CareerInsights !== 'undefined' && CareerInsights.saveCVAnalysis && result.cv_data) {
             CareerInsights.saveCVAnalysis(jobIndex, result.cv_data);
         }
 
-        // Show the CV
         const htmlContent = generateCVHtml(result.cv_data);
-
-        // Use the helper function to create and open the preview
         const previewWindow = createAndOpenPreview(htmlContent);
 
-        // Attach feedback functionality to the preview window
         if (previewWindow) {
             previewWindow.addEventListener('load', () => {
                 const thumbsUpBtn = previewWindow.document.getElementById('thumbs-up');
                 const thumbsDownBtn = previewWindow.document.getElementById('thumbs-down');
+                const feedbackForm = previewWindow.document.getElementById('feedback-form');
+                const feedbackButtons = previewWindow.document.getElementById('feedback-buttons');
+                const regenerateBtn = previewWindow.document.getElementById('regenerate-btn');
+                const feedbackTextarea = previewWindow.document.getElementById('feedback-text');
 
                 if (thumbsUpBtn) {
                     thumbsUpBtn.addEventListener('click', () => {
-                        // Track positive feedback
                         if (typeof trackEvent === 'function') {
-                            trackEvent('cv_feedback_positive', {
-                                job_title: job.title || '',
-                                company: job.company || ''
-                            });
+                            trackEvent('cv_feedback_positive', { job_title: job.title || '', company: job.company || '' });
                         }
-
-                        // Show thank you message in the preview window
-                        previewWindow.document.getElementById('feedback-buttons').innerHTML =
-                            '<p class="feedback-thankyou">Thank you for your feedback!</p>';
+                        if (feedbackButtons) feedbackButtons.innerHTML = '<p class="feedback-thankyou">Thank you for your feedback!</p>';
                     });
                 }
 
                 if (thumbsDownBtn) {
                     thumbsDownBtn.addEventListener('click', () => {
-                        // Show feedback form in the preview
-                        previewWindow.document.getElementById('feedback-form').style.display = 'block';
-                        previewWindow.document.getElementById('feedback-buttons').style.display = 'none';
+                        if (feedbackForm) feedbackForm.style.display = 'block';
+                        if (feedbackButtons) feedbackButtons.style.display = 'none';
+                    });
+                }
 
-                        // Set up the regenerate button
-                        const regenerateBtn = previewWindow.document.getElementById('regenerate-btn');
-                        if (regenerateBtn) {
-                            regenerateBtn.addEventListener('click', () => {
-                                const feedbackText = previewWindow.document.getElementById('feedback-text').value;
-
-                                // Track negative feedback
-                                if (typeof trackEvent === 'function') {
-                                    trackEvent('cv_feedback_negative', {
-                                        job_title: job.title || '',
-                                        company: job.company || '',
-                                        feedback: feedbackText
-                                    });
-                                }
-
-                                // Close the preview window
-                                previewWindow.close();
-
-                                // Regenerate with feedback
-                                generateCVWithGemini(feedbackText);
-                            });
+                if (regenerateBtn) {
+                    regenerateBtn.addEventListener('click', () => {
+                        const userFeedback = feedbackTextarea ? feedbackTextarea.value : "";
+                        if (typeof trackEvent === 'function') {
+                            trackEvent('cv_feedback_negative', { job_title: job.title || '', company: job.company || '', feedback: userFeedback });
                         }
+                        previewWindow.close();
+                        generateCVWithGemini(userFeedback); // Recursive call for regeneration
                     });
                 }
             });
         }
-
-        // Show quota information
-        showModal('CV Generated', `Your CV has been generated! You have ${result.quota.remaining} generations remaining today.`);
+        showModal('CV Generated', `Your CV has been generated! You have ${result.quota.remaining} generations remaining for your current plan.`);
 
     } catch (error) {
-        // Clear the progress interval on error
-        clearInterval(progressInterval);
+        if (progressInterval) clearInterval(progressInterval);
+        if (loadingModal) closeModal(loadingModal);
+        console.error("Error in generateCVWithGemini:", error);
 
-        // Close loading modal
-        if (loadingModal) {
-            closeModal(loadingModal);
+        if (error.message && error.message.startsWith("UPGRADE_REQUIRED:")) {
+            showModal("Upgrade to Pro", error.message.replace("UPGRADE_REQUIRED:", "").trim() || "This is a Pro feature. Please upgrade.", [
+                {
+                    id: 'upgrade-error-btn', text: 'Upgrade Plan', class: 'primary-button', action: () => {
+                        document.querySelector('.tab-button[data-tab="profile"]').click();
+                        setTimeout(() => document.querySelector('.subscription-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
+                    }
+                },
+                { id: 'cancel-error-btn', text: 'Close', class: 'default-button' }
+            ]);
+        } else if (error.message && error.message.startsWith("AUTH_FAILED:")) {
+            showModal('Authentication Failed', error.message.replace("AUTH_FAILED:", "").trim() || 'Please sign in again.', [
+                { id: 'sign-in-cv-error', text: 'Sign In', class: 'primary-button', action: () => window.signInWithGoogle() }
+            ]);
+        } else if (error.message && (error.message.includes("Daily API quota") || error.message.includes("Daily generation limit"))) {
+            showModal('Rate Limit Reached', error.message, [{ id: 'ok-rl', text: 'OK' }]);
+        } else {
+            showModal('Error Generating CV', `Failed: ${error.message}. You could also try the manual Claude generation.`, [
+                { id: 'try-claude-cv', text: 'Try Claude Instead', action: generateApplication },
+                { id: 'close-cv-error', text: 'Close' }
+            ]);
         }
-
-        // Show error message
-        showModal('Error', `Failed to generate CV: ${error.message}`, [
-            {
-                id: 'try-claude',
-                text: 'Try Claude Instead',
-                action: generateApplication
-            },
-            {
-                id: 'close-error',
-                text: 'Close'
-            }
-        ]);
     }
 }
 
@@ -1494,37 +1516,28 @@ async function generateCVWithGemini(feedback = "") {
 async function generateCoverLetterWithGemini(feedback = "") {
     console.log('generateCoverLetterWithGemini function called');
 
-    const selectedJob = document.querySelector('.job-item.selected');
+    const featureIdentifier = "gemini_cover_letter_generation";
+    if (!canAccessFeature(featureIdentifier)) return;
 
+    const selectedJob = document.querySelector('.job-item.selected');
     if (!selectedJob) {
         showModal('No Job Selected', 'Please select a job from your saved jobs first.');
         return;
     }
-
     const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
     const savedJobs = getSavedJobs();
     const job = savedJobs[jobIndex];
-
     const profileData = getProfileData();
     const cv = profileData.cv || '';
 
     if (!cv.trim()) {
         showModal('CV Missing', 'Please add your CV in the Profile tab first.', [
-            {
-                id: 'go-to-profile',
-                text: 'Go to Profile',
-                action: () => {
-                    document.querySelector('[data-tab="profile"]').click();
-                }
-            }
+            { id: 'go-to-profile-cl', text: 'Go to Profile', action: () => document.querySelector('[data-tab="profile"]').click() }
         ]);
         return;
     }
-
-    // Save the last generated job for later reference
     setStorageData('lastGeneratedJob', job);
 
-    // Show improved loading modal with progress indication
     const loadingModal = showModal('Generating Cover Letter',
         `<div class="loading-message">
             <p>Please wait while we generate your cover letter...</p>
@@ -1536,65 +1549,63 @@ async function generateCoverLetterWithGemini(feedback = "") {
             </div>
         </div>`, []);
 
-    // Progress simulation for better UX
     let currentStep = 0;
-    const loadingSteps = document.querySelectorAll('.loading-step');
-    const progressInterval = setInterval(() => {
-        if (loadingSteps && currentStep < loadingSteps.length - 1) {
+    const loadingStepsNodeList = loadingModal ? loadingModal.querySelectorAll('.loading-step') : null;
+    const loadingSteps = loadingStepsNodeList ? Array.from(loadingStepsNodeList) : [];
+
+    const progressInterval = loadingSteps.length > 0 ? setInterval(() => {
+        if (currentStep < loadingSteps.length - 1) {
             loadingSteps[currentStep].classList.remove('current');
             currentStep++;
             loadingSteps[currentStep].classList.add('current');
         }
-    }, 2000);
+    }, 2000) : null;
 
     try {
-        // Call the API
-        const result = await generateCoverLetter(job.description, cv, feedback);
+        const result = await window.generateCoverLetter(job.description, cv, feedback); // Uses cv-api.js
 
-        // Clear the progress interval
-        clearInterval(progressInterval);
+        if (progressInterval) clearInterval(progressInterval);
+        if (loadingModal) closeModal(loadingModal);
 
-        // Close loading modal
-        if (loadingModal) {
-            closeModal(loadingModal);
-        }
-
-        // Track this generation
         if (typeof trackEvent === 'function') {
             trackEvent('cover_letter_generated', {
+                method: 'gemini', // Added for consistency
                 job_title: job.title || '',
                 company: job.company || '',
                 has_feedback: feedback ? 'yes' : 'no'
             });
         }
 
-        // Show the cover letter
-        previewCoverLetter(result.cover_letter, job);
-
-        // Show quota information
-        showModal('Cover Letter Generated', `Your cover letter has been generated! You have ${result.quota.remaining} generations remaining today.`);
+        previewCoverLetter(result.cover_letter, job); // This function was already in your provided prompts.js
+        showModal('Cover Letter Generated', `Your cover letter has been generated! You have ${result.quota.remaining} generations remaining for your current plan.`);
 
     } catch (error) {
-        // Clear the progress interval on error
-        clearInterval(progressInterval);
+        if (progressInterval) clearInterval(progressInterval);
+        if (loadingModal) closeModal(loadingModal);
+        console.error("Error in generateCoverLetterWithGemini:", error);
 
-        // Close loading modal
-        if (loadingModal) {
-            closeModal(loadingModal);
+        if (error.message && error.message.startsWith("UPGRADE_REQUIRED:")) {
+            showModal("Upgrade to Pro", error.message.replace("UPGRADE_REQUIRED:", "").trim() || "This is a Pro feature. Please upgrade.", [
+                {
+                    id: 'upgrade-cl-error-btn', text: 'Upgrade Plan', class: 'primary-button', action: () => {
+                        document.querySelector('.tab-button[data-tab="profile"]').click();
+                        setTimeout(() => document.querySelector('.subscription-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
+                    }
+                },
+                { id: 'cancel-cl-error-btn', text: 'Close', class: 'default-button' }
+            ]);
+        } else if (error.message && error.message.startsWith("AUTH_FAILED:")) {
+            showModal('Authentication Failed', error.message.replace("AUTH_FAILED:", "").trim() || 'Please sign in again.', [
+                { id: 'sign-in-cl-error', text: 'Sign In', class: 'primary-button', action: () => window.signInWithGoogle() }
+            ]);
+        } else if (error.message && (error.message.includes("Daily API quota") || error.message.includes("Daily generation limit"))) {
+            showModal('Rate Limit Reached', error.message, [{ id: 'ok-cl-rl', text: 'OK' }]);
+        } else {
+            showModal('Error Generating Cover Letter', `Failed: ${error.message}. You could also try the manual Claude generation.`, [
+                { id: 'try-claude-cl', text: 'Try Claude Instead', action: generateCoverLetterWithClaude },
+                { id: 'close-cl-error', text: 'Close' }
+            ]);
         }
-
-        // Show error message
-        showModal('Error', `Failed to generate cover letter: ${error.message}`, [
-            {
-                id: 'try-claude',
-                text: 'Try Claude Instead',
-                action: generateApplication
-            },
-            {
-                id: 'close-error',
-                text: 'Close'
-            }
-        ]);
     }
 }
 
@@ -2215,55 +2226,33 @@ Only respond with the JSON structure - no additional text before or after. Make 
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    // CV generation button
-    const cvButton = document.getElementById('generate-cv-gemini');
-    if (cvButton) {
-        // Remove any existing event listeners
-        const newCvButton = cvButton.cloneNode(true);
-        cvButton.parentNode.replaceChild(newCvButton, cvButton);
+    // CV generation button (Gemini)
+    const cvButtonGemini = document.getElementById('generate-cv-gemini'); //
+    if (cvButtonGemini) { //
+        const newCvButton = cvButtonGemini.cloneNode(true); //
+        cvButtonGemini.parentNode.replaceChild(newCvButton, cvButtonGemini); //
+        newCvButton.setAttribute('data-pro-feature', 'gemini_cv_generation'); // Changed to data-pro-feature
+        newCvButton.setAttribute('data-feature-display-name', 'Gemini CV Generation'); //
 
-        // Add our event listener with tracking
-        newCvButton.addEventListener('click', function (e) {
-            // Track feature usage
-            if (typeof trackFeatureUsage === 'function') {
-                trackFeatureUsage('cv_generation', {
-                    method: 'gemini', 
-                    generation_type: 'cv',
-                    page: 'apply_tab'
-                });
-            } else if (typeof trackEvent === 'function') {
-                trackEvent('gemini_cv_generation_click', {
-                    method: 'gemini', 
-                    generation_type: 'cv',
-                    page: 'apply_tab'
-                });
+        newCvButton.addEventListener('click', function () { //
+            if (typeof trackFeatureUsage === 'function') { //
+                trackFeatureUsage('cv_generation', { method: 'gemini', generation_type: 'cv', page: 'apply_tab' }); //
             }
             generateCVWithGemini();
         });
     }
 
-    // Cover Letter generation button
-    const coverLetterButton = document.getElementById('generate-cover-letter-gemini');
-    if (coverLetterButton) {
-        // Remove any existing event listeners
-        const newCoverLetterButton = coverLetterButton.cloneNode(true);
-        coverLetterButton.parentNode.replaceChild(newCoverLetterButton, coverLetterButton);
+    // Cover Letter generation button (Gemini)
+    const coverLetterButtonGemini = document.getElementById('generate-cover-letter-gemini'); //
+    if (coverLetterButtonGemini) { //
+        const newCoverLetterButton = coverLetterButtonGemini.cloneNode(true); //
+        coverLetterButtonGemini.parentNode.replaceChild(newCoverLetterButton, coverLetterButtonGemini); //
+        newCoverLetterButton.setAttribute('data-pro-feature', 'gemini_cover_letter_generation'); // Changed to data-pro-feature
+        newCoverLetterButton.setAttribute('data-feature-display-name', 'Gemini Cover Letter Generation'); //
 
-        // Add our event listener with tracking
-        newCoverLetterButton.addEventListener('click', function (e) {
-            // Track feature usage
-            if (typeof trackFeatureUsage === 'function') {
-                trackFeatureUsage('cover_letter_generation', {
-                    method: 'gemini',
-                    generation_type: 'cover_letter',
-                    page: 'apply_tab'
-                });
-            } else if (typeof trackEvent === 'function') {
-                trackEvent('gemini_cover_letter_generation_click', {
-                    method: 'gemini',
-                    generation_type: 'cover_letter',
-                    page: 'apply_tab'
-                });
+        newCoverLetterButton.addEventListener('click', function () { //
+            if (typeof trackFeatureUsage === 'function') { //
+                trackFeatureUsage('cover_letter_generation', { method: 'gemini', generation_type: 'cover_letter', page: 'apply_tab' }); //
             }
             generateCoverLetterWithGemini();
         });
@@ -2277,14 +2266,14 @@ document.addEventListener('DOMContentLoaded', function () {
         generateApplicationButton.parentNode.replaceChild(newGenerateAppButton, generateApplicationButton);
 
         // Add our event listener with tracking
-        newGenerateAppButton.addEventListener('click', function() {
+        newGenerateAppButton.addEventListener('click', function () {
             // Get selected job data for tracking
             const selectedJob = document.querySelector('.job-item.selected');
             let additionalParams = {
                 method: 'claude',
                 generation_type: 'cv'
             };
-            
+
             if (selectedJob) {
                 const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
                 const savedJobs = getSavedJobs();
@@ -2293,14 +2282,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     additionalParams.company = savedJobs[jobIndex].company || 'Unknown';
                 }
             }
-            
+
             // Track feature usage
             if (typeof trackFeatureUsage === 'function') {
                 trackFeatureUsage('cv_generation', additionalParams);
             } else if (typeof trackEvent === 'function') {
                 trackEvent('claude_generation_click', additionalParams);
             }
-            
+
             generateApplication();
         });
     }
@@ -2311,16 +2300,21 @@ document.addEventListener('DOMContentLoaded', function () {
         // Remove any existing event listeners
         const newInterviewPrepButton = interviewPrepButton.cloneNode(true);
         interviewPrepButton.parentNode.replaceChild(newInterviewPrepButton, interviewPrepButton);
+        newInterviewPrepButton.setAttribute('data-pro-feature', 'interview_prep');  // "Pro"
+        newInterviewPrepButton.setAttribute('data-feature-display-name', 'Interview Prep'); //
 
         // Add our event listener with tracking
-        newInterviewPrepButton.addEventListener('click', function() {
+        newInterviewPrepButton.addEventListener('click', function () {
+            // Uncomment and adapt if 'interview_prep' becomes a backend-gated Pro feature
+            // if (!canAccessFeature('interview_prep')) return;
+
             // Get selected job data for tracking
             const selectedJob = document.querySelector('.job-item.selected');
             let additionalParams = {
                 method: 'claude',
                 preparation_type: 'interview'
             };
-            
+
             if (selectedJob) {
                 const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
                 const savedJobs = getSavedJobs();
@@ -2329,14 +2323,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     additionalParams.company = savedJobs[jobIndex].company || 'Unknown';
                 }
             }
-            
+
             // Track feature usage
             if (typeof trackFeatureUsage === 'function') {
                 trackFeatureUsage('interview_prep', additionalParams);
             } else if (typeof trackEvent === 'function') {
                 trackEvent('interview_prep_click', additionalParams);
             }
-            
+
             generateInterviewPrep();
         });
     }
@@ -2349,7 +2343,7 @@ document.addEventListener('DOMContentLoaded', function () {
         previewCvButton.parentNode.replaceChild(newPreviewCvButton, previewCvButton);
 
         // Add our event listener with tracking
-        newPreviewCvButton.addEventListener('click', function() {
+        newPreviewCvButton.addEventListener('click', function () {
             // Track event before previewing
             if (typeof trackEvent === 'function') {
                 trackEvent('preview_cv_click', {
@@ -2357,7 +2351,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     page: 'profile_tab'
                 });
             }
-            
+
             previewCV();
         });
     }
@@ -2370,7 +2364,7 @@ document.addEventListener('DOMContentLoaded', function () {
         previewCoverLetterButton.parentNode.replaceChild(newPreviewCoverLetterButton, previewCoverLetterButton);
 
         // Add our event listener with tracking
-        newPreviewCoverLetterButton.addEventListener('click', function() {
+        newPreviewCoverLetterButton.addEventListener('click', function () {
             // Track event before previewing
             if (typeof trackEvent === 'function') {
                 trackEvent('preview_cover_letter_click', {
@@ -2378,51 +2372,55 @@ document.addEventListener('DOMContentLoaded', function () {
                     page: 'profile_tab'
                 });
             }
-            
+
             previewCoverLetterFromJson();
         });
     }
-    
+
     // Learning plan buttons
     const insightsLearningPlanBtn = document.getElementById('create-learning-plan');
     if (insightsLearningPlanBtn) {
         // Remove any existing event listeners
         const newLearningPlanBtn = insightsLearningPlanBtn.cloneNode(true);
         insightsLearningPlanBtn.parentNode.replaceChild(newLearningPlanBtn, insightsLearningPlanBtn);
+        newLearningPlanBtn.setAttribute('data-pro-feature', 'learning_plan_single_job');  // "Pro"
+        newLearningPlanBtn.setAttribute('data-feature-display-name', 'Learning Plan Generation'); //
 
         // Add our event listener with tracking
-        newLearningPlanBtn.addEventListener('click', function() {
+        newLearningPlanBtn.addEventListener('click', function () {
+            // if (!canAccessFeature('learning_plan_single_job')) return;
+
             // Get selected job data for tracking
             const selectedJob = document.querySelector('.job-item.selected');
             let additionalParams = {
                 plan_type: 'single_job',
                 tool: 'perplexity'
             };
-            
+
             if (selectedJob) {
                 const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
                 const savedJobs = getSavedJobs();
                 if (savedJobs[jobIndex]) {
                     additionalParams.job_title = savedJobs[jobIndex].title || 'Unknown';
                     additionalParams.company = savedJobs[jobIndex].company || 'Unknown';
-                    
+
                     // Add skill gap info if available
-                    if (savedJobs[jobIndex].cvAnalysis && 
-                        savedJobs[jobIndex].cvAnalysis.skillGapAnalysis && 
+                    if (savedJobs[jobIndex].cvAnalysis &&
+                        savedJobs[jobIndex].cvAnalysis.skillGapAnalysis &&
                         savedJobs[jobIndex].cvAnalysis.skillGapAnalysis.missingSkills) {
                         additionalParams.missing_skills = savedJobs[jobIndex].cvAnalysis.skillGapAnalysis.missingSkills.join(', ');
                         additionalParams.skill_count = savedJobs[jobIndex].cvAnalysis.skillGapAnalysis.missingSkills.length;
                     }
                 }
             }
-            
+
             // Track feature usage
             if (typeof trackFeatureUsage === 'function') {
                 trackFeatureUsage('learning_plan_generation', additionalParams);
             } else if (typeof trackEvent === 'function') {
                 trackEvent('learning_plan_generation_click', additionalParams);
             }
-            
+
             generateLearningPlanPrompt();
         });
     }
@@ -2432,19 +2430,23 @@ document.addEventListener('DOMContentLoaded', function () {
         // Remove any existing event listeners
         const newCumulativePlanBtn = cumulativeLearningPlanBtn.cloneNode(true);
         cumulativeLearningPlanBtn.parentNode.replaceChild(newCumulativePlanBtn, cumulativeLearningPlanBtn);
+        newCumulativePlanBtn.setAttribute('data-pro-feature', 'learning_plan_cumulative');  // "Pro"
+        newCumulativePlanBtn.setAttribute('data-feature-display-name', 'Career Learning Plan Generation'); //
 
         // Add our event listener with tracking
-        newCumulativePlanBtn.addEventListener('click', function() {
+        newCumulativePlanBtn.addEventListener('click', function () {
+            // if (!canAccessFeature('learning_plan_cumulative')) return;
+
             // Get jobs with analysis data for tracking
             const savedJobs = getSavedJobs();
             const jobsWithAnalysis = savedJobs.filter(job => job.cvAnalysis);
-            
+
             let additionalParams = {
                 plan_type: 'cumulative',
                 tool: 'perplexity',
                 job_count: jobsWithAnalysis.length
             };
-            
+
             // Collect all skill gaps for tracking
             const allMissingSkills = {};
             jobsWithAnalysis.forEach(job => {
@@ -2453,26 +2455,26 @@ document.addEventListener('DOMContentLoaded', function () {
                     allMissingSkills[skill] = (allMissingSkills[skill] || 0) + 1;
                 });
             });
-            
+
             // Get top skills
             const sortedSkills = Object.entries(allMissingSkills)
                 .sort((a, b) => b[1] - a[1])
                 .map(item => item[0]);
-                
+
             const topSkills = sortedSkills.slice(0, 5);
-            
+
             if (topSkills.length > 0) {
                 additionalParams.top_skills = topSkills.join(', ');
                 additionalParams.skill_count = topSkills.length;
             }
-            
+
             // Track feature usage
             if (typeof trackFeatureUsage === 'function') {
                 trackFeatureUsage('learning_plan_generation', additionalParams);
             } else if (typeof trackEvent === 'function') {
                 trackEvent('cumulative_learning_plan_click', additionalParams);
             }
-            
+
             generateCumulativeLearningPlan();
         });
     }

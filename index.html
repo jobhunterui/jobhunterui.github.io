@@ -79,8 +79,8 @@
             <button class="tab-button active" data-tab="find">Find Jobs</button>
             <button class="tab-button" data-tab="apply">Apply</button>
             <button class="tab-button" data-tab="profile">Profile</button>
-            <button class="tab-button" data-tab="insights">Career Insights</button>
-            <button class="tab-button" data-tab="learning">Learning</button>
+            <button class="tab-button" data-tab="insights" data-pro-feature="career_insights_tab" data-feature-display-name="Career Insights">Career Insights <span class="pro-badge hidden">PRO</span></button>
+            <button class="tab-button" data-tab="learning" data-pro-feature="learning_dashboard_tab" data-feature-display-name="Learning Dashboard">Learning <span class="pro-badge hidden">PRO</span></button>
         </div>
 
         <!-- Find Jobs Tab -->
@@ -285,31 +285,31 @@
                 <div id="job-actions" class="hidden">
                     <div class="job-actions-container">
                         <div class="job-actions-group">
-                            <h4 class="action-group-title">Auto Generation (Gemini Flash)</h4>
-                            <p class="action-group-info">One-click AI generation - faster but less customizable</p>
+                            <h4 class="action-group-title">Auto Generation (Gemini) <span class="pro-badge">PRO</span></h4>
+                            <p class="action-group-info">One-click AI generation for Pro plan users.</p>
                             <div class="action-buttons">
-                                <button id="generate-cv-gemini" class="primary-button gemini-button">Generate CV
-                                    (One-Click)</button>
-                                <button id="generate-cover-letter-gemini" class="primary-button gemini-button">Generate
-                                    Cover
-                                    Letter</button>
+                                <button id="generate-cv-gemini" class="primary-button gemini-button" data-pro-feature="gemini_cv_generation" data-feature-display-name="Gemini CV Generation" data-hide-badge-on-active="true">
+                                    Generate CV (One-Click) <span class="pro-badge">PRO</span>
+                                </button>
+                                <button id="generate-cover-letter-gemini" class="primary-button gemini-button" data-pro-feature="gemini_cover_letter_generation" data-feature-display-name="Gemini Cover Letter Generation" data-hide-badge-on-active="true">
+                                    Generate Cover Letter <span class="pro-badge">PRO</span>
+                                </button>
                             </div>
                         </div>
                 
                         <div class="job-actions-group">
-                            <h4 class="action-group-title">Manual Generation (Claude 3.7)</h4>
-                            <p class="action-group-info">Manual process with Claude - more control and higher quality
-                            </p>
+                            <h4 class="action-group-title">Manual Generation (Claude)</h4>
+                            <p class="action-group-info">Manual process with Claude - more control and higher quality (Free)</p>
                             <div class="action-buttons">
-                                <button id="generate-application" class="primary-button claude-button">Generate CV</button>
-                                <button id="generate-cover-letter-claude" class="primary-button claude-button">Generate Cover Letter</button>
+                                <button id="generate-application" class="primary-button claude-button">Generate CV (Claude)</button>
+                                <button id="generate-cover-letter-claude" class="primary-button claude-button">Cover Letter (Claude)</button>
                             </div>
                         </div>
                 
                         <div class="job-actions-group">
                             <h4 class="action-group-title">Other Actions</h4>
                             <div class="action-buttons">
-                                <button id="interview-prep" class="secondary-button">Interview Prep</button>
+                                <button id="interview-prep" class="secondary-button" data-pro-feature="interview_prep" data-feature-display-name="Interview Prep">Interview Prep <span class="pro-badge hidden">PRO</span></button>
                                 <button id="remove-job" class="danger-button">Remove</button>
                             </div>
                         </div>
@@ -381,28 +381,30 @@
                 <h3>Subscription</h3>
                 <div id="subscription-status-details">
                     <p>Current plan: <strong id="user-current-plan">Free</strong></p>
-                    <p id="user-plan-expiry" class="hidden">Expires on: <span id="user-plan-expiry-date"></span></p>
-                    <p id="user-plan-message"></p>
+                    <p id="user-plan-expiry" class="hidden">Subscription valid until: <span id="user-plan-expiry-date"></span></p>
+                    <p id="user-plan-message" class="plan-message"></p> 
                 </div>
-                <div id="subscription-options" class="hidden">
+                
+                <div id="subscription-options" class="hidden"> 
                     <h4>Upgrade to Pro:</h4>
                     <div class="plan-card-container">
                         <div class="plan-card" data-plan-identifier="monthly">
                             <h5>Pro Monthly</h5>
-                            <p class="plan-price">NGN X,XXX<span class="plan-interval">/month</span></p>
-                            <p class="plan-description">Full access to all pro features, billed monthly.</p>
+                            <p class="plan-price">NGN 9,900 <span class="plan-interval">/month</span></p> 
+                            <p class="plan-description">Full access to all Pro features, billed monthly. Includes higher daily generation quotas.</p>
                             <button class="subscribe-button primary-button" data-plan="monthly">Subscribe Monthly</button>
                         </div>
                         <div class="plan-card" data-plan-identifier="yearly">
                             <h5>Pro Yearly</h5>
-                            <p class="plan-price">NGN XX,XXX<span class="plan-interval">/year</span></p>
-                            <p class="plan-description">Get 2 months free! Full access, billed annually.</p>
+                            <p class="plan-price">NGN 99,000 <span class="plan-interval">/year</span></p> 
+                            <p class="plan-description">Get 2 months free! Full access to all Pro features, billed annually. Includes higher daily generation quotas.</p>
                             <button class="subscribe-button primary-button" data-plan="yearly">Subscribe Yearly</button>
                         </div>
                     </div>
                 </div>
+
                 <div id="manage-subscription-options" class="hidden">
-                </div>
+                    </div>
             </div>
 
             <!-- JSON input in profile tab -->

@@ -1590,3 +1590,207 @@ select:focus {
 .sign-in-required button {
     margin: 10px;
 }
+
+/* Pro Feature UI Styles */
+.pro-badge {
+    display: inline-block;
+    font-size: 0.6em; /* Adjusted for "PRO" text */
+    margin-left: 6px;
+    color: white;
+    background-color: var(--accent-color); /* Using accent color for Pro, can be changed */
+    padding: 2px 6px;
+    border-radius: 3px;
+    vertical-align: middle; 
+    text-transform: uppercase;
+    font-weight: 700;
+    line-height: 1; /* Ensure consistent height */
+    letter-spacing: 0.5px;
+}
+
+.pro-badge.hidden {
+    display: none !important;
+}
+
+/* Styling for disabled pro features */
+button.disabled-pro-feature, /* Renamed from disabled-premium */
+.tab-button.disabled-pro-feature { /* Renamed from disabled-premium */
+    opacity: 0.60; /* Slightly more visible than default disabled often is */
+    cursor: not-allowed !important;
+    /* background-color: #e9ecef !important; /* Lighter grey for disabled */
+    /* color: #adb5bd !important; */
+    /* border-color: #ced4da !important; */
+}
+
+/* Ensure pro badge is visible even if parent is styled as disabled */
+.disabled-pro-feature .pro-badge {
+    opacity: 1; 
+}
+
+/* Ensure the Apply tab's Gemini buttons show their badges correctly by default */
+#generate-cv-gemini .pro-badge,
+#generate-cover-letter-gemini .pro-badge {
+    display: inline; 
+}
+
+.job-actions-group h4 .pro-badge { /* For badges next to titles like "Auto Generation (Gemini) PRO" */
+    font-size: 0.7em; 
+    vertical-align: baseline; /* Align better with h4 text */
+}
+
+
+/* Profile Tab Subscription Section */
+.subscription-section {
+    margin-top: 2rem; /* */
+    padding-top: 1.5rem; /* */
+    border-top: 1px solid var(--medium-gray); 
+    background-color: #f9f9f9; /* */
+    border-radius: 8px; /* */
+    padding: 20px; /* Increased padding slightly */
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07); /* Softer shadow */
+}
+
+.subscription-section h3 {
+    margin-top: 0; /* */
+    margin-bottom: 18px; /* More space after title */
+    color: var(--secondary-color); 
+    font-size: 1.2rem; /* Slightly larger */
+    font-weight: 600;
+}
+
+#subscription-status-details p {
+    margin-bottom: 0.6rem; /* More spacing */
+    color: var(--text-color); 
+    font-size: 0.95rem;
+}
+#subscription-status-details strong {
+    color: var(--primary-color); 
+}
+
+#user-plan-expiry {
+    font-style: italic; /* */
+    color: var(--dark-gray); /* Changed from light-text for better readability */
+    font-size: 0.9rem;
+}
+
+.plan-message { /* For messages like 'expired' or 'cancelling' */
+    font-weight: 500; /* */
+    color: var(--primary-dark);  /* More prominent color */
+    margin-top: 8px; /* */
+    padding: 8px;
+    background-color: #e8f4fd; /* Light blue background for info */
+    border-left: 3px solid var(--primary-color);
+    border-radius: 3px;
+    font-size: 0.9rem;
+}
+.plan-message:empty {
+    display: none; /* */
+}
+
+
+#subscription-options {
+    margin-top: 1.8rem; /* More spacing */
+}
+
+#subscription-options h4 { /* "Upgrade to Pro:" */
+    font-size: 1.1rem; /* Slightly larger */
+    color: var(--secondary-color); /* */
+    margin-bottom: 1.2rem; /* More space */
+    font-weight: 600;
+}
+
+.plan-card-container {
+    display: flex; /* */
+    gap: 20px; /* Increased gap */
+    margin-top: 1rem; /* */
+    flex-wrap: wrap;  /* */
+}
+
+.plan-card {
+    border: 1px solid var(--medium-gray); /* */
+    border-radius: var(--border-radius); 
+    padding: 20px; /* Consistent padding */
+    flex: 1;  /* */
+    min-width: 260px; /* Slightly increased min-width */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* */
+    background-color: var(--card-background); 
+    display: flex; /* */
+    flex-direction: column; /* */
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* */
+}
+
+.plan-card:hover {
+    transform: translateY(-4px); /* More noticeable hover */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1); /* Enhanced hover shadow */
+}
+
+.plan-card h5 { /* Plan name e.g., Pro Monthly */
+    color: var(--primary-color); /* */
+    margin-bottom: 0.75rem; /* */
+    font-size: 1.25rem; /* Slightly larger */
+    font-weight: 600;
+}
+
+.plan-price {
+    font-size: 1.9rem; /* */
+    font-weight: bold; /* */
+    color: var(--secondary-color); /* */
+    margin-bottom: 0.25rem; /* */
+}
+
+.plan-interval {
+    font-size: 0.9rem; /* */
+    font-weight: normal; /* */
+    color: var(--light-text); /* */
+    margin-bottom: 1rem; /* More space before description */
+}
+
+.plan-description {
+    font-size: 0.9rem; /* */
+    color: var(--text-color); /* */
+    margin-bottom: 1.5rem; 
+    flex-grow: 1;  /* */
+    line-height: 1.5;
+}
+
+.subscribe-button { 
+    width: 100%; /* */
+    padding: 0.8rem; /* */
+    margin-top: auto;  /* */
+    font-weight: 600; /* */
+    /* Inherits from .primary-button */
+}
+
+#manage-subscription-options {
+    margin-top: 1.8rem; /* */
+}
+
+#manage-subscription-options button {
+    padding: 0.8rem 1.5rem; /* */
+    /* Inherits from .primary-button */
+}
+
+
+/* Ensure hidden class works universally */
+.hidden {
+    display: none !important; /* */
+}
+
+/* Adjust form-select for status dropdown if needed */
+.job-status-select.form-select { /* This style might not be needed if you reverted the class in app.js */
+    padding: 5px 8px; 
+    font-size: 0.85rem; /* */
+    height: auto; /* */
+    line-height: 1.4; /* */
+}
+.job-status-select { /* Style for the original class if .form-select was removed */
+    padding: 5px 8px; 
+    font-size: 0.85rem;
+    height: auto;
+    line-height: 1.4;
+}
+
+
+.view-details-btn.default-button {
+    padding: 5px 10px; 
+    font-size: 0.8rem; /* */
+}
