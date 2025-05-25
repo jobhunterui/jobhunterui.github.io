@@ -774,11 +774,11 @@ function showFirstTimeGuidance() {
     }
 }
 
+// CV Upload and Parse Handler
 async function handleCvUploadAndParse() {
     console.log("Attempting CV Upload and Parse");
-    const featureIdentifier = "cv_upload_and_parse"; // Must match data-pro-feature and backend config
+    const featureIdentifier = "cv_upload_and_parse";
 
-    // 1. Check if user is signed in
     if (!window.currentUser) {
         showModal("Sign In Required", `Please sign in to use the "CV Upload & Parse" feature.`, [
             { id: 'sign-in-cv-parse', text: 'Sign In', class: 'primary-button', action: () => window.signInWithGoogle() }
@@ -786,8 +786,6 @@ async function handleCvUploadAndParse() {
         return;
     }
 
-    // 2. Check for Pro feature access (client-side check, backend also verifies)
-    // This relies on window.currentUserSubscription being populated
     let userHasActivePro = false;
     if (window.currentUserSubscription &&
         window.currentUserSubscription.tier &&
@@ -796,29 +794,20 @@ async function handleCvUploadAndParse() {
         if (window.currentUserSubscription.current_period_ends_at) {
             userHasActivePro = new Date(window.currentUserSubscription.current_period_ends_at) > new Date();
         } else {
-            userHasActivePro = true; // E.g., lifetime or no specific end date but active pro
+            userHasActivePro = true;
         }
     }
+    
+    const isPremiumFeatureDefinedInSettings = true; // Placeholder, ideally check against a config
 
-    // Assuming "cv_upload_and_parse" is defined in a global or accessible config as a premium feature key
-    // This check can be more robust by checking against a predefined list of premium features
-    const isPremiumFeature = true; // For this specific feature, we know it's premium
-
-    if (isPremiumFeature && !userHasActivePro) {
-        showModal(
-            "Upgrade to Pro",
-            `The "CV Upload & Parse" feature requires a Pro plan. Please upgrade your plan.`,
-            [
-                {
-                    id: 'upgrade-cv-parse-btn', text: 'Upgrade Plan', class: 'primary-button',
-                    action: () => {
-                        document.querySelector('.tab-button[data-tab="profile"]').click();
-                        setTimeout(() => document.querySelector('.subscription-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
-                    }
-                },
-                { id: 'cancel-cv-parse-btn', text: 'Maybe Later', class: 'default-button' }
-            ]
-        );
+    if (isPremiumFeatureDefinedInSettings && !userHasActivePro) {
+        showModal("Upgrade to Pro", `The "CV Upload & Parse" feature requires a Pro plan. Please upgrade your plan.`, [
+            { id: 'upgrade-cv-parse-btn', text: 'Upgrade Plan', class: 'primary-button', action: () => {
+                document.querySelector('.tab-button[data-tab="profile"]').click();
+                setTimeout(() => document.querySelector('.subscription-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
+            }},
+            { id: 'cancel-cv-parse-btn', text: 'Maybe Later', class: 'default-button' }
+        ]);
         return;
     }
 
@@ -846,12 +835,10 @@ async function handleCvUploadAndParse() {
     if (errorIndicator) errorIndicator.classList.add('hidden');
 
     try {
-        // Ensure window.uploadAndParseCV is available from cv-api.js
         if (typeof window.uploadAndParseCV !== 'function') {
             throw new Error("CV parsing API function is not available.");
         }
-
-        const result = await window.uploadAndParseCV(file); // API call from cv-api.js
+        const result = await window.uploadAndParseCV(file);
 
         if (result && result.cv_data) {
             const formattedCvText = formatStructuredCvForTextarea(result.cv_data);
@@ -859,17 +846,12 @@ async function handleCvUploadAndParse() {
             showModal("CV Populated", "Your CV has been populated from the uploaded file. Please review and save.", [
                 { id: 'ok-cv-populated', text: 'OK' }
             ]);
-            // Optionally, trigger a save or prompt user to save
             if (typeof trackEvent === 'function') {
-                trackEvent('cv_parsed_and_populated', {
-                    file_name: file.name,
-                    remaining_quota: result.quota.remaining
-                });
+                trackEvent('cv_parsed_and_populated', { file_name: file.name, remaining_quota: result.quota.remaining });
             }
         } else {
             throw new Error("Received no CV data from parsing service.");
         }
-
     } catch (error) {
         console.error("Error during CV upload and parse:", error);
         let userMessage = "An unexpected error occurred while parsing your CV.";
@@ -877,20 +859,18 @@ async function handleCvUploadAndParse() {
             if (error.message.startsWith("UPGRADE_REQUIRED:")) {
                 userMessage = error.message.replace("UPGRADE_REQUIRED:", "").trim() || "This is a Pro feature. Please upgrade.";
                 showModal("Upgrade to Pro", userMessage, [
-                    {
-                        id: 'upgrade-cvp-error-btn', text: 'Upgrade Plan', class: 'primary-button', action: () => {
-                            document.querySelector('.tab-button[data-tab="profile"]').click();
-                            setTimeout(() => document.querySelector('.subscription-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
-                        }
-                    }
+                    { id: 'upgrade-cvp-error-btn', text: 'Upgrade Plan', class: 'primary-button', action: () => {
+                        document.querySelector('.tab-button[data-tab="profile"]').click();
+                        setTimeout(() => document.querySelector('.subscription-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
+                    }}
                 ]);
-                return; // Prevent further indicators
+                return; 
             } else if (error.message.startsWith("AUTH_FAILED:")) {
                 userMessage = error.message.replace("AUTH_FAILED:", "").trim() || "Authentication failed. Please sign in again.";
                 showModal("Authentication Failed", userMessage, [
                     { id: 'signin-cvp-error-btn', text: 'Sign In', class: 'primary-button', action: () => window.signInWithGoogle() }
                 ]);
-                return; // Prevent further indicators
+                return; 
             } else if (error.message.startsWith("BAD_REQUEST:")) {
                 userMessage = error.message.replace("BAD_REQUEST:", "").trim();
             } else if (error.message.startsWith("UNPROCESSABLE_FILE:")) {
@@ -909,10 +889,11 @@ async function handleCvUploadAndParse() {
         }
     } finally {
         if (loadingIndicator) loadingIndicator.classList.add('hidden');
-        fileInput.value = ''; // Reset file input
+        fileInput.value = ''; 
     }
 }
 
+// Helper to format structured CV for textarea
 function formatStructuredCvForTextarea(cvData) {
     let output = "";
 
@@ -931,7 +912,7 @@ function formatStructuredCvForTextarea(cvData) {
     if (cvData.experience && cvData.experience.length > 0) {
         output += "EXPERIENCE\n--------------------\n";
         cvData.experience.forEach(exp => {
-            output += `${exp.jobTitle || ''} at <span class="math-inline">\{exp\.company \|\| ''\} \(</span>{exp.dates || ''})\n`;
+            output += `${exp.jobTitle || ''} at ${exp.company || ''} (${exp.dates || ''})\n`;
             if (exp.description) output += `${exp.description}\n`;
             if (exp.achievements && exp.achievements.length > 0) {
                 exp.achievements.forEach(ach => output += `- ${ach}\n`);
@@ -943,7 +924,7 @@ function formatStructuredCvForTextarea(cvData) {
     if (cvData.education && cvData.education.length > 0) {
         output += "EDUCATION\n--------------------\n";
         cvData.education.forEach(edu => {
-            output += `${edu.degree || ''} - <span class="math-inline">\{edu\.institution \|\| ''\} \(</span>{edu.dates || ''})\n`;
+            output += `${edu.degree || ''} - ${edu.institution || ''} (${edu.dates || ''})\n`;
         });
         output += "\n";
     }
