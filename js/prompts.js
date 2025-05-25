@@ -22,7 +22,7 @@ function canAccessFeature(featureIdentifier) {
     }
 
     const subscription = window.currentUserSubscription;
-    // These feature identifiers should match those in backend config.py PREMIUM_FEATURES
+    // These feature identifiers should match those in backend config.py PREMIUM_FEATURES (which is now settings.PREMIUM_FEATURES)
     const backendProFeatures = ["gemini_cv_generation", "gemini_cover_letter_generation"];
 
     if (backendProFeatures.includes(featureIdentifier)) {
@@ -1390,9 +1390,9 @@ async function generateCVWithGemini(feedback = "") {
         return;
     }
     const jobIndex = parseInt(selectedJob.getAttribute('data-index'));
-    const savedJobs = getSavedJobs();
+    const savedJobs = getSavedJobs(); // Assumes getSavedJobs() is available
     const job = savedJobs[jobIndex];
-    const profileData = getProfileData();
+    const profileData = getProfileData(); // Assumes getProfileData() is available
     const cv = profileData.cv || '';
 
     if (!cv.trim()) {
@@ -1401,7 +1401,7 @@ async function generateCVWithGemini(feedback = "") {
         ]);
         return;
     }
-    setStorageData('lastGeneratedJob', job);
+    setStorageData('lastGeneratedJob', job); // Assumes setStorageData() is available
 
     const loadingModal = showModal('Generating CV',
         `<div class="loading-message">
@@ -1416,15 +1416,16 @@ async function generateCVWithGemini(feedback = "") {
 
     let currentStep = 0;
     const loadingStepsNodeList = loadingModal ? loadingModal.querySelectorAll('.loading-step') : null;
-    const loadingSteps = loadingStepsNodeList ? Array.from(loadingStepsNodeList) : []; // Convert NodeList to Array
+    // Ensure loadingSteps is always an array, even if NodeList is empty or loadingModal is null
+    const loadingSteps = loadingStepsNodeList ? Array.from(loadingStepsNodeList) : [];
 
     const progressInterval = loadingSteps.length > 0 ? setInterval(() => {
-        if (currentStep < loadingSteps.length - 1) {
+        if (currentStep < loadingSteps.length - 1) { // Check against length - 1
             loadingSteps[currentStep].classList.remove('current');
             currentStep++;
             loadingSteps[currentStep].classList.add('current');
         }
-    }, 3000) : null; // Adjusted interval time for simulation
+    }, 3000) : null;
 
     try {
         const result = await window.generateCV(job.description, cv, feedback); // Uses cv-api.js
@@ -1433,22 +1434,25 @@ async function generateCVWithGemini(feedback = "") {
         if (loadingModal) closeModal(loadingModal);
 
         if (typeof trackEvent === 'function' && result.cv_data) {
-            extractDataFromGeminiResponse(result.cv_data, job, cv);
+            // Ensure extractDataFromGeminiResponse is defined and available
+            if (typeof extractDataFromGeminiResponse === 'function') {
+                extractDataFromGeminiResponse(result.cv_data, job, cv);
+            }
         }
 
         if (typeof CareerInsights !== 'undefined' && CareerInsights.saveCVAnalysis && result.cv_data) {
             CareerInsights.saveCVAnalysis(jobIndex, result.cv_data);
         }
 
-        const htmlContent = generateCVHtml(result.cv_data);
-        const previewWindow = createAndOpenPreview(htmlContent);
+        const htmlContent = generateCVHtml(result.cv_data); // Ensure generateCVHtml is defined
+        const previewWindow = createAndOpenPreview(htmlContent); // Ensure createAndOpenPreview is defined
 
         if (previewWindow) {
             previewWindow.addEventListener('load', () => {
                 const thumbsUpBtn = previewWindow.document.getElementById('thumbs-up');
                 const thumbsDownBtn = previewWindow.document.getElementById('thumbs-down');
                 const feedbackForm = previewWindow.document.getElementById('feedback-form');
-                const feedbackButtons = previewWindow.document.getElementById('feedback-buttons');
+                const feedbackButtons = previewWindow.document.getElementById('feedback-buttons'); // Ensure this ID exists in preview
                 const regenerateBtn = previewWindow.document.getElementById('regenerate-btn');
                 const feedbackTextarea = previewWindow.document.getElementById('feedback-text');
 
@@ -1468,14 +1472,14 @@ async function generateCVWithGemini(feedback = "") {
                     });
                 }
 
-                if (regenerateBtn) {
+                if (regenerateBtn && feedbackTextarea) { // Check if feedbackTextarea exists
                     regenerateBtn.addEventListener('click', () => {
-                        const userFeedback = feedbackTextarea ? feedbackTextarea.value : "";
+                        const userFeedback = feedbackTextarea.value;
                         if (typeof trackEvent === 'function') {
                             trackEvent('cv_feedback_negative', { job_title: job.title || '', company: job.company || '', feedback: userFeedback });
                         }
                         previewWindow.close();
-                        generateCVWithGemini(userFeedback); // Recursive call for regeneration
+                        generateCVWithGemini(userFeedback);
                     });
                 }
             });
@@ -1569,14 +1573,23 @@ async function generateCoverLetterWithGemini(feedback = "") {
 
         if (typeof trackEvent === 'function') {
             trackEvent('cover_letter_generated', {
-                method: 'gemini', // Added for consistency
+                method: 'gemini',
                 job_title: job.title || '',
                 company: job.company || '',
                 has_feedback: feedback ? 'yes' : 'no'
             });
         }
 
-        previewCoverLetter(result.cover_letter, job); // This function was already in your provided prompts.js
+        // Ensure previewCoverLetter is defined and handles feedback correctly
+        if (typeof previewCoverLetter === 'function') {
+            previewCoverLetter(result.cover_letter, job, (userFeedback) => { // Pass a callback for regeneration
+                generateCoverLetterWithGemini(userFeedback);
+            });
+        } else {
+            // Fallback if previewCoverLetter doesn't handle callback, just show text
+            const previewWindow = createAndOpenPreview(generateCoverLetterHtml(result.cover_letter, job)); // Uses your existing HTML generator
+        }
+
         showModal('Cover Letter Generated', `Your cover letter has been generated! You have ${result.quota.remaining} generations remaining for your current plan.`);
 
     } catch (error) {
@@ -2227,32 +2240,32 @@ Only respond with the JSON structure - no additional text before or after. Make 
 
 document.addEventListener('DOMContentLoaded', function () {
     // CV generation button (Gemini)
-    const cvButtonGemini = document.getElementById('generate-cv-gemini'); //
-    if (cvButtonGemini) { //
-        const newCvButton = cvButtonGemini.cloneNode(true); //
-        cvButtonGemini.parentNode.replaceChild(newCvButton, cvButtonGemini); //
+    const cvButtonGemini = document.getElementById('generate-cv-gemini');
+    if (cvButtonGemini) {
+        const newCvButton = cvButtonGemini.cloneNode(true);
+        cvButtonGemini.parentNode.replaceChild(newCvButton, cvButtonGemini);
         newCvButton.setAttribute('data-pro-feature', 'gemini_cv_generation'); // Changed to data-pro-feature
-        newCvButton.setAttribute('data-feature-display-name', 'Gemini CV Generation'); //
+        newCvButton.setAttribute('data-feature-display-name', 'Gemini CV Generation');
 
-        newCvButton.addEventListener('click', function () { //
-            if (typeof trackFeatureUsage === 'function') { //
-                trackFeatureUsage('cv_generation', { method: 'gemini', generation_type: 'cv', page: 'apply_tab' }); //
+        newCvButton.addEventListener('click', function () {
+            if (typeof trackFeatureUsage === 'function') {
+                trackFeatureUsage('cv_generation', { method: 'gemini', generation_type: 'cv', page: 'apply_tab' });
             }
             generateCVWithGemini();
         });
     }
 
     // Cover Letter generation button (Gemini)
-    const coverLetterButtonGemini = document.getElementById('generate-cover-letter-gemini'); //
-    if (coverLetterButtonGemini) { //
-        const newCoverLetterButton = coverLetterButtonGemini.cloneNode(true); //
-        coverLetterButtonGemini.parentNode.replaceChild(newCoverLetterButton, coverLetterButtonGemini); //
+    const coverLetterButtonGemini = document.getElementById('generate-cover-letter-gemini');
+    if (coverLetterButtonGemini) {
+        const newCoverLetterButton = coverLetterButtonGemini.cloneNode(true);
+        coverLetterButtonGemini.parentNode.replaceChild(newCoverLetterButton, coverLetterButtonGemini);
         newCoverLetterButton.setAttribute('data-pro-feature', 'gemini_cover_letter_generation'); // Changed to data-pro-feature
-        newCoverLetterButton.setAttribute('data-feature-display-name', 'Gemini Cover Letter Generation'); //
+        newCoverLetterButton.setAttribute('data-feature-display-name', 'Gemini Cover Letter Generation');
 
-        newCoverLetterButton.addEventListener('click', function () { //
-            if (typeof trackFeatureUsage === 'function') { //
-                trackFeatureUsage('cover_letter_generation', { method: 'gemini', generation_type: 'cover_letter', page: 'apply_tab' }); //
+        newCoverLetterButton.addEventListener('click', function () {
+            if (typeof trackFeatureUsage === 'function') {
+                trackFeatureUsage('cover_letter_generation', { method: 'gemini', generation_type: 'cover_letter', page: 'apply_tab' });
             }
             generateCoverLetterWithGemini();
         });
@@ -2301,7 +2314,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const newInterviewPrepButton = interviewPrepButton.cloneNode(true);
         interviewPrepButton.parentNode.replaceChild(newInterviewPrepButton, interviewPrepButton);
         newInterviewPrepButton.setAttribute('data-pro-feature', 'interview_prep');  // "Pro"
-        newInterviewPrepButton.setAttribute('data-feature-display-name', 'Interview Prep'); //
+        newInterviewPrepButton.setAttribute('data-feature-display-name', 'Interview Prep');
 
         // Add our event listener with tracking
         newInterviewPrepButton.addEventListener('click', function () {
@@ -2384,7 +2397,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const newLearningPlanBtn = insightsLearningPlanBtn.cloneNode(true);
         insightsLearningPlanBtn.parentNode.replaceChild(newLearningPlanBtn, insightsLearningPlanBtn);
         newLearningPlanBtn.setAttribute('data-pro-feature', 'learning_plan_single_job');  // "Pro"
-        newLearningPlanBtn.setAttribute('data-feature-display-name', 'Learning Plan Generation'); //
+        newLearningPlanBtn.setAttribute('data-feature-display-name', 'Learning Plan Generation');
 
         // Add our event listener with tracking
         newLearningPlanBtn.addEventListener('click', function () {
@@ -2431,7 +2444,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const newCumulativePlanBtn = cumulativeLearningPlanBtn.cloneNode(true);
         cumulativeLearningPlanBtn.parentNode.replaceChild(newCumulativePlanBtn, cumulativeLearningPlanBtn);
         newCumulativePlanBtn.setAttribute('data-pro-feature', 'learning_plan_cumulative');  // "Pro"
-        newCumulativePlanBtn.setAttribute('data-feature-display-name', 'Career Learning Plan Generation'); //
+        newCumulativePlanBtn.setAttribute('data-feature-display-name', 'Career Learning Plan Generation');
 
         // Add our event listener with tracking
         newCumulativePlanBtn.addEventListener('click', function () {
