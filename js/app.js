@@ -13,6 +13,7 @@ function initApp() {
     checkStorageUsage();
     // showExtensionPromo('job-save'); // Consider enabling based on UX preference
     showFirstTimeGuidance();
+    setupHeaderProfileClick();
 
     // Initial UI update based on potential pre-existing auth state
     if (window.auth && window.auth.currentUser) {
@@ -943,6 +944,18 @@ function formatStructuredCvForTextarea(cvData) {
     // Note: skillGapAnalysis is not typically put into the main CV text.
 
     return output.trim();
+}
+
+function setupHeaderProfileClick() {
+    const userProfileHeader = document.getElementById('user-profile'); // The div containing avatar and name
+    const profileTabButton = document.querySelector('.tab-button[data-tab="profile"]');
+
+    if (userProfileHeader && profileTabButton) {
+        userProfileHeader.addEventListener('click', () => {
+            profileTabButton.click(); // Simulate a click on the Profile tab button
+        });
+        userProfileHeader.style.cursor = 'pointer'; // Make it look clickable
+    }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
