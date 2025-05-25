@@ -1824,3 +1824,55 @@ button.disabled-pro-feature, /* Renamed from disabled-premium */
     font-size: 0.7em;
     vertical-align: super; /* Adjust alignment if needed */
 }
+
+/* Subscription Plan Card Enhancements */
+.plan-card .plan-description ul {
+    list-style: none; /* Remove default bullet points if you're using '✓' */
+    padding-left: 5px; /* Adjust as needed, or 0 if checkmarks are enough */
+    margin-top: 10px; /* Space above the list */
+    margin-bottom: 10px; /* Space below the list */
+    text-align: left; /* Ensure list items are left-aligned */
+}
+
+.plan-card .plan-description li {
+    margin-bottom: 8px; /* Space between list items */
+    font-size: 0.88rem; /* Slightly smaller font for list items for balance */
+    color: #333; /* Darker text for better readability */
+    position: relative; /* For potential custom checkmark styling */
+    padding-left: 20px; /* Space for the checkmark */
+}
+
+/* Style the checkmark character or add a custom one */
+.plan-card .plan-description li::before {
+    content: '✓'; /* Your checkmark character */
+    color: #27ae60; /* Green color for the checkmark */
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+    top: 1px; /* Adjust vertical alignment if needed */
+}
+
+.plan-card {
+    background-color: #ffffff; /* Ensure card background is white */
+    border: 1px solid #e0e0e0; /* Softer border */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Slightly more pronounced shadow */
+}
+
+.plan-card h5 { /* Plan name e.g., Pro Monthly */
+    color: var(--primary-color); /* Use your primary color */
+    font-size: 1.3rem; /* Slightly larger title */
+}
+
+.plan-price {
+    font-size: 2rem; /* Larger price */
+    font-weight: 600; /* Bolder price */
+    color: var(--secondary-color); /* Use your secondary color */
+    margin-bottom: 0.1em; /* Reduce space between price and interval */
+}
+
+.plan-interval {
+    font-size: 0.9rem;
+    color: var(--light-text);
+    display: block; /* Ensure it sits below the price */
+    margin-bottom: 1rem; /* Space before description text */
+}
