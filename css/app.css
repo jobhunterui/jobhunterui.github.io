@@ -1794,3 +1794,33 @@ button.disabled-pro-feature, /* Renamed from disabled-premium */
     padding: 5px 10px; 
     font-size: 0.8rem; /* */
 }
+
+/* CV Upload Section specific styles */
+.cv-upload-section .form-info {
+    margin-bottom: 10px; /* Add some space below the info text */
+}
+
+#cv-file-input {
+    padding: 0.5rem; /* Adjust padding for file input */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: auto; /* Allow button to sit beside or below nicely */
+    max-width: 100%;
+}
+
+#cv-upload-ui-container button {
+    vertical-align: middle; /* Align button nicely if input is inline */
+}
+
+.cv-upload-section[data-pro-feature].disabled-pro-feature #cv-upload-ui-container {
+    display: none; /* Hide the upload UI if feature is disabled */
+}
+.cv-upload-section[data-pro-feature].disabled-pro-feature #cv-upload-signin-message {
+    display: block !important; /* Show sign-in message when feature is disabled and user not signed in */
+}
+
+/* Ensure the pro badge for the section label itself is handled by existing .pro-badge styles */
+.cv-upload-section .form-label .pro-badge {
+    font-size: 0.7em;
+    vertical-align: super; /* Adjust alignment if needed */
+}

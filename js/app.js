@@ -261,6 +261,27 @@ function updateFeatureAccessUI() {
             badge = parent.querySelector('.pro-badge'); // Changed from .premium-badge
         }
 
+        // Specific handling for CV Upload section's sign-in message
+        if (featureName === "cv_upload_and_parse") {
+            const cvUploadSection = document.getElementById('cv-upload-section');
+            const cvUploadUiContainer = document.getElementById('cv-upload-ui-container');
+            const cvUploadSignInMessage = document.getElementById('cv-upload-signin-message');
+
+            if (cvUploadSection && cvUploadUiContainer && cvUploadSignInMessage) {
+                if (userHasActivePro) { // User has Pro access
+                    cvUploadUiContainer.classList.remove('hidden');
+                    cvUploadSignInMessage.classList.add('hidden');
+                } else { // User does NOT have Pro access
+                    cvUploadUiContainer.classList.add('hidden'); // Hide actual upload inputs/button
+                    if (!window.currentUser) { // If not signed in at all
+                        cvUploadSignInMessage.classList.remove('hidden'); // Show "sign in to use"
+                    } else { // Signed in, but not Pro
+                        cvUploadSignInMessage.classList.add('hidden'); // Hide the specific "sign in" msg, modal will prompt to upgrade
+                    }
+                }
+            }
+        }
+
         if (isGatedBySubscription) {
             if (userHasActivePro) {
                 element.disabled = false;
@@ -444,6 +465,20 @@ function setupEventListeners() {
             }
         });
     }
+
+    const uploadParseCvButton = document.getElementById('upload-parse-cv-btn');
+    if (uploadParseCvButton) {
+        uploadParseCvButton.addEventListener('click', handleCvUploadAndParse);
+    }
+
+    const cvUploadSignInLink = document.getElementById('cv-upload-signin-link');
+    if (cvUploadSignInLink) {
+        cvUploadSignInLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.signInWithGoogle) window.signInWithGoogle();
+        });
+    }
+
     setupSubscriptionButtonListeners();
 }
 
@@ -737,6 +772,196 @@ function showFirstTimeGuidance() {
         if (gotItBtn) gotItBtn.addEventListener('click', () => { closeModal(modal); setStorageData('hasSeenGuidance', true); });
         if (typeof trackEvent === 'function') trackEvent('first_time_guidance_shown');
     }
+}
+
+async function handleCvUploadAndParse() {
+    console.log("Attempting CV Upload and Parse");
+    const featureIdentifier = "cv_upload_and_parse"; // Must match data-pro-feature and backend config
+
+    // 1. Check if user is signed in
+    if (!window.currentUser) {
+        showModal("Sign In Required", `Please sign in to use the "CV Upload & Parse" feature.`, [
+            { id: 'sign-in-cv-parse', text: 'Sign In', class: 'primary-button', action: () => window.signInWithGoogle() }
+        ]);
+        return;
+    }
+
+    // 2. Check for Pro feature access (client-side check, backend also verifies)
+    // This relies on window.currentUserSubscription being populated
+    let userHasActivePro = false;
+    if (window.currentUserSubscription &&
+        window.currentUserSubscription.tier &&
+        window.currentUserSubscription.tier.toLowerCase() !== 'free' &&
+        window.currentUserSubscription.status === 'active') {
+        if (window.currentUserSubscription.current_period_ends_at) {
+            userHasActivePro = new Date(window.currentUserSubscription.current_period_ends_at) > new Date();
+        } else {
+            userHasActivePro = true; // E.g., lifetime or no specific end date but active pro
+        }
+    }
+
+    // Assuming "cv_upload_and_parse" is defined in a global or accessible config as a premium feature key
+    // This check can be more robust by checking against a predefined list of premium features
+    const isPremiumFeature = true; // For this specific feature, we know it's premium
+
+    if (isPremiumFeature && !userHasActivePro) {
+        showModal(
+            "Upgrade to Pro",
+            `The "CV Upload & Parse" feature requires a Pro plan. Please upgrade your plan.`,
+            [
+                {
+                    id: 'upgrade-cv-parse-btn', text: 'Upgrade Plan', class: 'primary-button',
+                    action: () => {
+                        document.querySelector('.tab-button[data-tab="profile"]').click();
+                        setTimeout(() => document.querySelector('.subscription-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
+                    }
+                },
+                { id: 'cancel-cv-parse-btn', text: 'Maybe Later', class: 'default-button' }
+            ]
+        );
+        return;
+    }
+
+    const fileInput = document.getElementById('cv-file-input');
+    const loadingIndicator = document.getElementById('cv-parse-loading');
+    const errorIndicator = document.getElementById('cv-parse-error');
+    const cvTextarea = document.getElementById('cv');
+
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        showModal("No File Selected", "Please select a CV file to upload.");
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword', 'text/plain'];
+    const allowedExtensions = ['.pdf', '.docx', '.doc', '.txt'];
+    const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+        showModal("Invalid File Type", "Please upload a PDF, DOCX, DOC, or TXT file.");
+        return;
+    }
+
+    if (loadingIndicator) loadingIndicator.classList.remove('hidden');
+    if (errorIndicator) errorIndicator.classList.add('hidden');
+
+    try {
+        // Ensure window.uploadAndParseCV is available from cv-api.js
+        if (typeof window.uploadAndParseCV !== 'function') {
+            throw new Error("CV parsing API function is not available.");
+        }
+
+        const result = await window.uploadAndParseCV(file); // API call from cv-api.js
+
+        if (result && result.cv_data) {
+            const formattedCvText = formatStructuredCvForTextarea(result.cv_data);
+            cvTextarea.value = formattedCvText;
+            showModal("CV Populated", "Your CV has been populated from the uploaded file. Please review and save.", [
+                { id: 'ok-cv-populated', text: 'OK' }
+            ]);
+            // Optionally, trigger a save or prompt user to save
+            if (typeof trackEvent === 'function') {
+                trackEvent('cv_parsed_and_populated', {
+                    file_name: file.name,
+                    remaining_quota: result.quota.remaining
+                });
+            }
+        } else {
+            throw new Error("Received no CV data from parsing service.");
+        }
+
+    } catch (error) {
+        console.error("Error during CV upload and parse:", error);
+        let userMessage = "An unexpected error occurred while parsing your CV.";
+        if (error.message) {
+            if (error.message.startsWith("UPGRADE_REQUIRED:")) {
+                userMessage = error.message.replace("UPGRADE_REQUIRED:", "").trim() || "This is a Pro feature. Please upgrade.";
+                showModal("Upgrade to Pro", userMessage, [
+                    {
+                        id: 'upgrade-cvp-error-btn', text: 'Upgrade Plan', class: 'primary-button', action: () => {
+                            document.querySelector('.tab-button[data-tab="profile"]').click();
+                            setTimeout(() => document.querySelector('.subscription-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
+                        }
+                    }
+                ]);
+                return; // Prevent further indicators
+            } else if (error.message.startsWith("AUTH_FAILED:")) {
+                userMessage = error.message.replace("AUTH_FAILED:", "").trim() || "Authentication failed. Please sign in again.";
+                showModal("Authentication Failed", userMessage, [
+                    { id: 'signin-cvp-error-btn', text: 'Sign In', class: 'primary-button', action: () => window.signInWithGoogle() }
+                ]);
+                return; // Prevent further indicators
+            } else if (error.message.startsWith("BAD_REQUEST:")) {
+                userMessage = error.message.replace("BAD_REQUEST:", "").trim();
+            } else if (error.message.startsWith("UNPROCESSABLE_FILE:")) {
+                userMessage = error.message.replace("UNPROCESSABLE_FILE:", "").trim();
+            } else if (error.message.includes("Daily API quota")) {
+                userMessage = error.message;
+            } else if (error.message.includes("timed out")) {
+                userMessage = "The request timed out. Please try again."
+            }
+        }
+        if (errorIndicator) {
+            errorIndicator.textContent = userMessage;
+            errorIndicator.classList.remove('hidden');
+        } else {
+            showModal("Parsing Error", userMessage);
+        }
+    } finally {
+        if (loadingIndicator) loadingIndicator.classList.add('hidden');
+        fileInput.value = ''; // Reset file input
+    }
+}
+
+function formatStructuredCvForTextarea(cvData) {
+    let output = "";
+
+    if (cvData.fullName) output += `Full Name: ${cvData.fullName}\n`;
+    if (cvData.jobTitle) output += `Target Job Title: ${cvData.jobTitle}\n`;
+    if (cvData.email) output += `Email: ${cvData.email}\n`;
+    if (cvData.phone) output += `Phone: ${cvData.phone}\n`;
+    if (cvData.linkedin) output += `LinkedIn: ${cvData.linkedin}\n`;
+    if (cvData.location) output += `Location: ${cvData.location}\n\n`;
+
+    if (cvData.summary) {
+        output += "SUMMARY\n--------------------\n";
+        output += `${cvData.summary}\n\n`;
+    }
+
+    if (cvData.experience && cvData.experience.length > 0) {
+        output += "EXPERIENCE\n--------------------\n";
+        cvData.experience.forEach(exp => {
+            output += `${exp.jobTitle || ''} at <span class="math-inline">\{exp\.company \|\| ''\} \(</span>{exp.dates || ''})\n`;
+            if (exp.description) output += `${exp.description}\n`;
+            if (exp.achievements && exp.achievements.length > 0) {
+                exp.achievements.forEach(ach => output += `- ${ach}\n`);
+            }
+            output += "\n";
+        });
+    }
+
+    if (cvData.education && cvData.education.length > 0) {
+        output += "EDUCATION\n--------------------\n";
+        cvData.education.forEach(edu => {
+            output += `${edu.degree || ''} - <span class="math-inline">\{edu\.institution \|\| ''\} \(</span>{edu.dates || ''})\n`;
+        });
+        output += "\n";
+    }
+
+    if (cvData.skills && cvData.skills.length > 0) {
+        output += "SKILLS\n--------------------\n";
+        cvData.skills.forEach(skill => output += `${skill}\n`);
+        output += "\n";
+    }
+
+    if (cvData.certifications && cvData.certifications.length > 0) {
+        output += "CERTIFICATIONS\n--------------------\n";
+        cvData.certifications.forEach(cert => output += `${cert}\n`);
+        output += "\n";
+    }
+    // Note: skillGapAnalysis is not typically put into the main CV text.
+
+    return output.trim();
 }
 
 document.addEventListener('DOMContentLoaded', initApp);

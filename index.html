@@ -356,6 +356,27 @@
         <div id="profile" class="tab-content">
             <h2>Your Profile</h2>
 
+            <!-- CV Upload & Parse Section (Pro Feature) -->
+            <div class="form-group cv-upload-section" id="cv-upload-section" data-pro-feature="cv_upload_and_parse" data-feature-display-name="CV Upload & Parse">
+                <label for="cv-file-input" class="form-label">Upload & Parse CV (Beta) <span class="pro-badge">PRO</span></label>
+                <p class="form-info">
+                    Automatically populate your CV below by uploading your existing resume file (PDF, DOCX, TXT).
+                    Results are AI-generated and may require review.
+                </p>
+                <div id="cv-upload-ui-container">
+                    <input type="file" id="cv-file-input" accept=".pdf,.doc,.docx,.txt" class="form-input">
+                    <button id="upload-parse-cv-btn" class="primary-button" style="margin-top: 10px;">Upload and Parse</button>
+                    <div id="cv-parse-loading" class="loading-message hidden" style="margin-top:10px;">
+                        <div class="loading-spinner"></div>
+                        <p>Parsing your CV, please wait...</p>
+                    </div>
+                    <p id="cv-parse-error" class="warning-text hidden" style="margin-top:10px;"></p>
+                </div>
+                <p id="cv-upload-signin-message" class="form-info hidden" style="margin-top:10px;">
+                    Please <a href="#" id="cv-upload-signin-link">sign in</a> to use this Pro feature.
+                </p>
+            </div>
+
             <!-- CV textarea in profile tab -->
             <div class="form-group">
                 <label for="cv" class="form-label">Your CV/Resume:</label>
