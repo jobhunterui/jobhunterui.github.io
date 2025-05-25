@@ -3,11 +3,52 @@
 const API_BASE_URL = 'https://jobhunter-api-3gbd.onrender.com/api/v1'; // Your backend API URL
 const PAYMENT_CALLBACK_URL = 'https://jobhunterui.github.io/payment-callback.html'; // Your deployed callback URL
 
+let APP_CONFIG = {
+    environment: 'production', // Default
+    paystack_public_key: null // Default
+};
+
+// Function to fetch app configuration from backend
+async function fetchAppConfig() {
+    try {
+        // CORRECTED URL:
+        const response = await fetch(`${API_BASE_URL}/payments/app-config`); 
+        if (!response.ok) {
+            console.error('Failed to fetch app config from backend', response.status);
+            return;
+        }
+        const config = await response.json();
+        APP_CONFIG.environment = config.environment.toLowerCase();
+        APP_CONFIG.paystack_public_key = config.paystack_public_key;
+        console.log('App config loaded:', APP_CONFIG);
+
+        if (APP_CONFIG.environment === 'development') {
+            PAYMENT_CALLBACK_URL = 'http://127.0.0.1:5500/payment-callback.html'; // Or your local dev callback
+            console.log('Environment is DEVELOPMENT, using local callback URL:', PAYMENT_CALLBACK_URL);
+        } else {
+            PAYMENT_CALLBACK_URL = 'https://jobhunterui.github.io/payment-callback.html'; // Production callback
+            console.log('Environment is PRODUCTION, using production callback URL:', PAYMENT_CALLBACK_URL);
+        }
+
+    } catch (error) {
+        console.error('Error fetching app config:', error);
+    }
+}
+
 /**
  * Initiates a Paystack transaction for the selected plan.
  * @param {string} planIdentifier - e.g., "monthly", "yearly"
  */
 async function initializePaystackTransaction(planIdentifier) {
+    // Ensure config is fetched before proceeding (could be improved with a promise/flag)
+    if (!APP_CONFIG.paystack_public_key && APP_CONFIG.environment !== 'development') {
+         // If public key is needed by Paystack.js and not yet loaded for prod
+        console.warn("Paystack public key not yet loaded. Consider awaiting fetchAppConfig.");
+        // Depending on your flow, you might want to await fetchAppConfig() here or show a message.
+    }
+    // The rest of your initializePaystackTransaction function remains largely the same,
+    // but now it will use the dynamically set PAYMENT_CALLBACK_URL.
+
     if (!window.auth || !window.auth.currentUser) {
         console.error("User not signed in. Cannot initialize payment.");
         showModal("Authentication Required", "Please sign in to subscribe.", [
@@ -17,7 +58,7 @@ async function initializePaystackTransaction(planIdentifier) {
     }
 
     const user = window.auth.currentUser;
-    const idToken = await user.getIdToken(true); // Force refresh token
+    const idToken = await user.getIdToken(true);
 
     if (!idToken) {
         console.error("Could not get ID token.");
@@ -27,7 +68,6 @@ async function initializePaystackTransaction(planIdentifier) {
 
     const planMessageElement = document.getElementById('user-plan-message');
     if (planMessageElement) planMessageElement.textContent = 'Processing... Please wait.';
-
 
     try {
         const response = await fetch(`${API_BASE_URL}/payments/initialize_transaction`, {
@@ -39,7 +79,7 @@ async function initializePaystackTransaction(planIdentifier) {
             body: JSON.stringify({
                 email: user.email,
                 plan_identifier: planIdentifier,
-                callback_url: PAYMENT_CALLBACK_URL
+                callback_url: PAYMENT_CALLBACK_URL // Uses the dynamically set URL
             })
         });
 
@@ -53,7 +93,6 @@ async function initializePaystackTransaction(planIdentifier) {
         }
 
         if (responseData.status && responseData.data && responseData.data.authorization_url) {
-            // Redirect to Paystack's payment page
             if (planMessageElement) planMessageElement.textContent = 'Redirecting to payment page...';
             window.location.href = responseData.data.authorization_url;
         } else {
@@ -160,3 +199,4 @@ function updateUserSubscriptionUI(userData) {
 // Expose functions to global scope if they need to be called from HTML or other scripts directly
 window.initializePaystackTransaction = initializePaystackTransaction;
 window.updateUserSubscriptionUI = updateUserSubscriptionUI;
+window.fetchAppConfig = fetchAppConfig;

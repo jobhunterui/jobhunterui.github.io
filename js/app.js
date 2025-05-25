@@ -945,4 +945,18 @@ function formatStructuredCvForTextarea(cvData) {
     return output.trim();
 }
 
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("DOM fully loaded and parsed for app.js");
+    if (typeof window.fetchAppConfig === 'function') {
+        console.log("Attempting to fetch app config from app.js...");
+        await window.fetchAppConfig(); // Ensure config is loaded before initializing the rest
+        console.log("App config fetch attempt complete from app.js.");
+    } else {
+        console.warn("fetchAppConfig function not found on window when app.js loaded.");
+    }
+    
+    // Your existing initApp function or other initializations
+    initApp(); 
+});
+
 document.addEventListener('DOMContentLoaded', initApp);
