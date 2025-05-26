@@ -1692,189 +1692,228 @@ button.disabled-pro-feature, /* Renamed from disabled-premium */
     vertical-align: super; /* Adjust alignment if needed */
 }
 
-/* Profile Tab Subscription Section - ENHANCED STYLES */
+/* Profile Tab Subscription Section - REFINED STYLES V2 */
 .subscription-section {
     margin-top: 2rem;
-    padding: 25px;
+    padding: 30px 25px; /* Increased top/bottom padding */
     border-top: 1px solid var(--medium-gray, #ddd);
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+    background-color: #f8f9fa; /* Slightly off-white for the section */
+    border-radius: 10px; /* Softer radius */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Softer general shadow */
 }
 
 .subscription-section h3 { /* "Subscription" title */
     margin-top: 0;
-    margin-bottom: 24px;
+    margin-bottom: 25px;
     color: var(--secondary-color, #2c3e50);
-    font-size: 1.3rem;
+    font-size: 1.4rem; /* Title prominence */
     font-weight: 600;
+    text-align: center; /* Center the "Subscription" and "Upgrade to Pro" titles */
+}
+
+#subscription-status-details {
+    text-align: center; /* Center current plan status */
+    margin-bottom: 20px;
 }
 
 #subscription-status-details p {
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.5rem; /* Tighter spacing for status details */
     color: var(--text-color, #333);
-    font-size: 0.95rem;
+    font-size: 1rem; /* Slightly larger status text */
 }
 #subscription-status-details strong {
     color: var(--primary-color, #3498db);
     font-weight: 600;
 }
 
-.plan-message {
+.plan-message { /* For expired/cancelling messages */
     font-weight: 500;
     color: var(--primary-dark, #2980b9);
-    margin-top: 8px;
-    padding: 10px 12px;
-    background-color: #e8f4fd;
+    margin: 15px auto; /* Centered message block */
+    padding: 12px 15px;
+    background-color: #e9f5fe; /* Lighter, softer blue */
     border-left: 4px solid var(--primary-color, #3498db);
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: 0.9rem;
+    max-width: 600px; /* Constrain width of message */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 .plan-message:empty {
     display: none;
 }
 
 #subscription-options {
-    margin-top: 2rem;
+    margin-top: 2.5rem; /* More space before upgrade options */
 }
 
 #subscription-options h4 { /* "Upgrade to Pro:" */
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     color: var(--secondary-color, #2c3e50);
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem; /* More space */
     font-weight: 600;
+    text-align: center;
 }
 
 .plan-card-container {
     display: flex;
-    gap: 25px;
+    gap: 30px; /* More space between cards */
     margin-top: 1rem;
     flex-wrap: wrap;
+    justify-content: center; /* Center cards if they don't fill the row */
 }
 
 .plan-card {
-    border: 1px solid var(--medium-gray, #e0e0e0);
-    border-radius: var(--border-radius, 6px);
-    padding: 25px;
-    flex: 1 1 270px; /* Allow shrinking but prefer 270px base */
-    min-width: 270px; /* Ensure readability */
-    max-width: 350px; /* Prevent cards from becoming too wide on larger flex rows */
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid #e7eaf0; /* Lighter border */
+    border-radius: 12px; /* More rounded corners */
+    padding: 0; /* Padding will be handled by inner elements */
+    flex: 1 1 300px;
+    min-width: 280px;
+    max-width: 360px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.07); /* More defined shadow */
     background-color: #ffffff;
     display: flex;
     flex-direction: column;
-    transition: transform 0.25s ease-in-out, box-shadow 0.25s ease-in-out;
-    position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden; /* To contain potential ribbon backgrounds */
 }
 
 .plan-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+    transform: translateY(-6px) scale(1.01); /* More engaging hover */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+/* Optional HTML Change Suggested: Wrap header content in a div */
+.plan-card-header { /* Create this div in your HTML */
+    padding: 25px 25px 20px 25px;
+    text-align: center;
+    /* background-color: #fdfdfd; */ /* Optional subtle header background */
+    /* border-bottom: 1px solid #f0f0f0; */ /* Optional separator */
 }
 
 .plan-card h5 { /* Plan name */
     color: var(--primary-color, #3498db);
     margin-top: 0;
-    margin-bottom: 1rem;
-    font-size: 1.4rem;
-    font-weight: 600;
-    text-align: center;
+    margin-bottom: 0.5rem;
+    font-size: 1.6rem; /* Larger, more prominent title */
+    font-weight: 600; /* Changed from 600 to 700 for more boldness */
 }
 
 .plan-price {
-    font-size: 2.3rem;
+    font-size: 2.5rem; /* Larger price */
     font-weight: 700;
     color: var(--secondary-color, #2c3e50);
-    margin-bottom: 0.05em;
-    line-height: 1;
-    text-align: center;
+    margin-bottom: 2px; /* Tighter with interval */
+    line-height: 1.1;
 }
 
 .plan-interval {
     font-size: 0.9rem;
-    font-weight: normal;
-    color: var(--light-text, #666);
+    font-weight: 500; /* Slightly bolder */
+    color: var(--light-text, #777); /* Darker light-text */
     display: block;
-    text-align: center;
-    margin-bottom: 1.2rem;
 }
 
-.plan-card .plan-description { /* The introductory paragraph before the UL */
+.plan-card-body { /* Create this div in your HTML to wrap description and features list */
+    padding: 0px 25px 25px 25px; /* Consistent padding */
+    flex-grow: 1; /* Allows button to be pushed down */
+    display: flex;
+    flex-direction: column;
+}
+
+.plan-card .plan-description-intro { /* New class for the intro P if you separate it */
     font-size: 0.95rem;
-    color: var(--text-color, #333);
-    margin-bottom: 0.5rem; /* Space before the nested UL */
-    line-height: 1.5;
-    text-align: center; /* Center the intro text */
-    /* This paragraph itself shouldn't grow; the UL inside it or a dedicated features div should */
+    color: var(--text-color, #555); /* Slightly softer text */
+    margin-bottom: 1.5rem; /* Space before feature list */
+    line-height: 1.6; /* Better readability */
+    text-align: center; /* Center the descriptive paragraph */
 }
 
-.plan-card .plan-description ul { /* Targeting the UL nested in p.plan-description */
-    list-style: none;
-    padding-left: 0;
-    margin-top: 1rem; /* Space between intro paragraph text and start of list */
-    margin-bottom: 1.5rem; /* Space after the list, before button */
-    text-align: left; /* Keep list items left-aligned */
-    flex-grow: 1; /* If the UL is the direct flex child designated for features */
-                  /* Note: For this to work, p.plan-description might need to be display:flex and flex-direction:column */
-                  /* Or, better, the UL should be a direct child of .plan-card and p.plan-description is just for intro text */
+.plan-card .plan-features-list { /* New class for the UL if you separate it */
+    list-style-type: none !important; /* Ensure no dots */
+    padding-left: 0; /* Will control alignment via margin or text-align on parent */
+    margin: 0 auto 1.5rem auto; /* Center the list block, provide bottom margin */
+    /* display: table;  Alternative for centering if needed */
+    width: fit-content; /* Allow the list to size to its content, helps with centering */
+    max-width: 100%; /* Ensure it doesn't overflow card */
+    text-align: left; /* Text inside li will be left-aligned */
+    flex-grow: 1; /* Takes up available space in plan-card-body */
 }
 
-.plan-card .plan-description li {
-    margin-bottom: 10px;
+.plan-card .plan-features-list li {
+    margin-bottom: 12px; /* More space between items */
     font-size: 0.9rem;
     color: #333;
     position: relative;
-    padding-left: 25px; /* Space for the CSS checkmark */
-    line-height: 1.4;
+    padding-left: 28px; /* Space for the checkmark */
+    line-height: 1.5; /* Improved line height for list items */
 }
 
-.plan-card .plan-description li::before {
+.plan-card .plan-features-list li::before {
     content: '✓';
     color: var(--success-color, #27ae60);
-    font-weight: bold;
-    font-size: 1.1em;
+    font-weight: 700; /* Bolder checkmark */
+    font-size: 1.15em; /* Slightly larger checkmark */
     position: absolute;
     left: 0;
-    top: 1px; /* Adjust if text alignment is off */
+    top: 50%;
+    transform: translateY(-50%); /* Perfect vertical alignment for checkmark */
+}
+
+.plan-card-footer { /* Create this div in your HTML to wrap the button */
+    padding: 0 25px 25px 25px;
+    margin-top: auto; /* Pushes footer to the bottom */
 }
 
 .subscribe-button {
     width: 100%;
-    padding: 0.9rem 1rem;
-    margin-top: auto; /* Pushes button to the bottom of the card */
+    padding: 12px 20px; /* Generous padding */
+    margin-top: 0; /* margin-top:auto handled by plan-card-footer */
     font-weight: 600;
     font-size: 1rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    /* Inherits .primary-button styles from app-base.css for background/color */
+    letter-spacing: 0.8px; /* More spacing */
+    border-radius: 8px; /* Softer button radius */
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.subscribe-button:active {
+    transform: scale(0.98); /* Click feedback */
 }
 
+
 #manage-subscription-options {
-    margin-top: 1.8rem;
+    margin-top: 2rem;
+    text-align: center; /* Center manage button if it's alone */
 }
 
 #manage-subscription-options button {
-    padding: 0.9rem 1.5rem;
+    padding: 12px 25px;
     font-weight: 600;
+    font-size: 1rem;
+    border-radius: 8px;
 }
 
-/* Optional: Highlight the "Pro Yearly" plan */
+/* Yearly Plan Highlight - More pronounced */
 .plan-card[data-plan-identifier="yearly"] {
-    border-color: var(--accent-color, #9b59b6);
-    border-width: 2px;
+    border: 2px solid var(--accent-color, #9b59b6);
+    box-shadow: 0 8px 25px rgba(155, 89, 182, 0.15); /* Distinct shadow for highlighted plan */
+    position: relative; /* Already set, but good for clarity */
 }
 
-/* If you have a "Best Value" badge or similar:
-.plan-card[data-plan-identifier="yearly"]::after {
-    content: 'Best Value';
+/* Optional: Ribbon for yearly plan */
+.plan-card[data-plan-identifier="yearly"] .plan-card-header::before { /* Attach to header */
+    content: "BEST VALUE";
+    display: block;
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: -15px; /* Adjust to sit nicely above the card header */
+    left: 50%;
+    transform: translateX(-50%);
     background-color: var(--accent-color, #9b59b6);
     color: white;
-    padding: 3px 8px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border-radius: 3px;
+    padding: 6px 18px; /* More prominent padding */
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-radius: 20px; /* Pill shape */
+    z-index: 2; /* Ensure it's above card content */
+    letter-spacing: 0.5px;
+    white-space: nowrap;
 }
-*/

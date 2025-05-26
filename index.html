@@ -33,7 +33,8 @@
     <meta name="msapplication-config" content="/browserconfig.xml">
 
     <!-- Additional Meta Tags for Better Compatibility -->
-    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
     <meta name="description" content="JobHunter - Find and apply for jobs easily">
     <meta name="keywords" content="jobs, career, hiring, employment">
 
@@ -79,8 +80,12 @@
             <button class="tab-button active" data-tab="profile">Profile</button>
             <button class="tab-button" data-tab="find">Find Jobs</button>
             <button class="tab-button" data-tab="apply">Apply</button>
-            <button class="tab-button" data-tab="insights" data-pro-feature="career_insights_tab" data-feature-display-name="Career Insights">Career Insights <span class="pro-badge hidden">PRO</span></button>
-            <button class="tab-button" data-tab="learning" data-pro-feature="learning_dashboard_tab" data-feature-display-name="Learning Dashboard">Learning <span class="pro-badge hidden">PRO</span></button>
+            <button class="tab-button" data-tab="insights" data-pro-feature="career_insights_tab"
+                data-feature-display-name="Career Insights">Career Insights <span
+                    class="pro-badge hidden">PRO</span></button>
+            <button class="tab-button" data-tab="learning" data-pro-feature="learning_dashboard_tab"
+                data-feature-display-name="Learning Dashboard">Learning <span
+                    class="pro-badge hidden">PRO</span></button>
         </div>
 
         <!-- Find Jobs Tab -->
@@ -248,28 +253,38 @@
                         <h4 class="action-group-title">Auto Generation (Gemini) <span class="pro-badge">PRO</span></h4>
                         <p class="action-group-info">One-click AI generation for Pro plan users.</p>
                         <div class="action-buttons">
-                            <button id="generate-cv-gemini" class="primary-button gemini-button" data-pro-feature="gemini_cv_generation" data-feature-display-name="Gemini CV Generation" data-hide-badge-on-active="true">
+                            <button id="generate-cv-gemini" class="primary-button gemini-button"
+                                data-pro-feature="gemini_cv_generation" data-feature-display-name="Gemini CV Generation"
+                                data-hide-badge-on-active="true">
                                 Generate CV (One-Click) <span class="pro-badge">PRO</span>
                             </button>
-                            <button id="generate-cover-letter-gemini" class="primary-button gemini-button" data-pro-feature="gemini_cover_letter_generation" data-feature-display-name="Gemini Cover Letter Generation" data-hide-badge-on-active="true">
+                            <button id="generate-cover-letter-gemini" class="primary-button gemini-button"
+                                data-pro-feature="gemini_cover_letter_generation"
+                                data-feature-display-name="Gemini Cover Letter Generation"
+                                data-hide-badge-on-active="true">
                                 Generate Cover Letter <span class="pro-badge">PRO</span>
                             </button>
                         </div>
                     </div>
-            
+
                     <div class="job-actions-group">
                         <h4 class="action-group-title">Manual Generation (Claude)</h4>
-                        <p class="action-group-info">Manual process with Claude - more control and higher quality (Free)</p>
+                        <p class="action-group-info">Manual process with Claude - more control and higher quality (Free)
+                        </p>
                         <div class="action-buttons">
-                            <button id="generate-application" class="primary-button claude-button">Generate CV (Claude)</button>
-                            <button id="generate-cover-letter-claude" class="primary-button claude-button">Cover Letter (Claude)</button>
+                            <button id="generate-application" class="primary-button claude-button">Generate CV
+                                (Claude)</button>
+                            <button id="generate-cover-letter-claude" class="primary-button claude-button">Cover Letter
+                                (Claude)</button>
                         </div>
                     </div>
-            
+
                     <div class="job-actions-group">
                         <h4 class="action-group-title">Other Actions</h4>
                         <div class="action-buttons">
-                            <button id="interview-prep" class="secondary-button" data-pro-feature="interview_prep" data-feature-display-name="Interview Prep">Interview Prep <span class="pro-badge hidden">PRO</span></button>
+                            <button id="interview-prep" class="secondary-button" data-pro-feature="interview_prep"
+                                data-feature-display-name="Interview Prep">Interview Prep <span
+                                    class="pro-badge hidden">PRO</span></button>
                             <button id="remove-job" class="danger-button">Remove</button>
                         </div>
                     </div>
@@ -358,15 +373,18 @@
             <h2>Your Profile</h2>
 
             <!-- CV Upload & Parse Section (Pro Feature) -->
-            <div class="form-group cv-upload-section" id="cv-upload-section" data-pro-feature="cv_upload_and_parse" data-feature-display-name="CV Upload & Parse">
-                <label for="cv-file-input" class="form-label">Upload & Parse CV (Beta) <span class="pro-badge">PRO</span></label>
+            <div class="form-group cv-upload-section" id="cv-upload-section" data-pro-feature="cv_upload_and_parse"
+                data-feature-display-name="CV Upload & Parse">
+                <label for="cv-file-input" class="form-label">Upload & Parse CV (Beta) <span
+                        class="pro-badge">PRO</span></label>
                 <p class="form-info">
                     Automatically populate your CV below by uploading your existing resume file (PDF, DOCX, TXT).
                     Results are AI-generated and may require review.
                 </p>
                 <div id="cv-upload-ui-container">
                     <input type="file" id="cv-file-input" accept=".pdf,.doc,.docx,.txt" class="form-input">
-                    <button id="upload-parse-cv-btn" class="primary-button" style="margin-top: 10px;">Upload and Parse</button>
+                    <button id="upload-parse-cv-btn" class="primary-button" style="margin-top: 10px;">Upload and
+                        Parse</button>
                     <div id="cv-parse-loading" class="loading-message hidden" style="margin-top:10px;">
                         <div class="loading-spinner"></div>
                         <p>Parsing your CV, please wait...</p>
@@ -403,7 +421,8 @@
                 <label for="cv-json" class="form-label">Tailored CV/Cover Letter JSON:</label>
                 <textarea id="cv-json" name="cv-json" class="form-textarea" rows="5"
                     placeholder="Paste the JSON from Claude here..."></textarea>
-                <p class="form-info">After generating with Claude, paste the JSON response here to preview your document.</p>
+                <p class="form-info">After generating with Claude, paste the JSON response here to preview your
+                    document.</p>
                 <div class="preview-buttons">
                     <button id="preview-cv" class="primary-button">Preview CV</button>
                     <button id="preview-cover-letter" class="primary-button">Preview Cover Letter</button>
@@ -415,19 +434,24 @@
                 <h3>Subscription</h3>
                 <div id="subscription-status-details">
                     <p>Current plan: <strong id="user-current-plan">Free</strong></p>
-                    <p id="user-plan-expiry" class="hidden">Subscription valid until: <span id="user-plan-expiry-date"></span></p>
-                    <p id="user-plan-message" class="plan-message"></p> 
+                    <p id="user-plan-expiry" class="hidden">Subscription valid until: <span
+                            id="user-plan-expiry-date"></span></p>
+                    <p id="user-plan-message" class="plan-message"></p>
                 </div>
-                
-                <div id="subscription-options" class="hidden"> 
+
+                <div id="subscription-options" class="hidden">
                     <h4>Upgrade to Pro:</h4>
                     <div class="plan-card-container">
                         <div class="plan-card" data-plan-identifier="monthly">
-                            <h5>Pro Monthly</h5>
-                            <p class="plan-price">NGN 9,900 <span class="plan-interval">/month</span></p> 
-                            <p class="plan-description">
-                                Full access to all Pro features, billed monthly. Unlock:
-                                <ul>
+                            <div class="plan-card-header">
+                                <h5>Pro Monthly</h5>
+                                <p class="plan-price">NGN 9,900 <span class="plan-interval">/month</span></p>
+                            </div>
+                            <div class="plan-card-body">
+                                <p class="plan-description-intro">
+                                    Full access to all Pro features, billed monthly. Unlock:
+                                </p>
+                                <ul class="plan-features-list">
                                     <li>One-Click AI CV Generation (Gemini)</li>
                                     <li>One-Click AI Cover Letter Generation (Gemini)</li>
                                     <li>CV Upload & Parse</li>
@@ -435,14 +459,24 @@
                                     <li>Personalized Learning Dashboard</li>
                                     <li>Higher Daily Generation Quotas</li>
                                 </ul>
-                            </p>
-                            <button class="subscribe-button primary-button" data-plan="monthly">Subscribe Monthly</button>
+                            </div>
+                            <div class="plan-card-footer">
+                                <button class="subscribe-button primary-button" data-plan="monthly">Subscribe
+                                    Monthly</button>
+                            </div>
                         </div>
+
                         <div class="plan-card" data-plan-identifier="yearly">
-                            <h5>Pro Yearly</h5>
-                            <p class="plan-price">NGN 99,000 <span class="plan-interval">/year</span></p>
-                            <p class="plan-description">Get 2 months free! Full access to all Pro features, billed annually. Includes higher daily generation quotas. Also includes:
-                                <ul>
+                            <div class="plan-card-header">
+                                <h5>Pro Yearly</h5>
+                                <p class="plan-price">NGN 99,000 <span class="plan-interval">/year</span></p>
+                            </div>
+                            <div class="plan-card-body">
+                                <p class="plan-description-intro">
+                                    Get 2 months free! Full access to all Pro features, billed annually. Includes higher
+                                    daily generation quotas. Also includes:
+                                </p>
+                                <ul class="plan-features-list">
                                     <li>One-Click AI CV Generation (Gemini)</li>
                                     <li>One-Click AI Cover Letter Generation (Gemini)</li>
                                     <li>CV Upload & Parse</li>
@@ -450,14 +484,17 @@
                                     <li>Personalized Learning Dashboard</li>
                                     <li>Higher Daily Generation Quotas</li>
                                 </ul>
-                            </p>
-                            <button class="subscribe-button primary-button" data-plan="yearly">Subscribe Yearly</button>
+                            </div>
+                            <div class="plan-card-footer">
+                                <button class="subscribe-button primary-button" data-plan="yearly">Subscribe
+                                    Yearly</button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div id="manage-subscription-options" class="hidden">
-                    </div>
+                </div>
             </div>
 
             <!-- Export/Import section will be added by setupExportImport() in ui.js -->
