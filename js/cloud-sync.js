@@ -1,4 +1,4 @@
-// Cloud sync functionality for JobHunter
+// cloud-sync.js - Updated to use separate collections
 
 // Wait for Firestore functions to be available
 function getFirestoreFunctions() {
@@ -15,7 +15,7 @@ function getFirestoreFunctions() {
     };
 }
 
-// Sync data to Firebase Firestore
+// Sync data to Firebase Firestore - Use separate collection for application data
 window.syncDataToCloud = async function(userData) {
     if (!window.currentUser || !window.db) {
         console.log('Cannot sync: user not signed in or database not ready');
@@ -33,10 +33,10 @@ window.syncDataToCloud = async function(userData) {
             throw new Error('Firestore functions not available');
         }
         
-        // Use v11 syntax with doc() and setDoc()
-        const userDocRef = doc(window.db, 'users', window.currentUser.uid);
+        // Use separate collection for application data (not user profile data)
+        const appDataDocRef = doc(window.db, 'user_app_data', window.currentUser.uid);
         
-        await setDoc(userDocRef, {
+        await setDoc(appDataDocRef, {
             savedJobs: userData.savedJobs || [],
             profileData: userData.profileData || {},
             lastSync: serverTimestamp(),
@@ -44,7 +44,7 @@ window.syncDataToCloud = async function(userData) {
             email: window.currentUser.email
         }, { merge: true });
         
-        console.log('Data synced to cloud successfully');
+        console.log('Application data synced to cloud successfully');
         updateSyncStatus('synced');
         return true;
     } catch (error) {
@@ -54,7 +54,7 @@ window.syncDataToCloud = async function(userData) {
     }
 };
 
-// Load data from Firebase Firestore
+// Load data from Firebase Firestore - Use separate collection for application data
 window.loadDataFromCloud = async function() {
     if (!window.currentUser || !window.db) {
         console.log('Cannot load: user not signed in or database not ready');
@@ -70,19 +70,19 @@ window.loadDataFromCloud = async function() {
             throw new Error('Firestore functions not available');
         }
         
-        // Use v11 syntax with doc() and getDoc()
-        const userDocRef = doc(window.db, 'users', window.currentUser.uid);
-        const docSnap = await getDoc(userDocRef);
+        // Use separate collection for application data (not user profile data)
+        const appDataDocRef = doc(window.db, 'user_app_data', window.currentUser.uid);
+        const docSnap = await getDoc(appDataDocRef);
         
         if (docSnap.exists()) {
-            console.log('Data loaded from cloud');
+            console.log('Application data loaded from cloud');
             return docSnap.data();
         } else {
-            console.log('No cloud data found for user');
+            console.log('No cloud application data found for user');
             return null;
         }
     } catch (error) {
-        console.error('Failed to load cloud data:', error);
+        console.error('Failed to load cloud application data:', error);
         return null;
     }
 };
@@ -132,7 +132,7 @@ window.migrateLocalToCloud = async function() {
             profileData: getProfileData()
         };
         
-        // Get cloud data
+        // Get cloud data from the correct collection
         const cloudData = await window.loadDataFromCloud();
         
         let mergedData;

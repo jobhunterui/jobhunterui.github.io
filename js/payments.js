@@ -1,12 +1,14 @@
 // js/payments.js
 
 const API_BASE_URL = 'https://jobhunter-api-3gbd.onrender.com/api/v1'; // Your backend API URL
-const PAYMENT_CALLBACK_URL = 'https://jobhunterui.github.io/payment-callback.html'; // Your deployed callback URL
 
 let APP_CONFIG = {
     environment: 'production', // Default
     paystack_public_key: null // Default
 };
+
+// Use let instead of const for variables that need to be reassigned
+let PAYMENT_CALLBACK_URL = 'https://jobhunterui.github.io/payment-callback.html'; // Default production callback
 
 // Function to fetch app configuration from backend
 async function fetchAppConfig() {
@@ -23,7 +25,7 @@ async function fetchAppConfig() {
         console.log('App config loaded:', APP_CONFIG);
 
         if (APP_CONFIG.environment === 'development') {
-            PAYMENT_CALLBACK_URL = 'http://127.0.0.1:5500/payment-callback.html'; // Or your local dev callback
+            PAYMENT_CALLBACK_URL = 'http://127.0.0.1:5500/payment-callback.html'; // Local dev callback
             console.log('Environment is DEVELOPMENT, using local callback URL:', PAYMENT_CALLBACK_URL);
         } else {
             PAYMENT_CALLBACK_URL = 'https://jobhunterui.github.io/payment-callback.html'; // Production callback
