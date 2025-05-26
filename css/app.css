@@ -1774,7 +1774,7 @@ button.disabled-pro-feature, /* Renamed from disabled-premium */
     display: flex;
     flex-direction: column;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    overflow: hidden; /* To contain potential ribbon backgrounds */
+    position: relative; /* Keep for positioning child elements like the ribbon */
 }
 
 .plan-card:hover {
