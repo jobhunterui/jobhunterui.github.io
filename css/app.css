@@ -1637,139 +1637,6 @@ button.disabled-pro-feature, /* Renamed from disabled-premium */
     vertical-align: baseline; /* Align better with h4 text */
 }
 
-
-/* Profile Tab Subscription Section */
-.subscription-section {
-    margin-top: 2rem; /* */
-    padding-top: 1.5rem; /* */
-    border-top: 1px solid var(--medium-gray); 
-    background-color: #f9f9f9; /* */
-    border-radius: 8px; /* */
-    padding: 20px; /* Increased padding slightly */
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07); /* Softer shadow */
-}
-
-.subscription-section h3 {
-    margin-top: 0; /* */
-    margin-bottom: 18px; /* More space after title */
-    color: var(--secondary-color); 
-    font-size: 1.2rem; /* Slightly larger */
-    font-weight: 600;
-}
-
-#subscription-status-details p {
-    margin-bottom: 0.6rem; /* More spacing */
-    color: var(--text-color); 
-    font-size: 0.95rem;
-}
-#subscription-status-details strong {
-    color: var(--primary-color); 
-}
-
-#user-plan-expiry {
-    font-style: italic; /* */
-    color: var(--dark-gray); /* Changed from light-text for better readability */
-    font-size: 0.9rem;
-}
-
-.plan-message { /* For messages like 'expired' or 'cancelling' */
-    font-weight: 500; /* */
-    color: var(--primary-dark);  /* More prominent color */
-    margin-top: 8px; /* */
-    padding: 8px;
-    background-color: #e8f4fd; /* Light blue background for info */
-    border-left: 3px solid var(--primary-color);
-    border-radius: 3px;
-    font-size: 0.9rem;
-}
-.plan-message:empty {
-    display: none; /* */
-}
-
-
-#subscription-options {
-    margin-top: 1.8rem; /* More spacing */
-}
-
-#subscription-options h4 { /* "Upgrade to Pro:" */
-    font-size: 1.1rem; /* Slightly larger */
-    color: var(--secondary-color); /* */
-    margin-bottom: 1.2rem; /* More space */
-    font-weight: 600;
-}
-
-.plan-card-container {
-    display: flex; /* */
-    gap: 20px; /* Increased gap */
-    margin-top: 1rem; /* */
-    flex-wrap: wrap;  /* */
-}
-
-.plan-card {
-    border: 1px solid var(--medium-gray); /* */
-    border-radius: var(--border-radius); 
-    padding: 20px; /* Consistent padding */
-    flex: 1;  /* */
-    min-width: 260px; /* Slightly increased min-width */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* */
-    background-color: var(--card-background); 
-    display: flex; /* */
-    flex-direction: column; /* */
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* */
-}
-
-.plan-card:hover {
-    transform: translateY(-4px); /* More noticeable hover */
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1); /* Enhanced hover shadow */
-}
-
-.plan-card h5 { /* Plan name e.g., Pro Monthly */
-    color: var(--primary-color); /* */
-    margin-bottom: 0.75rem; /* */
-    font-size: 1.25rem; /* Slightly larger */
-    font-weight: 600;
-}
-
-.plan-price {
-    font-size: 1.9rem; /* */
-    font-weight: bold; /* */
-    color: var(--secondary-color); /* */
-    margin-bottom: 0.25rem; /* */
-}
-
-.plan-interval {
-    font-size: 0.9rem; /* */
-    font-weight: normal; /* */
-    color: var(--light-text); /* */
-    margin-bottom: 1rem; /* More space before description */
-}
-
-.plan-description {
-    font-size: 0.9rem; /* */
-    color: var(--text-color); /* */
-    margin-bottom: 1.5rem; 
-    flex-grow: 1;  /* */
-    line-height: 1.5;
-}
-
-.subscribe-button { 
-    width: 100%; /* */
-    padding: 0.8rem; /* */
-    margin-top: auto;  /* */
-    font-weight: 600; /* */
-    /* Inherits from .primary-button */
-}
-
-#manage-subscription-options {
-    margin-top: 1.8rem; /* */
-}
-
-#manage-subscription-options button {
-    padding: 0.8rem 1.5rem; /* */
-    /* Inherits from .primary-button */
-}
-
-
 /* Ensure hidden class works universally */
 .hidden {
     display: none !important; /* */
@@ -1825,54 +1692,189 @@ button.disabled-pro-feature, /* Renamed from disabled-premium */
     vertical-align: super; /* Adjust alignment if needed */
 }
 
-/* Subscription Plan Card Enhancements */
-.plan-card .plan-description ul {
-    list-style: none; /* Remove default bullet points if you're using '✓' */
-    padding-left: 5px; /* Adjust as needed, or 0 if checkmarks are enough */
-    margin-top: 10px; /* Space above the list */
-    margin-bottom: 10px; /* Space below the list */
-    text-align: left; /* Ensure list items are left-aligned */
+/* Profile Tab Subscription Section - ENHANCED STYLES */
+.subscription-section {
+    margin-top: 2rem;
+    padding: 25px;
+    border-top: 1px solid var(--medium-gray, #ddd);
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
 }
 
-.plan-card .plan-description li {
-    margin-bottom: 8px; /* Space between list items */
-    font-size: 0.88rem; /* Slightly smaller font for list items for balance */
-    color: #333; /* Darker text for better readability */
-    position: relative; /* For potential custom checkmark styling */
-    padding-left: 20px; /* Space for the checkmark */
+.subscription-section h3 { /* "Subscription" title */
+    margin-top: 0;
+    margin-bottom: 24px;
+    color: var(--secondary-color, #2c3e50);
+    font-size: 1.3rem;
+    font-weight: 600;
 }
 
-/* Style the checkmark character or add a custom one */
-.plan-card .plan-description li::before {
-    content: '✓'; /* Your checkmark character */
-    color: #27ae60; /* Green color for the checkmark */
-    font-weight: bold;
-    position: absolute;
-    left: 0;
-    top: 1px; /* Adjust vertical alignment if needed */
+#subscription-status-details p {
+    margin-bottom: 0.8rem;
+    color: var(--text-color, #333);
+    font-size: 0.95rem;
+}
+#subscription-status-details strong {
+    color: var(--primary-color, #3498db);
+    font-weight: 600;
+}
+
+.plan-message {
+    font-weight: 500;
+    color: var(--primary-dark, #2980b9);
+    margin-top: 8px;
+    padding: 10px 12px;
+    background-color: #e8f4fd;
+    border-left: 4px solid var(--primary-color, #3498db);
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+.plan-message:empty {
+    display: none;
+}
+
+#subscription-options {
+    margin-top: 2rem;
+}
+
+#subscription-options h4 { /* "Upgrade to Pro:" */
+    font-size: 1.2rem;
+    color: var(--secondary-color, #2c3e50);
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+.plan-card-container {
+    display: flex;
+    gap: 25px;
+    margin-top: 1rem;
+    flex-wrap: wrap;
 }
 
 .plan-card {
-    background-color: #ffffff; /* Ensure card background is white */
-    border: 1px solid #e0e0e0; /* Softer border */
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Slightly more pronounced shadow */
+    border: 1px solid var(--medium-gray, #e0e0e0);
+    border-radius: var(--border-radius, 6px);
+    padding: 25px;
+    flex: 1 1 270px; /* Allow shrinking but prefer 270px base */
+    min-width: 270px; /* Ensure readability */
+    max-width: 350px; /* Prevent cards from becoming too wide on larger flex rows */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.25s ease-in-out, box-shadow 0.25s ease-in-out;
+    position: relative;
 }
 
-.plan-card h5 { /* Plan name e.g., Pro Monthly */
-    color: var(--primary-color); /* Use your primary color */
-    font-size: 1.3rem; /* Slightly larger title */
+.plan-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+}
+
+.plan-card h5 { /* Plan name */
+    color: var(--primary-color, #3498db);
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+    font-weight: 600;
+    text-align: center;
 }
 
 .plan-price {
-    font-size: 2rem; /* Larger price */
-    font-weight: 600; /* Bolder price */
-    color: var(--secondary-color); /* Use your secondary color */
-    margin-bottom: 0.1em; /* Reduce space between price and interval */
+    font-size: 2.3rem;
+    font-weight: 700;
+    color: var(--secondary-color, #2c3e50);
+    margin-bottom: 0.05em;
+    line-height: 1;
+    text-align: center;
 }
 
 .plan-interval {
     font-size: 0.9rem;
-    color: var(--light-text);
-    display: block; /* Ensure it sits below the price */
-    margin-bottom: 1rem; /* Space before description text */
+    font-weight: normal;
+    color: var(--light-text, #666);
+    display: block;
+    text-align: center;
+    margin-bottom: 1.2rem;
 }
+
+.plan-card .plan-description { /* The introductory paragraph before the UL */
+    font-size: 0.95rem;
+    color: var(--text-color, #333);
+    margin-bottom: 0.5rem; /* Space before the nested UL */
+    line-height: 1.5;
+    text-align: center; /* Center the intro text */
+    /* This paragraph itself shouldn't grow; the UL inside it or a dedicated features div should */
+}
+
+.plan-card .plan-description ul { /* Targeting the UL nested in p.plan-description */
+    list-style: none;
+    padding-left: 0;
+    margin-top: 1rem; /* Space between intro paragraph text and start of list */
+    margin-bottom: 1.5rem; /* Space after the list, before button */
+    text-align: left; /* Keep list items left-aligned */
+    flex-grow: 1; /* If the UL is the direct flex child designated for features */
+                  /* Note: For this to work, p.plan-description might need to be display:flex and flex-direction:column */
+                  /* Or, better, the UL should be a direct child of .plan-card and p.plan-description is just for intro text */
+}
+
+.plan-card .plan-description li {
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: #333;
+    position: relative;
+    padding-left: 25px; /* Space for the CSS checkmark */
+    line-height: 1.4;
+}
+
+.plan-card .plan-description li::before {
+    content: '✓';
+    color: var(--success-color, #27ae60);
+    font-weight: bold;
+    font-size: 1.1em;
+    position: absolute;
+    left: 0;
+    top: 1px; /* Adjust if text alignment is off */
+}
+
+.subscribe-button {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    margin-top: auto; /* Pushes button to the bottom of the card */
+    font-weight: 600;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    /* Inherits .primary-button styles from app-base.css for background/color */
+}
+
+#manage-subscription-options {
+    margin-top: 1.8rem;
+}
+
+#manage-subscription-options button {
+    padding: 0.9rem 1.5rem;
+    font-weight: 600;
+}
+
+/* Optional: Highlight the "Pro Yearly" plan */
+.plan-card[data-plan-identifier="yearly"] {
+    border-color: var(--accent-color, #9b59b6);
+    border-width: 2px;
+}
+
+/* If you have a "Best Value" badge or similar:
+.plan-card[data-plan-identifier="yearly"]::after {
+    content: 'Best Value';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: var(--accent-color, #9b59b6);
+    color: white;
+    padding: 3px 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 3px;
+}
+*/
