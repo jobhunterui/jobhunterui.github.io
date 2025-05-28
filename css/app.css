@@ -1592,19 +1592,26 @@ select:focus {
 }
 
 /* Pro Feature UI Styles */
+/* TEMPORARILY HIDDEN: All pro badges hidden - features now free */
+/*
 .pro-badge {
     display: inline-block;
-    font-size: 0.6em; /* Adjusted for "PRO" text */
+    font-size: 0.6em;
     margin-left: 6px;
     color: white;
-    background-color: var(--accent-color); /* Using accent color for Pro, can be changed */
+    background-color: var(--accent-color);
     padding: 2px 6px;
     border-radius: 3px;
     vertical-align: middle; 
     text-transform: uppercase;
     font-weight: 700;
-    line-height: 1; /* Ensure consistent height */
+    line-height: 1;
     letter-spacing: 0.5px;
+}
+*/
+
+.pro-badge {
+    display: none !important;
 }
 
 .pro-badge.hidden {

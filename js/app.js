@@ -238,101 +238,55 @@ window.updateUserSubscriptionUI = updateUserSubscriptionUI;
 
 
 // Dynamically update UI for pro features
+// TEMPORARILY DISABLED: Premium feature UI restrictions - all features now free
+// Original function preserved for re-enabling later:
 function updateFeatureAccessUI() {
-    const subscription = window.currentUserSubscription;
-    let userHasActivePro = false; // Changed from userHasActivePremium
+    // const subscription = window.currentUserSubscription;
+    // let userHasActivePro = false;
 
-    if (window.currentUser && subscription && subscription.tier && subscription.tier.toLowerCase() !== 'free' && subscription.status === 'active') {
-        if (subscription.current_period_ends_at) {
-            userHasActivePro = new Date(subscription.current_period_ends_at) > new Date();
-        } else {
-            userHasActivePro = true;
-        }
-    }
+    // if (window.currentUser && subscription && subscription.tier && subscription.tier.toLowerCase() !== 'free' && subscription.status === 'active') {
+    //     if (subscription.current_period_ends_at) {
+    //         userHasActivePro = new Date(subscription.current_period_ends_at) > new Date();
+    //     } else {
+    //         userHasActivePro = true;
+    //     }
+    // }
 
-    const proUiElements = document.querySelectorAll('[data-pro-feature]'); // Changed from data-premium-feature
+    const proUiElements = document.querySelectorAll('[data-pro-feature]');
 
     proUiElements.forEach(element => {
-        const featureName = element.dataset.proFeature; // Changed from data-premium-feature
-        const isGatedBySubscription = true;
+        // const featureName = element.dataset.proFeature;
+        // const isGatedBySubscription = true;
 
-        let badge = element.querySelector('.pro-badge'); // Changed from .premium-badge
+        let badge = element.querySelector('.pro-badge');
         if (!badge) {
             const parent = element.closest('.tab-button') || element;
-            badge = parent.querySelector('.pro-badge'); // Changed from .premium-badge
+            badge = parent.querySelector('.pro-badge');
         }
 
-        // Specific handling for CV Upload section's sign-in message
+        // TEMPORARILY DISABLED: All features now accessible
+        // Original premium logic preserved above for re-enabling later
+        
+        // Always enable all features (no premium restrictions)
+        element.disabled = false;
+        element.classList.remove('disabled-pro-feature');
+        if (badge) badge.classList.add('hidden'); // Hide pro badges
+
+        // Handle CV Upload section specifically
+        const featureName = element.dataset.proFeature;
         if (featureName === "cv_upload_and_parse") {
             const cvUploadSection = document.getElementById('cv-upload-section');
             const cvUploadUiContainer = document.getElementById('cv-upload-ui-container');
             const cvUploadSignInMessage = document.getElementById('cv-upload-signin-message');
 
             if (cvUploadSection && cvUploadUiContainer && cvUploadSignInMessage) {
-                if (userHasActivePro) { // User has Pro access
-                    cvUploadUiContainer.classList.remove('hidden');
-                    cvUploadSignInMessage.classList.add('hidden');
-                } else { // User does NOT have Pro access
-                    cvUploadUiContainer.classList.add('hidden'); // Hide actual upload inputs/button
-                    if (!window.currentUser) { // If not signed in at all
-                        cvUploadSignInMessage.classList.remove('hidden'); // Show "sign in to use"
-                    } else { // Signed in, but not Pro
-                        cvUploadSignInMessage.classList.add('hidden'); // Hide the specific "sign in" msg, modal will prompt to upgrade
-                    }
-                }
-            }
-        }
-
-        if (isGatedBySubscription) {
-            if (userHasActivePro) {
-                element.disabled = false;
-                element.classList.remove('disabled-pro-feature'); // Changed from disabled-premium
-                if (element.dataset.hideBadgeOnActive === "true" && badge) {
-                    badge.classList.add('hidden');
-                } else if (badge) {
-                    // Badge can remain visible but could be styled differently for active pro users if desired
-                    // For now, let's assume if it's a pro feature and user is pro, badge isn't strictly needed or can be more subtle
-                    badge.classList.add('hidden'); // Hiding badge if user is Pro
-                }
-            } else {
-                element.disabled = true;
-                element.classList.add('disabled-pro-feature'); // Changed from disabled-premium
-                if (badge) badge.classList.remove('hidden');
-
-                if (!element.dataset.proClickListenerAttached) { // Changed from premiumClickListenerAttached
-                    element.addEventListener('click', (e) => {
-                        if (element.disabled) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            let featureDisplayName = element.dataset.featureDisplayName || featureName.replace(/_/g, ' ');
-                            featureDisplayName = featureDisplayName.charAt(0).toUpperCase() + featureDisplayName.slice(1);
-
-                            showModal( // Using "Pro"
-                                "Upgrade to Pro",
-                                `The "${featureDisplayName}" feature requires a Pro plan. Please upgrade to access it.`,
-                                [
-                                    {
-                                        id: 'upgrade-modal-action-btn',
-                                        text: 'Upgrade Plan',
-                                        class: 'primary-button',
-                                        action: () => {
-                                            document.querySelector('.tab-button[data-tab="profile"]').click();
-                                            setTimeout(() => {
-                                                document.querySelector('.subscription-section')?.scrollIntoView({ behavior: 'smooth' });
-                                            }, 100);
-                                        }
-                                    },
-                                    { id: 'cancel-modal-action-btn', text: 'Maybe Later', class: 'default-button' }
-                                ]
-                            );
-                        }
-                    });
-                    element.dataset.proClickListenerAttached = 'true'; // Changed from premiumClickListenerAttached
-                }
+                cvUploadUiContainer.classList.remove('hidden'); // Always show upload UI
+                cvUploadSignInMessage.classList.add('hidden'); // Always hide sign-in message
             }
         }
     });
 }
+window.updateFeatureAccessUI = updateFeatureAccessUI;
 window.updateFeatureAccessUI = updateFeatureAccessUI;
 
 // Function to display user profile details including subscription (from original app.js)
@@ -349,52 +303,54 @@ function updateTabContentForAuthState(isSignedIn) {
     updateFeatureAccessUI();
 }
 
+// TEMPORARILY DISABLED: Premium tab restrictions - all tabs now free
+// Original function preserved for re-enabling later:
 function checkTabAccess(tabName) {
-    const restrictedTabsMap = {
-        'insights': 'Career Insights',
-        'learning': 'Learning Dashboard'
-    };
+    // const restrictedTabsMap = {
+    //     'insights': 'Career Insights',
+    //     'learning': 'Learning Dashboard'
+    // };
 
-    if (restrictedTabsMap.hasOwnProperty(tabName) && !window.isUserSignedIn) {
-        showSignInRequiredModal(tabName, restrictedTabsMap[tabName]); // Pass display name
-        return false;
-    }
+    // if (restrictedTabsMap.hasOwnProperty(tabName) && !window.isUserSignedIn) {
+    //     showSignInRequiredModal(tabName, restrictedTabsMap[tabName]);
+    //     return false;
+    // }
 
-    const subscription = window.currentUserSubscription;
-    let userHasActivePro = false; // Changed from userHasActivePremium
-    if (window.isUserSignedIn && subscription && subscription.tier && subscription.tier.toLowerCase() !== 'free' && subscription.status === 'active') {
-        if (subscription.current_period_ends_at) {
-            userHasActivePro = new Date(subscription.current_period_ends_at) > new Date();
-        } else {
-            userHasActivePro = true;
-        }
-    }
+    // const subscription = window.currentUserSubscription;
+    // let userHasActivePro = false;
+    // if (window.isUserSignedIn && subscription && subscription.tier && subscription.tier.toLowerCase() !== 'free' && subscription.status === 'active') {
+    //     if (subscription.current_period_ends_at) {
+    //         userHasActivePro = new Date(subscription.current_period_ends_at) > new Date();
+    //     } else {
+    //         userHasActivePro = true;
+    //     }
+    // }
 
-    const tabIsProFeature = (tabName === 'insights' || tabName === 'learning'); // "Pro"
+    // const tabIsProFeature = (tabName === 'insights' || tabName === 'learning');
 
-    if (tabIsProFeature && !userHasActivePro) { // Check for Pro plan
-        showModal( // Using "Pro"
-            "Upgrade to Pro",
-            `The "${restrictedTabsMap[tabName]}" tab requires a Pro plan. Please upgrade your plan to access it.`,
-            [
-                {
-                    id: 'upgrade-tab-modal-btn',
-                    text: 'Upgrade Plan',
-                    class: 'primary-button',
-                    action: () => {
-                        document.querySelector('.tab-button[data-tab="profile"]').click();
-                        setTimeout(() => {
-                            document.querySelector('.subscription-section')?.scrollIntoView({ behavior: 'smooth' });
-                        }, 100);
-                    }
-                },
-                { id: 'cancel-tab-modal-btn', text: 'Maybe Later', class: 'default-button' }
-            ]
-        );
-        return false;
-    }
+    // if (tabIsProFeature && !userHasActivePro) {
+    //     showModal(
+    //         "Upgrade to Pro",
+    //         `The "${restrictedTabsMap[tabName]}" tab requires a Pro plan. Please upgrade your plan to access it.`,
+    //         [
+    //             {
+    //                 id: 'upgrade-tab-modal-btn',
+    //                 text: 'Upgrade Plan',
+    //                 class: 'primary-button',
+    //                 action: () => {
+    //                     document.querySelector('.tab-button[data-tab="profile"]').click();
+    //                     setTimeout(() => {
+    //                         document.querySelector('.subscription-section')?.scrollIntoView({ behavior: 'smooth' });
+    //                     }, 100);
+    //                 }
+    //             },
+    //             { id: 'cancel-tab-modal-btn', text: 'Maybe Later', class: 'default-button' }
+    //         ]
+    //     );
+    //     return false;
+    // }
 
-    return true;
+    return true; // Always allow tab access - all tabs now free
 }
 window.checkTabAccess = checkTabAccess;
 
@@ -780,37 +736,41 @@ async function handleCvUploadAndParse() {
     console.log("Attempting CV Upload and Parse");
     const featureIdentifier = "cv_upload_and_parse";
 
-    if (!window.currentUser) {
-        showModal("Sign In Required", `Please sign in to use the "CV Upload & Parse" feature.`, [
-            { id: 'sign-in-cv-parse', text: 'Sign In', class: 'primary-button', action: () => window.signInWithGoogle() }
-        ]);
-        return;
-    }
+    // TEMPORARILY DISABLED: CV Upload premium restrictions - feature now free
+    // Original premium checks preserved for re-enabling later:
+    // if (!window.currentUser) {
+    //     showModal("Sign In Required", `Please sign in to use the "CV Upload & Parse" feature.`, [
+    //         { id: 'sign-in-cv-parse', text: 'Sign In', class: 'primary-button', action: () => window.signInWithGoogle() }
+    //     ]);
+    //     return;
+    // }
 
-    let userHasActivePro = false;
-    if (window.currentUserSubscription &&
-        window.currentUserSubscription.tier &&
-        window.currentUserSubscription.tier.toLowerCase() !== 'free' &&
-        window.currentUserSubscription.status === 'active') {
-        if (window.currentUserSubscription.current_period_ends_at) {
-            userHasActivePro = new Date(window.currentUserSubscription.current_period_ends_at) > new Date();
-        } else {
-            userHasActivePro = true;
-        }
-    }
+    // let userHasActivePro = false;
+    // if (window.currentUserSubscription &&
+    //     window.currentUserSubscription.tier &&
+    //     window.currentUserSubscription.tier.toLowerCase() !== 'free' &&
+    //     window.currentUserSubscription.status === 'active') {
+    //     if (window.currentUserSubscription.current_period_ends_at) {
+    //         userHasActivePro = new Date(window.currentUserSubscription.current_period_ends_at) > new Date();
+    //     } else {
+    //         userHasActivePro = true;
+    //     }
+    // }
     
-    const isPremiumFeatureDefinedInSettings = true; // Placeholder, ideally check against a config
+    // const isPremiumFeatureDefinedInSettings = true;
 
-    if (isPremiumFeatureDefinedInSettings && !userHasActivePro) {
-        showModal("Upgrade to Pro", `The "CV Upload & Parse" feature requires a Pro plan. Please upgrade your plan.`, [
-            { id: 'upgrade-cv-parse-btn', text: 'Upgrade Plan', class: 'primary-button', action: () => {
-                document.querySelector('.tab-button[data-tab="profile"]').click();
-                setTimeout(() => document.querySelector('.subscription-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
-            }},
-            { id: 'cancel-cv-parse-btn', text: 'Maybe Later', class: 'default-button' }
-        ]);
-        return;
-    }
+    // if (isPremiumFeatureDefinedInSettings && !userHasActivePro) {
+    //     showModal("Upgrade to Pro", `The "CV Upload & Parse" feature requires a Pro plan. Please upgrade your plan.`, [
+    //         { id: 'upgrade-cv-parse-btn', text: 'Upgrade Plan', class: 'primary-button', action: () => {
+    //             document.querySelector('.tab-button[data-tab="profile"]').click();
+    //             setTimeout(() => document.querySelector('.subscription-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
+    //         }},
+    //         { id: 'cancel-cv-parse-btn', text: 'Maybe Later', class: 'default-button' }
+    //     ]);
+    //     return;
+    // }
+
+    // CV Upload now free for all users - continue with upload logic
 
     const fileInput = document.getElementById('cv-file-input');
     const loadingIndicator = document.getElementById('cv-parse-loading');

@@ -3,57 +3,55 @@
 let perplexityWindowOpen = false;
 
 // Helper: Check if a feature is pro and user has access
+// TEMPORARILY DISABLED: Premium feature checks - all features now free
+// Original function preserved for re-enabling later:
 function canAccessFeature(featureIdentifier) {
-    // Revised featureDisplayNames as discussed
-    const featureDisplayNames = {
-        "gemini_cv_generation": "Gemini CV Generation",
-        "gemini_cover_letter_generation": "Gemini Cover Letter Generation"
-        // Add other feature display names here if they become Pro and require specific naming
-    };
-    // Default displayName if not in the map, converted to Title Case
-    const displayName = featureDisplayNames[featureIdentifier] ||
-        featureIdentifier.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+    // const featureDisplayNames = {
+    //     "gemini_cv_generation": "Gemini CV Generation",
+    //     "gemini_cover_letter_generation": "Gemini Cover Letter Generation"
+    // };
+    // const displayName = featureDisplayNames[featureIdentifier] ||
+    //     featureIdentifier.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
 
-    if (!window.currentUser) {
-        showModal("Sign In Required", `Please sign in to use the "${displayName}" feature.`, [
-            { id: 'sign-in-feature-prompt', text: 'Sign In', class: 'primary-button', action: () => window.signInWithGoogle() }
-        ]);
-        return false;
-    }
+    // if (!window.currentUser) {
+    //     showModal("Sign In Required", `Please sign in to use the "${displayName}" feature.`, [
+    //         { id: 'sign-in-feature-prompt', text: 'Sign In', class: 'primary-button', action: () => window.signInWithGoogle() }
+    //     ]);
+    //     return false;
+    // }
 
-    const subscription = window.currentUserSubscription;
-    // These feature identifiers should match those in backend config.py PREMIUM_FEATURES (which is now settings.PREMIUM_FEATURES)
-    const backendProFeatures = ["gemini_cv_generation", "gemini_cover_letter_generation"];
+    // const subscription = window.currentUserSubscription;
+    // const backendProFeatures = ["gemini_cv_generation", "gemini_cover_letter_generation"];
 
-    if (backendProFeatures.includes(featureIdentifier)) {
-        let userHasActivePro = false;
-        if (subscription && subscription.tier && subscription.tier.toLowerCase() !== 'free' && subscription.status === 'active') {
-            if (subscription.current_period_ends_at) {
-                userHasActivePro = new Date(subscription.current_period_ends_at) > new Date();
-            } else {
-                userHasActivePro = true; // E.g., lifetime plan with no specific end date
-            }
-        }
+    // if (backendProFeatures.includes(featureIdentifier)) {
+    //     let userHasActivePro = false;
+    //     if (subscription && subscription.tier && subscription.tier.toLowerCase() !== 'free' && subscription.status === 'active') {
+    //         if (subscription.current_period_ends_at) {
+    //             userHasActivePro = new Date(subscription.current_period_ends_at) > new Date();
+    //         } else {
+    //             userHasActivePro = true;
+    //         }
+    //     }
 
-        if (!userHasActivePro) {
-            showModal(
-                "Upgrade to Pro",
-                `The "${displayName}" feature requires a Pro plan. Please upgrade your plan.`,
-                [
-                    {
-                        id: 'upgrade-prompt-btn', text: 'Upgrade Plan', class: 'primary-button',
-                        action: () => {
-                            document.querySelector('.tab-button[data-tab="profile"]').click();
-                            setTimeout(() => document.querySelector('.subscription-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
-                        }
-                    },
-                    { id: 'cancel-prompt-btn', text: 'Maybe Later', class: 'default-button' }
-                ]
-            );
-            return false;
-        }
-    }
-    return true;
+    //     if (!userHasActivePro) {
+    //         showModal(
+    //             "Upgrade to Pro",
+    //             `The "${displayName}" feature requires a Pro plan. Please upgrade your plan.`,
+    //             [
+    //                 {
+    //                     id: 'upgrade-prompt-btn', text: 'Upgrade Plan', class: 'primary-button',
+    //                     action: () => {
+    //                         document.querySelector('.tab-button[data-tab="profile"]').click();
+    //                         setTimeout(() => document.querySelector('.subscription-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
+    //                     }
+    //                 },
+    //                 { id: 'cancel-prompt-btn', text: 'Maybe Later', class: 'default-button' }
+    //             ]
+    //         );
+    //         return false;
+    //     }
+    // }
+    return true; // Always allow access - all features now free
 }
 
 // Generate application with Claude

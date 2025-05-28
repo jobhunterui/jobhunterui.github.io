@@ -81,11 +81,9 @@
             <button class="tab-button" data-tab="find">Find Jobs</button>
             <button class="tab-button" data-tab="apply">Apply</button>
             <button class="tab-button" data-tab="insights" data-pro-feature="career_insights_tab"
-                data-feature-display-name="Career Insights">Career Insights <span
-                    class="pro-badge hidden">PRO</span></button>
+                data-feature-display-name="Career Insights">Career Insights</button>
             <button class="tab-button" data-tab="learning" data-pro-feature="learning_dashboard_tab"
-                data-feature-display-name="Learning Dashboard">Learning <span
-                    class="pro-badge hidden">PRO</span></button>
+                data-feature-display-name="Learning Dashboard">Learning</button>
         </div>
 
         <!-- Find Jobs Tab -->
@@ -250,19 +248,19 @@
             <div id="job-actions">
                 <div class="job-actions-container">
                     <div class="job-actions-group">
-                        <h4 class="action-group-title">Auto Generation (Gemini) <span class="pro-badge">PRO</span></h4>
+                        <h4 class="action-group-title">Auto Generation (Gemini)</h4>
                         <p class="action-group-info">One-click AI generation for Pro plan users.</p>
                         <div class="action-buttons">
                             <button id="generate-cv-gemini" class="primary-button gemini-button"
                                 data-pro-feature="gemini_cv_generation" data-feature-display-name="Gemini CV Generation"
                                 data-hide-badge-on-active="true">
-                                Generate CV (One-Click) <span class="pro-badge">PRO</span>
+                                Generate CV (One-Click)
                             </button>
                             <button id="generate-cover-letter-gemini" class="primary-button gemini-button"
                                 data-pro-feature="gemini_cover_letter_generation"
                                 data-feature-display-name="Gemini Cover Letter Generation"
                                 data-hide-badge-on-active="true">
-                                Generate Cover Letter <span class="pro-badge">PRO</span>
+                                Generate Cover Letter
                             </button>
                         </div>
                     </div>
@@ -283,8 +281,7 @@
                         <h4 class="action-group-title">Other Actions</h4>
                         <div class="action-buttons">
                             <button id="interview-prep" class="secondary-button" data-pro-feature="interview_prep"
-                                data-feature-display-name="Interview Prep">Interview Prep <span
-                                    class="pro-badge hidden">PRO</span></button>
+                                data-feature-display-name="Interview Prep">Interview Prep</button>
                             <button id="remove-job" class="danger-button">Remove</button>
                         </div>
                     </div>
@@ -430,6 +427,9 @@
             </div>
 
             <!-- Subscription Section -->
+            <!-- TEMPORARILY HIDDEN: Subscription Section - payment system disabled from UI -->
+            <!-- Original subscription section preserved for re-enabling later: -->
+            <!--
             <div class="subscription-section">
                 <h3>Subscription</h3>
                 <div id="subscription-status-details">
@@ -495,6 +495,18 @@
 
                 <div id="manage-subscription-options" class="hidden">
                 </div>
+            </div>
+            -->
+
+            <!-- Simplified subscription status (no upgrade options shown) -->
+            <div class="subscription-section">
+                <h3>Plan Status</h3>
+                <div id="subscription-status-details">
+                    <p>Current plan: <strong id="user-current-plan">Free</strong></p>
+                </div>
+                <!-- Subscription upgrade options hidden - payment system disabled -->
+                <div id="subscription-options" class="hidden"></div>
+                <div id="manage-subscription-options" class="hidden"></div>
             </div>
 
             <!-- Export/Import section will be added by setupExportImport() in ui.js -->
