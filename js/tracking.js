@@ -26,7 +26,8 @@ const DATA_COLLECTION = {
 const EVENT_PRIORITIES = {
     high: [
         'job_saved', 'application_generated', 'extension_install_click',
-        'error', 'profile_saved', 'data_export', 'data_import', 'system_alert'
+        'error', 'profile_saved', 'data_export', 'data_import', 'system_alert',
+        'career_goal_selected', 'career_goal_cleared', 'career_goal_progress'
     ],
     medium: [
         'generate_application_click', 'tab_switch', 'view_job_details',
@@ -346,6 +347,39 @@ function sendDataRequest(queueItem, queueIndex) {
         }
     });
 }
+
+// Specialized function for tracking career goal events
+function trackCareerGoalEvent(eventType, goalData = {}) {
+    const currentGoal = getCurrentCareerGoal();
+    
+    // Enhanced goal event data
+    const enhancedData = {
+        current_goal: currentGoal,
+        has_active_goal: !!currentGoal,
+        ...goalData
+    };
+    
+    // If we have a current goal, add goal context
+    if (currentGoal && window.CAREER_GOALS && window.CAREER_GOALS[currentGoal]) {
+        enhancedData.goal_title = window.CAREER_GOALS[currentGoal].title;
+        enhancedData.goal_description = window.CAREER_GOALS[currentGoal].description;
+        
+        // Calculate how long user has had this goal
+        const goalData = getCareerGoalData();
+        if (goalData && goalData.selectedAt) {
+            const daysSinceSelection = Math.floor(
+                (Date.now() - new Date(goalData.selectedAt)) / (1000 * 60 * 60 * 24)
+            );
+            enhancedData.goal_age_days = daysSinceSelection;
+            enhancedData.completed_actions_count = goalData.progress?.completedActions?.length || 0;
+        }
+    }
+    
+    return trackAppEvent(eventType, enhancedData);
+}
+
+// Export for use by other modules
+window.trackCareerGoalEvent = trackCareerGoalEvent;
 
 // Main function to track events - use this for all data tracking
 function trackAppEvent(eventType, eventData = {}) {

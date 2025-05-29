@@ -39,6 +39,7 @@ window.syncDataToCloud = async function(userData) {
         await setDoc(appDataDocRef, {
             savedJobs: userData.savedJobs || [],
             profileData: userData.profileData || {},
+            careerGoal: userData.careerGoal || null,
             lastSync: serverTimestamp(),
             version: '1.0.0',
             email: window.currentUser.email
@@ -126,10 +127,11 @@ window.migrateLocalToCloud = async function() {
     updateSyncStatus('syncing');
     
     try {
-        // Get local data
+        // Get local data including career goal
         const localData = {
             savedJobs: getSavedJobs(),
-            profileData: getProfileData()
+            profileData: getProfileData(),
+            careerGoal: getCareerGoalData()
         };
         
         // Get cloud data from the correct collection
@@ -144,7 +146,8 @@ window.migrateLocalToCloud = async function() {
             // Merge data - preferring cloud data but adding any local jobs not in cloud
             mergedData = {
                 savedJobs: mergeJobs(cloudData.savedJobs, localData.savedJobs),
-                profileData: cloudData.profileData.cv ? cloudData.profileData : localData.profileData
+                profileData: cloudData.profileData.cv ? cloudData.profileData : localData.profileData,
+                careerGoal: cloudData.careerGoal || localData.careerGoal
             };
             console.log('Merged local and cloud data');
         }
@@ -156,6 +159,9 @@ window.migrateLocalToCloud = async function() {
             // Update local storage with merged data
             setStorageData(STORAGE_KEYS.SAVED_JOBS, mergedData.savedJobs);
             setStorageData(STORAGE_KEYS.PROFILE_DATA, mergedData.profileData);
+            if (mergedData.careerGoal) {
+                setStorageData(STORAGE_KEYS.CAREER_GOAL, mergedData.careerGoal);
+            }
             
             // Refresh UI
             if (typeof loadSavedJobs === 'function') loadSavedJobs();
@@ -203,7 +209,8 @@ window.enableAutoSync = function() {
             window.syncTimeout = setTimeout(() => {
                 window.syncDataToCloud({
                     savedJobs: getSavedJobs(),
-                    profileData: getProfileData()
+                    profileData: getProfileData(),
+                    careerGoal: getCareerGoalData()
                 });
             }, 2000);
         }

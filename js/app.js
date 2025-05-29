@@ -436,6 +436,16 @@ function setupEventListeners() {
         });
     }
 
+    // Career goal radio button listeners
+    const careerGoalRadios = document.querySelectorAll('input[name="career-goal"]');
+    careerGoalRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                handleCareerGoalSelection(e.target.value);
+            }
+        });
+    });
+
     setupSubscriptionButtonListeners();
 }
 
@@ -687,9 +697,57 @@ function saveJobFromForm() {
     }
 }
 
+// Career goal selection handlers
+function handleCareerGoalSelection(goalType) {
+    if (saveCareerGoal(goalType)) {
+        updateCareerGoalUI();
+        
+        // Show success message
+        showModal('Career Goal Set', `Great! We've set your goal to "${CAREER_GOALS[goalType].title}". Features across the app will now be tailored to help you achieve this goal.`);
+        
+        // Track goal selection for analytics
+        if (typeof trackEvent === 'function') {
+            trackEvent('career_goal_selected', {
+                goal_type: goalType,
+                goal_title: CAREER_GOALS[goalType].title
+            });
+        }
+    } else {
+        showModal('Error', 'Failed to save your career goal. Please try again.');
+    }
+}
+
+function updateCareerGoalUI() {
+    const currentGoal = getCurrentCareerGoal();
+    const goalRadios = document.querySelectorAll('input[name="career-goal"]');
+    
+    // Update radio button selection
+    goalRadios.forEach(radio => {
+        radio.checked = radio.value === currentGoal;
+        
+        // Update visual feedback for selected goal
+        const goalCard = radio.closest('.career-goal-option');
+        if (goalCard) {
+            goalCard.classList.toggle('selected', radio.checked);
+        }
+    });
+    
+    // Update any UI elements that depend on goal selection
+    updateGoalDependentFeatures(currentGoal);
+}
+
+function updateGoalDependentFeatures(goalType) {
+    // This function will be expanded in later phases
+    // For now, just log the current goal for debugging
+    console.log('Current career goal:', goalType);
+}
+
 function loadProfileData() {
     const cvTextarea = document.getElementById('cv');
     if (cvTextarea) cvTextarea.value = getProfileData().cv || '';
+
+    // Load and update career goal UI
+    updateCareerGoalUI();
 }
 
 function saveProfileFromForm() {

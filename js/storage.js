@@ -6,7 +6,8 @@ const STORAGE_KEYS = {
     PROFILE_DATA: 'profileData',
     HIRING_PHRASES: 'hiringPhrases',
     USER_ID: 'userId',
-    LAST_SEARCH: 'lastSearch'
+    LAST_SEARCH: 'lastSearch',
+    CAREER_GOAL: 'careerGoal'
 };
 
 // Get data from localStorage with error handling
@@ -80,6 +81,122 @@ function getHiringPhrases() {
 function saveHiringPhrases(phrases) {
     return setStorageData(STORAGE_KEYS.HIRING_PHRASES, phrases);
 }
+
+// Career Goals Structure Definition
+const CAREER_GOALS = {
+    finding_new_job: {
+        title: "Find a new job",
+        description: "Looking for new opportunities and roles",
+        features: [
+            { name: "Job Search Strategy", tab: "find", action: "search_jobs" },
+            { name: "Create and Track Applications", tab: "apply", action: "manage_applications" },
+            { name: "Skill Analysis", tab: "insights", action: "analyze_skills" }
+        ]
+    },
+    growing_current_role: {
+        title: "Grow in my current role",
+        description: "Advancing skills and responsibilities where I am",
+        features: [
+            { name: "Analyse Current Skills", tab: "insights", action: "skill_assessment" },
+            { name: "Create Growth Plan", tab: "learning", action: "growth_planning" },
+            { name: "Performance Review Prep", tab: "apply", action: "performance_prep" }
+        ]
+    },
+    switching_careers: {
+        title: "Switch careers/fields",
+        description: "Transitioning to a different industry or role type",
+        features: [
+            { name: "Explore Opportunities", tab: "find", action: "explore_fields" },
+            { name: "Skill Gap Analysis", tab: "insights", action: "gap_analysis" },
+            { name: "Build Transition Skills", tab: "learning", action: "transition_planning" }
+        ]
+    }
+};
+
+// Get current career goal data
+function getCareerGoalData() {
+    return getStorageData(STORAGE_KEYS.CAREER_GOAL, null);
+}
+
+// Save career goal selection
+function saveCareerGoal(goalType) {
+    if (!CAREER_GOALS[goalType]) {
+        console.error('Invalid career goal type:', goalType);
+        return false;
+    }
+    
+    const goalData = {
+        type: goalType,
+        selectedAt: new Date().toISOString(),
+        progress: {
+            completedActions: [],
+            lastActivityAt: new Date().toISOString()
+        }
+    };
+    
+    const success = setStorageData(STORAGE_KEYS.CAREER_GOAL, goalData);
+    
+    // Track goal selection
+    if (success && typeof trackAppEvent === 'function') {
+        trackAppEvent('career_goal_selected', {
+            goal_type: goalType,
+            goal_title: CAREER_GOALS[goalType].title
+        });
+    }
+    
+    return success;
+}
+
+// Get current career goal type (shorthand helper)
+function getCurrentCareerGoal() {
+    const goalData = getCareerGoalData();
+    return goalData ? goalData.type : null;
+}
+
+// Clear career goal selection
+function clearCareerGoal() {
+    const currentGoal = getCareerGoalData();
+    const success = setStorageData(STORAGE_KEYS.CAREER_GOAL, null);
+    
+    // Track goal clearing
+    if (success && currentGoal && typeof trackAppEvent === 'function') {
+        trackAppEvent('career_goal_cleared', {
+            previous_goal_type: currentGoal.type,
+            goal_duration_days: Math.floor((Date.now() - new Date(currentGoal.selectedAt)) / (1000 * 60 * 60 * 24))
+        });
+    }
+    
+    return success;
+}
+
+// Update career goal progress
+function updateCareerGoalProgress(actionCompleted) {
+    const goalData = getCareerGoalData();
+    if (!goalData) return false;
+    
+    // Add action to completed list if not already there
+    if (!goalData.progress.completedActions.includes(actionCompleted)) {
+        goalData.progress.completedActions.push(actionCompleted);
+    }
+    
+    goalData.progress.lastActivityAt = new Date().toISOString();
+    
+    const success = setStorageData(STORAGE_KEYS.CAREER_GOAL, goalData);
+    
+    // Track progress update
+    if (success && typeof trackAppEvent === 'function') {
+        trackAppEvent('career_goal_progress', {
+            goal_type: goalData.type,
+            action_completed: actionCompleted,
+            total_completed_actions: goalData.progress.completedActions.length
+        });
+    }
+    
+    return success;
+}
+
+// Export career goals structure for use by other modules
+window.CAREER_GOALS = CAREER_GOALS;
 
 // Get or create user ID for tracking
 function getOrCreateUserId() {
