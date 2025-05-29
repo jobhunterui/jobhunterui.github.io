@@ -1,7 +1,7 @@
 // service-worker.js
 
 // --- CONFIGURATION ---
-const SW_VERSION = 'v1.3.6'; // IMPORTANT: Increment this with each new app deployment!
+const SW_VERSION = 'v1.3.7'; // IMPORTANT: Increment this with each new app deployment!
 const CACHE_NAME = `jobhunter-cache-${SW_VERSION}`;
 
 // App Shell: Core files that make up your application's structure and basic functionality.

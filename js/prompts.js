@@ -283,73 +283,165 @@ function createAndOpenPreview(htmlContent) {
 }
 
 // Create prompt for Claude
+// Enhanced Claude prompt focused solely on CV generation with comprehensive ATS optimisation
 function createClaudePrompt(job, cv) {
-    return `I need help creating:
-    1. A tailored CV in JSON format to use with my template 
-    2. A cover letter I can use directly
-    
-    JOB DETAILS:
-    Title: ${job.title}
-    Company: ${job.company}
-    Location: ${job.location || 'Not specified'}
-    Description: ${job.description || 'Not provided'}
-    
-    MY CURRENT CV:
-    ${cv}
-    
-    Please provide my CV information in JSON format in an artifact. The JSON must follow this exact structure:
-    
+    // Extract career context if available
+    const careerContext = job.userCareerGoal ? getCareerContextMessage(job.userCareerGoal, job.userTargetRole, job.userCurrentRole) : '';
+
+    return `I need your help to create a highly tailored CV in JSON format. This CV's primary goal is to achieve the highest possible ATS (Applicant Tracking System) score by strategically incorporating keywords from the provided job description, while ensuring all information is truthful and accurately reflects my experience from "MY CURRENT CV".
+
+${careerContext}
+
+JOB DETAILS (This is the target job):
+Title: ${job.title}
+Company: ${job.company}
+Location: ${job.location || 'Not specified'}
+Description: ${job.description || 'Not provided'}
+Responsibilities: (If not in description, extract from common responsibilities for such a role based on description)
+Qualifications: (If not in description, extract from common qualifications for such a role based on description)
+
+MY CURRENT CV (Source of Truth for my experience, skills, and education):
+${cv}
+
+CRITICAL INSTRUCTIONS FOR ATS OPTIMISATION (Follow these meticulously):
+
+1.  **Keyword Extraction & Saturation:**
+    * Identify and extract EVERY SINGLE relevant keyword from the "JOB DETAILS" (title, description, responsibilities, qualifications). This includes:
+        * Hard skills (e.g., "Python", "Agile Methodologies", "Data Analysis", "Salesforce")
+        * Soft skills (e.g., "communication", "leadership", "problem-solving")
+        * Tools & Technologies (e.g., "JIRA", "Google Analytics", "AWS")
+        * Certifications (e.g., "PMP", "Scrum Master")
+        * Industry-specific jargon and terminology
+        * Action verbs used in the job description (e.g., "developed", "managed", "led")
+    * Your primary goal is to incorporate these extracted keywords naturally and contextually throughout the generated CV sections. Aim for maximum keyword density where appropriate without making the text unreadable or unnatural.
+    * Prioritize using the *exact phrasing* from the job description (e.g., if they say "project management", use "project management", not "managing projects").
+    * Include both acronyms AND their full forms if present in the job description (e.g., "Search Engine Optimization (SEO)"). If only one is present, consider adding the other if it's a common industry standard.
+
+2.  **Job Title Matching:**
+    * The "jobTitle" field in the JSON output MUST use the EXACT job title from the "JOB DETAILS": "${job.title}".
+    * This exact job title should also appear naturally within the "summary" and potentially as the title of the most relevant role in "experience" if applicable.
+
+3.  **Quantifiable Achievements:**
+    * Whenever possible, rephrase achievements from "MY CURRENT CV" to include quantifiable results (numbers, percentages, dollar amounts, timeframes).
+    * If my CV lacks quantification for a relevant achievement, you may suggest a placeholder like "[Quantifiable Result]" or infer a reasonable, conservative estimate if the context strongly supports it, but clearly indicate if it's an inference. The preference is to use data from my CV.
+
+4.  **Tailored Summary:**
+    * The "summary" should be a compelling 4-5 line professional summary.
+    * It MUST be heavily tailored to the "JOB DETAILS", incorporating the top 5-7 most critical keywords from the job description.
+    * It should immediately highlight why I am a strong fit for *this specific role*.
+
+5.  **Experience Section Optimisation:**
+    * For each role in the "experience" section:
+        * The "jobTitle" should be accurate to my CV, but if a slight, truthful rephrasing can incorporate keywords from the target job, consider it (e.g., "Software Engineer" on my CV could be "Software Engineer (Backend Focus)" if the target job emphasizes backend skills I possess).
+        * The "description" for each role should be a brief overview, infused with relevant keywords from the "JOB DETAILS" that align with the responsibilities of that past role.
+        * "achievements" should be bullet points. Each bullet point should ideally:
+            * Start with a strong action verb (preferably one found in the "JOB DETAILS").
+            * Include specific keywords related to the skills/technologies used.
+            * Be quantified where possible.
+        * The "keywordsUsed" array for each experience entry should list the specific keywords from the "JOB DETAILS" that you successfully incorporated into that role's description and achievements.
+
+6.  **Comprehensive Skills Section:**
+    * The "skills" section in the JSON is CRITICAL for ATS matching. It must be exhaustive.
+    * Create distinct categories within the skills section (as shown in the JSON structure below).
+    * Populate these categories by:
+        * Taking ALL relevant skills from "MY CURRENT CV".
+        * Cross-referencing with the "JOB DETAILS" and adding EVERY SINGLE skill, tool, technology, methodology, or competency mentioned in the job description that I possess (even if only implicitly mentioned in my CV, as long as it's a fair representation).
+        * If a skill is in the job description and also in my CV, ensure it's listed. If it's in the job description and I likely have it based on my experience (but it's not explicitly in my CV), include it and perhaps note it for my review.
+    * The goal is to make this section a comprehensive checklist for the ATS.
+
+7.  **Education & Certifications:**
+    * Ensure all degrees and certifications from "MY CURRENT CV" are listed.
+    * If the "JOB DETAILS" mentions specific educational qualifications or certifications that I possess, ensure these are highlighted or phrased to match.
+
+8.  **Truthfulness and Accuracy:**
+    * While optimising for keywords, all information (job titles, companies, dates, responsibilities, achievements, skills) MUST remain truthful and be derived from "MY CURRENT CV".
+    * DO NOT FABRICATE experience, skills, or qualifications. Enhance and rephrase, but do not invent.
+
+JSON OUTPUT STRUCTURE (Provide the CV information in this exact JSON format):
+
+{
+  "fullName": "My full name from MY CURRENT CV",
+  "jobTitle": "Use the EXACT job title from JOB DETAILS: ${job.title}",
+  "summary": "A compelling 4-5 line summary, heavily keyword-optimized for the JOB DETAILS, highlighting my suitability for this role.",
+  "email": "My email from MY CURRENT CV",
+  "linkedin": "My LinkedIn URL from MY CURRENT CV (or generate a plausible one based on my name if not present)",
+  "phone": "My phone number from MY CURRENT CV",
+  "location": "My location from MY CURRENT CV",
+
+  "experience": [
     {
-      "fullName": "Your full name from my CV",
-      "jobTitle": "A title that matches the job I'm applying for",
-      "summary": "A concise professional summary tailored to this role",
-      "email": "My email from CV",
-      "linkedin": "My LinkedIn URL from CV (or create one based on my name)",
-      "phone": "My phone number from CV",
-      "location": "My location from CV",
-      
-      "experience": [
-        {
-          "jobTitle": "Position title",
-          "company": "Company name",
-          "dates": "Start date - End date (or Present)",
-          "description": "Brief description of role focused on relevant responsibilities",
-          "achievements": [
-            "Achievement 1 with quantifiable results",
-            "Achievement 2 with quantifiable results",
-            "Achievement 3 with quantifiable results"
-          ],
-          "relevanceScore": 95
-        }
+      "jobTitle": "Position title from MY CURRENT CV (can be slightly enhanced with keywords if truthful)",
+      "company": "Company name from MY CURRENT CV",
+      "dates": "Start date - End date (or Present) from MY CURRENT CV",
+      "description": "Brief overview of the role, infused with relevant keywords from JOB DETAILS that align with this past role's responsibilities.",
+      "achievements": [
+        "Achievement 1: Keyword-rich, quantified achievement derived from MY CURRENT CV, starting with an action verb.",
+        "Achievement 2: Keyword-rich, quantified achievement derived from MY CURRENT CV, starting with an action verb.",
+        "Achievement 3: (and so on)"
       ],
-      
-      "education": [
-        {
-          "degree": "Degree name",
-          "institution": "Institution name",
-          "dates": "Start year - End year",
-          "relevanceScore": 80
-        }
-      ],
-      
-      "skills": [
-        "Technical: JavaScript, React, Node.js, Python, etc.",
-        "Soft Skills: Communication, Leadership, Problem-solving, etc."
-      ],
-      
-      "certifications": [
-        "Certification 1 with year if available",
-        "Certification 2 with year if available"
-      ],
-      
-      "skillGapAnalysis": {
-        "matchingSkills": ["List skills from my CV that match this job"],
-        "missingSkills": ["Important skills mentioned in job that I don't have"],
-        "overallMatch": 85
-      }
+      "keywordsUsed": ["List of specific keywords from JOB DETAILS incorporated into this role's entry"]
     }
-    
-    Make sure the JSON follows this exact structure as my app will parse it automatically. Prioritize skills and experience that are most relevant to the job description. For each experience and education item, add a relevanceScore from 0-100 indicating how relevant it is to this specific job. Also include the skillGapAnalysis section to help me understand my fit for the role.`;
+    // Add more experience objects as needed, based on MY CURRENT CV
+  ],
+
+  "education": [
+    {
+      "degree": "Degree name from MY CURRENT CV (include relevant keywords if applicable and truthful)",
+      "institution": "Institution name from MY CURRENT CV",
+      "dates": "Start year - End year (or graduation year) from MY CURRENT CV",
+      "additionalDetails": "Any relevant coursework, projects, or academic achievements from MY CURRENT CV that match JOB DETAILS requirements."
+    }
+    // Add more education objects as needed
+  ],
+
+  "skills": {
+    "technicalSkills": [
+      "Comprehensive list of ALL technical skills from JOB DETAILS that I possess (based on MY CURRENT CV), plus my existing technical skills from MY CURRENT CV. Prioritize exact phrasing from JOB DETAILS."
+    ],
+    "softwareAndTools": [
+      "Exhaustive list of EVERY software, platform, or tool mentioned in JOB DETAILS that I have used (based on MY CURRENT CV), plus my current tools from MY CURRENT CV. Use exact names."
+    ],
+    "methodologiesAndFrameworks": [
+      "List all methodologies (Agile, Scrum, Waterfall, etc.), frameworks, or approaches mentioned in JOB DETAILS that I have experience with (from MY CURRENT CV), plus those from MY CURRENT CV."
+    ],
+    "industryKnowledge": [
+      "List industry-specific terms, knowledge areas, and competencies from JOB DETAILS that align with my background (from MY CURRENT CV), plus those from MY CURRENT CV."
+    ],
+    "languages": [
+      "Programming languages from MY CURRENT CV, and any human languages if relevant and in MY CURRENT CV."
+    ],
+    "softSkills": [
+      "List soft skills (communication, leadership, teamwork, etc.) explicitly mentioned in JOB DETAILS that I possess (based on MY CURRENT CV), plus key soft skills from MY CURRENT CV."
+    ]
+  },
+
+  "certifications": [
+    // List all certifications from MY CURRENT CV.
+    // If JOB DETAILS mentions specific certifications I have, ensure they are listed prominently.
+    // Example: "Certified Project Manager (PMP) - Awarded by PMI"
+  ],
+
+  "projects": [
+    // Optional: Include significant personal or academic projects from MY CURRENT CV, especially if they showcase skills relevant to JOB DETAILS.
+    // {
+    //   "projectName": "Project Name",
+    //   "description": "Brief description, highlighting skills used and keywords from JOB DETAILS.",
+    //   "technologiesUsed": ["Tech1", "Tech2"],
+    //   "link": "URL if available"
+    // }
+  ],
+
+  "atsAnalysis": {
+    "keywordsFromJobDescription": ["List ALL major keywords you identified from the JOB DETAILS description, responsibilities, and qualifications."],
+    "keywordsSuccessfullyIntegrated": ["List the keywords from the above list that you were able to successfully and naturally incorporate into the CV JSON output."],
+    "overallKeywordCoverageEstimate": "Estimate percentage of JOB DESCRIPTION keywords successfully incorporated (e.g., '85-95%'). Aim for the highest possible truthful coverage.",
+    "missingKeywordsSuggestion": ["If any critical keywords from JOB DETAILS could not be truthfully incorporated based on MY CURRENT CV, list them here as areas I might need to develop or highlight if my CV undersells my experience."]
+  }
+}
+
+Please generate ONLY the JSON object as specified above. Do not include any other text, commentary, or explanation outside the JSON structure. Ensure the JSON is valid.
+The focus is on creating a CV that is both an accurate representation of my skills and experience (from "MY CURRENT CV") AND maximally optimized for passing through an ATS for the specific "JOB DETAILS" provided.
+`;
 }
 
 function processCVJson(jsonData) {
@@ -1300,8 +1392,14 @@ function previewCoverLetterFromJson() {
 }
 
 // Create cover letter prompt for Claude
+// Enhanced Claude prompt specifically for cover letter generation with section-based structure
 function createClaudeCoverLetterPrompt(job, cv) {
-    return `I need you to create a professional cover letter based on my CV and the job details, and return it in a JSON format that my app can parse.
+    // Extract career context if available
+    const careerContext = job.userCareerGoal ? getCareerContextMessage(job.userCareerGoal, job.userTargetRole, job.userCurrentRole) : '';
+
+    return `I need you to create a professional cover letter that meticulously follows a proven successful structure for maximum ATS optimisation and recruiter engagement, similar to a highly effective example I've used.
+
+${careerContext}
 
 JOB DETAILS:
 Title: ${job.title}
@@ -1312,28 +1410,72 @@ Description: ${job.description || 'Not provided'}
 MY CURRENT CV:
 ${cv}
 
-Please create a response with TWO parts:
+VERY IMPORTANT - SUCCESSFUL COVER LETTER STRUCTURE TO FOLLOW (Mimic this structure precisely):
 
-1. First, write the cover letter directly, formatted and ready to use
+1.  **Professional Header & Opening:**
+    * My full contact details (name, phone, email, LinkedIn) - extract from my CV.
+    * Date.
+    * Company Address (if available from job details, otherwise use "Hiring Manager, ${job.company}").
+    * Salutation: "Dear Hiring Manager," (or specific name if I provide one later).
+    * Opening Paragraph: Clearly state I am writing to express my interest in the *exact* position: "${job.title}" at ${job.company}. Briefly express enthusiasm for the company, potentially mentioning its mission or a known achievement if easily inferable.
 
-2. Then, in an artifact, provide the same content in JSON format, like this:
+2.  **Requirement-Based Body Sections (THE CORE OF THE LETTER):**
+    This is the most critical part. You MUST analyze the "JOB DETAILS" (especially the "Description") above and identify the 2-4 most important and distinct requirement categories or key skill areas mentioned.
+    For each identified requirement category, you will:
+    a. Create a **bolded section header** that directly mirrors the language or theme of that job requirement (e.g., if the job asks for "experience in X and Y", a header could be "**X and Y Experience:**"; if it mentions "strong analytical skills", a header could be "**Analytical Skills & Problem Solving:**").
+    b. Under each bolded header, write 1-2 concise paragraphs providing specific examples from "MY CURRENT CV" that demonstrate my experience and achievements related to *that specific requirement*.
+    c. Crucially, use quantifiable results (numbers, percentages, timeframes) from my CV wherever possible to back up claims.
+    d. Naturally weave in exact keywords from the job description for that requirement area into my experience examples.
+    e. Show clear alignment between my experience and what the job demands for that particular section.
+
+    *Example of how to derive sections from a job description:*
+    If job description says: "Must have 5+ years in project management, strong stakeholder communication, and experience with Agile methodologies."
+    Possible section headers could be:
+    - **Project Management Expertise:**
+    - **Stakeholder Communication & Collaboration:**
+    - **Agile Methodologies Implementation:**
+
+    *Do not use generic sections.* The sections must be tailored to the specific requirements of THIS job.
+
+3.  **Company Connection & Closing:**
+    * A brief paragraph demonstrating genuine interest in ${job.company}. If possible, subtly connect my overall experience or career goals to the company's specific values, projects, or market position (if information is available or easily inferable).
+    * Reiterate enthusiasm for the role and the value I can bring.
+    * Professional closing: "Thank you for considering my application. I look forward to the opportunity to discuss my qualifications further." or similar.
+    * Sign-off: "Sincerely," followed by my name (from CV).
+
+CRITICAL ATS & ENGAGEMENT REQUIREMENTS (Reiterate and Ensure):
+- Use the exact job title "${job.title}" at least 2-3 times naturally.
+- Include the company name "${job.company}" multiple times naturally.
+- Ensure body section headers DIRECTLY reflect key requirements from the job description.
+- Incorporate ALL relevant technical skills, soft skills, and tools mentioned in the job posting that are also present or can be inferred from my CV.
+- Use industry-specific terminology as it appears in the job description.
+- Include both acronyms and full terms where relevant if present in the job description.
+- Prioritize quantifiable achievements from my CV within each relevant section.
+- Maintain a professional, confident tone.
+- Aim for a length of about 400-500 words (under one page).
+
+VERY IMPORTANT OUTPUT FORMAT:
+First, provide the cover letter directly as formatted text, ready to copy and paste.
+Second, immediately after the text, provide the same content in a JSON artifact using the following structure:
+
 {
   "jobTitle": "${job.title}",
   "company": "${job.company}",
   "fullName": "My name from the CV",
-  "coverLetter": "Full text of the cover letter you wrote above"
+  "coverLetter": "Full text of the professionally formatted cover letter you just generated.",
+  "requirementSectionsIdentified": [
+    "List the bolded section headers you created based on the job requirements, e.g., 'Product Development & User Research:'"
+  ],
+  "keywordOptimisation": {
+    "jobTitleUsageCount": "Number of times job title appears in the letter",
+    "companyNameUsageCount": "Number of times company name appears",
+    "keywordsIncorporated": ["List some of the key skills/terms from the job description you included"],
+    "estimatedATSScore": "Provide a qualitative estimate like 'High' or 'Very High' based on your adherence to these instructions."
+  }
 }
 
-The cover letter should:
-1. Be addressed properly to the hiring manager or company
-2. Include today's date and my contact information from the CV
-3. Highlight my most relevant experiences and skills for this position
-4. Demonstrate clear understanding of the company and role
-5. Express genuine interest in the position
-6. Conclude with a professional closing and call to action
-7. Be no longer than one page in length
-
-Write the cover letter in a professional, confident but not arrogant tone. Make it specific to this job and company - avoid generic language that could apply to any position.`;
+Remember: The goal is to create a cover letter that is *extremely tailored* to the job description by addressing its core requirements in distinct, clearly-labeled sections, supported by evidence from my CV. Enhance and optimize the presentation, but never fabricate qualifications not supported by my CV.
+`;
 }
 
 // Add this to the document.addEventListener('DOMContentLoaded') function at the bottom of prompts.js
