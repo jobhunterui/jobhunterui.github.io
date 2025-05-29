@@ -206,24 +206,22 @@ function closeModal(modal) {
 
 // Setup career goal navigation links
 function setupCareerGoalNavigation() {
-    const featureLinks = document.querySelectorAll('.feature-link');
+    const featureButtons = document.querySelectorAll('.feature-btn');
     
-    featureLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
+    featureButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
             e.preventDefault();
-            const targetTab = link.getAttribute('data-tab');
+            const targetTab = button.getAttribute('data-tab');
             
             if (targetTab) {
-                // Find and click the corresponding tab button
                 const tabButton = document.querySelector(`.tab-button[data-tab="${targetTab}"]`);
                 if (tabButton) {
                     tabButton.click();
                     
-                    // Track navigation for analytics
                     if (typeof trackEvent === 'function') {
                         trackEvent('career_goal_feature_navigation', {
                             target_tab: targetTab,
-                            feature_name: link.textContent.trim()
+                            feature_name: button.textContent.trim()
                         });
                     }
                 }
@@ -234,32 +232,22 @@ function setupCareerGoalNavigation() {
 
 // Update career goal visual feedback
 function updateCareerGoalVisualFeedback() {
-    const goalOptions = document.querySelectorAll('.career-goal-option');
     const featureSections = document.querySelectorAll('.career-goal-features');
     const radioButtons = document.querySelectorAll('input[name="career-goal"]');
     
-    // Hide all feature sections and remove selected class
-    goalOptions.forEach(option => {
-        option.classList.remove('selected');
-    });
+    // Hide all feature sections
     featureSections.forEach(section => {
         section.classList.remove('show');
-        section.style.display = 'none';
     });
     
-    // Show selected goal and its features
+    // Show selected goal's features
     radioButtons.forEach(radio => {
         if (radio.checked) {
-            const goalOption = radio.closest('.career-goal-option');
             const goalValue = radio.value;
             const featureSection = document.querySelector(`.career-goal-features[data-goal="${goalValue}"]`);
             
-            if (goalOption) {
-                goalOption.classList.add('selected');
-            }
             if (featureSection) {
                 featureSection.classList.add('show');
-                featureSection.style.display = 'block';
             }
         }
     });
