@@ -724,18 +724,13 @@ function handleCareerGoalSelection(goalType) {
     if (saveCareerGoal(goalType)) {
         updateCareerGoalUI();
         
-        // Show success message
-        showModal('Career Goal Set', `Great! We've set your goal to "${CAREER_GOALS[goalType].title}". Features across the app will now be tailored to help you achieve this goal.`);
-        
-        // Track goal selection for analytics
+        // Track goal selection for analytics (no modal)
         if (typeof trackEvent === 'function') {
             trackEvent('career_goal_selected', {
                 goal_type: goalType,
                 goal_title: CAREER_GOALS[goalType].title
             });
         }
-    } else {
-        showModal('Error', 'Failed to save your career goal. Please try again.');
     }
 }
 

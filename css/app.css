@@ -2037,54 +2037,66 @@ button.disabled-pro-feature, /* Renamed from disabled-premium */
 }
 
 .career-goal-features {
-    padding-top: 15px;
-    border-top: 1px solid #f0f0f0;
+    background-color: #e8f4f8;
+    border: 1px solid #b3d9e8;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
     display: none; /* Hidden by default */
-    margin-top: 15px;
 }
 
-.career-goal-option.selected .career-goal-features {
-    display: block; /* Show only when goal is selected */
+.career-goal-option.selected + .career-goal-features,
+.career-goal-features[data-goal].show {
+    display: block; /* Show when goal is selected */
 }
 
 .career-goal-features h5 {
-    margin: 0 0 10px 0;
+    margin: 0 0 15px 0;
     color: #2c3e50;
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 600;
+    text-align: center;
 }
 
 .feature-list {
     list-style: none;
     padding: 0;
     margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .feature-list li {
-    margin-bottom: 8px;
+    margin-bottom: 0;
 }
 
 .feature-link {
-    display: inline-flex;
-    align-items: center;
-    color: #3498db;
+    display: block;
+    background-color: #3498db;
+    color: white;
     text-decoration: none;
-    font-size: 0.85rem;
-    padding: 4px 8px;
-    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 12px 20px;
+    border-radius: 6px;
+    text-align: center;
     transition: all 0.2s ease;
+    border: none;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .feature-link:hover {
-    background-color: #e8f4f8;
-    color: #2980b9;
+    background-color: #2980b9;
+    color: white;
     text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .feature-link::before {
-    content: '→';
-    margin-right: 6px;
-    font-weight: bold;
+    display: none; /* Remove the arrow */
 }
 
 /* Mobile responsive adjustments */

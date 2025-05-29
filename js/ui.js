@@ -243,6 +243,7 @@ function updateCareerGoalVisualFeedback() {
         option.classList.remove('selected');
     });
     featureSections.forEach(section => {
+        section.classList.remove('show');
         section.style.display = 'none';
     });
     
@@ -257,6 +258,7 @@ function updateCareerGoalVisualFeedback() {
                 goalOption.classList.add('selected');
             }
             if (featureSection) {
+                featureSection.classList.add('show');
                 featureSection.style.display = 'block';
             }
         }
