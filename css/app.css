@@ -2039,6 +2039,12 @@ button.disabled-pro-feature, /* Renamed from disabled-premium */
 .career-goal-features {
     padding-top: 15px;
     border-top: 1px solid #f0f0f0;
+    display: none; /* Hidden by default */
+    margin-top: 15px;
+}
+
+.career-goal-option.selected .career-goal-features {
+    display: block; /* Show only when goal is selected */
 }
 
 .career-goal-features h5 {

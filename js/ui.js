@@ -235,17 +235,29 @@ function setupCareerGoalNavigation() {
 // Update career goal visual feedback
 function updateCareerGoalVisualFeedback() {
     const goalOptions = document.querySelectorAll('.career-goal-option');
+    const featureSections = document.querySelectorAll('.career-goal-features');
     const radioButtons = document.querySelectorAll('input[name="career-goal"]');
     
+    // Hide all feature sections and remove selected class
     goalOptions.forEach(option => {
         option.classList.remove('selected');
     });
+    featureSections.forEach(section => {
+        section.style.display = 'none';
+    });
     
+    // Show selected goal and its features
     radioButtons.forEach(radio => {
         if (radio.checked) {
             const goalOption = radio.closest('.career-goal-option');
+            const goalValue = radio.value;
+            const featureSection = document.querySelector(`.career-goal-features[data-goal="${goalValue}"]`);
+            
             if (goalOption) {
                 goalOption.classList.add('selected');
+            }
+            if (featureSection) {
+                featureSection.style.display = 'block';
             }
         }
     });
