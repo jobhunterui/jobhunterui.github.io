@@ -436,12 +436,34 @@ function setupEventListeners() {
         });
     }
 
-    // Career goal radio button listeners
+    // Career goal radio button listeners with enhanced UI updates
     const careerGoalRadios = document.querySelectorAll('input[name="career-goal"]');
     careerGoalRadios.forEach(radio => {
         radio.addEventListener('change', (e) => {
             if (e.target.checked) {
                 handleCareerGoalSelection(e.target.value);
+                
+                // Update visual feedback immediately
+                if (typeof updateCareerGoalVisualFeedback === 'function') {
+                    updateCareerGoalVisualFeedback();
+                }
+            }
+        });
+    });
+
+    // Add click handlers for the entire goal option cards
+    const goalOptions = document.querySelectorAll('.career-goal-option');
+    goalOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
+            // Don't trigger if clicking on feature links
+            if (e.target.classList.contains('feature-link')) {
+                return;
+            }
+            
+            const radio = option.querySelector('input[type="radio"]');
+            if (radio && !radio.checked) {
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change'));
             }
         });
     });
@@ -724,13 +746,12 @@ function updateCareerGoalUI() {
     // Update radio button selection
     goalRadios.forEach(radio => {
         radio.checked = radio.value === currentGoal;
-        
-        // Update visual feedback for selected goal
-        const goalCard = radio.closest('.career-goal-option');
-        if (goalCard) {
-            goalCard.classList.toggle('selected', radio.checked);
-        }
     });
+    
+    // Update visual feedback using the UI function
+    if (typeof updateCareerGoalVisualFeedback === 'function') {
+        updateCareerGoalVisualFeedback();
+    }
     
     // Update any UI elements that depend on goal selection
     updateGoalDependentFeatures(currentGoal);

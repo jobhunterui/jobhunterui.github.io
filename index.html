@@ -369,6 +369,77 @@
         <div id="profile" class="tab-content active">
             <h2>Your Profile</h2>
 
+            <!-- Career Goals Selection Section -->
+            <div class="career-goals-section">
+                <h3>Your Career Goal</h3>
+                <p class="career-goals-info">Choose your primary career focus to personalise features across the app.</p>
+                
+                <div class="career-goals-container">
+                    <div class="career-goal-option" data-goal="finding_new_job">
+                        <div class="career-goal-radio">
+                            <input type="radio" id="goal-finding-job" name="career-goal" value="finding_new_job">
+                            <label for="goal-finding-job" class="career-goal-label">
+                                <div class="career-goal-header">
+                                    <h4>Find a new job</h4>
+                                    <span class="career-goal-icon">🎯</span>
+                                </div>
+                                <p class="career-goal-description">Looking for new opportunities and roles</p>
+                            </label>
+                        </div>
+                        <div class="career-goal-features">
+                            <h5>Tailored features:</h5>
+                            <ul class="feature-list">
+                                <li><a href="#" data-tab="find" class="feature-link">Job Search Strategy</a></li>
+                                <li><a href="#" data-tab="apply" class="feature-link">Create and Track Applications</a></li>
+                                <li><a href="#" data-tab="insights" class="feature-link">Skill Analysis</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="career-goal-option" data-goal="growing_current_role">
+                        <div class="career-goal-radio">
+                            <input type="radio" id="goal-growing-role" name="career-goal" value="growing_current_role">
+                            <label for="goal-growing-role" class="career-goal-label">
+                                <div class="career-goal-header">
+                                    <h4>Grow in my current role</h4>
+                                    <span class="career-goal-icon">📈</span>
+                                </div>
+                                <p class="career-goal-description">Advancing skills and responsibilities where I am</p>
+                            </label>
+                        </div>
+                        <div class="career-goal-features">
+                            <h5>Tailored features:</h5>
+                            <ul class="feature-list">
+                                <li><a href="#" data-tab="insights" class="feature-link">Analyse Current Skills</a></li>
+                                <li><a href="#" data-tab="learning" class="feature-link">Create Growth Plan</a></li>
+                                <li><a href="#" data-tab="apply" class="feature-link">Performance Review Prep</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="career-goal-option" data-goal="switching_careers">
+                        <div class="career-goal-radio">
+                            <input type="radio" id="goal-switching-careers" name="career-goal" value="switching_careers">
+                            <label for="goal-switching-careers" class="career-goal-label">
+                                <div class="career-goal-header">
+                                    <h4>Switch careers/fields</h4>
+                                    <span class="career-goal-icon">🔄</span>
+                                </div>
+                                <p class="career-goal-description">Transitioning to a different industry or role type</p>
+                            </label>
+                        </div>
+                        <div class="career-goal-features">
+                            <h5>Tailored features:</h5>
+                            <ul class="feature-list">
+                                <li><a href="#" data-tab="find" class="feature-link">Explore Opportunities</a></li>
+                                <li><a href="#" data-tab="insights" class="feature-link">Skill Gap Analysis</a></li>
+                                <li><a href="#" data-tab="learning" class="feature-link">Build Transition Skills</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- CV Upload & Parse Section (Pro Feature) -->
             <div class="form-group cv-upload-section" id="cv-upload-section" data-pro-feature="cv_upload_and_parse"
                 data-feature-display-name="CV Upload & Parse">
