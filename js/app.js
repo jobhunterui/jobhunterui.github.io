@@ -1005,5 +1005,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Your existing initApp function or other initializations
     initApp(); 
 });
-
-document.addEventListener('DOMContentLoaded', initApp);
