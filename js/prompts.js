@@ -600,35 +600,67 @@ function extractDataFromClaudeResponse(jsonData) {
 }
 
 // Function to parse skill categories from skill strings
+// Function to parse skill categories from skill strings or objects
 function parseSkillCategories(skills) {
-    if (!Array.isArray(skills)) return [];
+    if (!skills) return [];
 
     const parsedSkills = [];
 
-    // Process each skill string
-    skills.forEach(skillString => {
-        // Check if the skill string contains a category (indicated by ":")
-        const colonIndex = skillString.indexOf(':');
+    // Handle object format (current format from both Claude and Gemini)
+    if (typeof skills === 'object' && !Array.isArray(skills)) {
+        Object.entries(skills).forEach(([key, values]) => {
+            if (Array.isArray(values) && values.length > 0) {
+                // Convert camelCase keys to readable titles
+                let categoryName = key
+                    .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+                    .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
+                    .replace(/And/g, '&') // Replace "And" with "&"
+                    .trim();
 
-        if (colonIndex > 0) {
-            // Split into category and skills
-            const category = skillString.substring(0, colonIndex).trim();
-            const skillsList = skillString.substring(colonIndex + 1).split(',').map(s => s.trim());
+                // Handle specific cases for better formatting
+                if (categoryName === 'Technical Skills') categoryName = 'Technical Skills';
+                else if (categoryName === 'Software And Tools') categoryName = 'Software & Tools';
+                else if (categoryName === 'Methodologies And Frameworks') categoryName = 'Methodologies & Frameworks';
+                else if (categoryName === 'Industry Knowledge') categoryName = 'Industry Knowledge';
+                else if (categoryName === 'Soft Skills') categoryName = 'Soft Skills';
+                else if (categoryName === 'Languages') categoryName = 'Languages';
 
-            parsedSkills.push({
-                category: category,
-                skills: skillsList
-            });
-        } else {
-            // If no category found, add as "Other" category
-            parsedSkills.push({
-                category: "Other",
-                skills: [skillString.trim()]
-            });
-        }
-    });
+                parsedSkills.push({
+                    category: categoryName,
+                    skills: values
+                });
+            }
+        });
+        return parsedSkills;
+    }
 
-    return parsedSkills;
+    // Handle array format (legacy format - keep for backward compatibility)
+    if (Array.isArray(skills)) {
+        skills.forEach(skillString => {
+            // Check if the skill string contains a category (indicated by ":")
+            const colonIndex = skillString.indexOf(':');
+
+            if (colonIndex > 0) {
+                // Split into category and skills
+                const category = skillString.substring(0, colonIndex).trim();
+                const skillsList = skillString.substring(colonIndex + 1).split(',').map(s => s.trim());
+
+                parsedSkills.push({
+                    category: category,
+                    skills: skillsList
+                });
+            } else {
+                // If no category found, add as "Other" category
+                parsedSkills.push({
+                    category: "Other",
+                    skills: [skillString.trim()]
+                });
+            }
+        });
+        return parsedSkills;
+    }
+
+    return [];
 }
 
 // Generate HTML for CV preview
