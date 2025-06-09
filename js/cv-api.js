@@ -255,3 +255,157 @@ async function uploadAndParseCV(fileObject) {
     }
 }
 window.uploadAndParseCV = uploadAndParseCV; // Expose globally
+
+/**
+ * Generates a professional profile using the API
+ *
+ * @param {string} cvText - The user's CV/resume text
+ * @param {string} nonProfessionalExperience - Non-professional experiences
+ * @param {string} workApproach - Selected work approach (leader, analyst, creative, independent, adaptive)
+ * @param {string} problemSolvingExample - Problem-solving example text
+ * @param {string} workValues - Selected work values (impact, learning, stability, balance, meaningful, innovation)
+ * @returns {Promise<Object>} - The generated professional profile data
+ * @throws {Error} - If the API request fails or user is not authenticated
+ */
+async function generateProfessionalProfile(cvText, nonProfessionalExperience, workApproach, problemSolvingExample, workValues) {
+    if (!cvText || !nonProfessionalExperience || !workApproach || !problemSolvingExample || !workValues) {
+        throw new Error('All profile parameters are required');
+    }
+
+    const idToken = await getIdToken();
+    if (!idToken) {
+        throw new Error('User not authenticated. Please sign in.');
+    }
+
+    const options = {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json', 
+            'Authorization': `Bearer ${idToken}` 
+        },
+        body: JSON.stringify({
+            cv_text: cvText,
+            non_professional_experience: nonProfessionalExperience,
+            work_approach: workApproach,
+            problem_solving_example: problemSolvingExample,
+            work_values: workValues
+        })
+    };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), CV_API_CONFIG.timeout * 1.5); // 180 seconds for profiling
+    options.signal = controller.signal;
+
+    try {
+        if (typeof trackEvent === 'function') {
+            trackEvent('professional_profiling_started', { 
+                work_approach: workApproach,
+                work_values: workValues 
+            });
+        }
+
+        const response = await fetch(`${CV_API_CONFIG.baseUrl}${CV_API_CONFIG.API_V1_STR}/profiling/generate_profile`, options);
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ detail: `API error: ${response.status} ${response.statusText}` }));
+            let customError = new Error(errorData.detail || `API error: ${response.status}`);
+            customError.status = response.status;
+
+            if (response.status === 401) {
+                if (typeof showModal === 'function' && typeof window.signInWithGoogle === 'function') {
+                    showModal('Authentication Failed', errorData.detail || 'Your session may have expired. Please sign in again.', [
+                        { id: 'sign-in-profiling-auth-fail', text: 'Sign In', class: 'primary-button', action: () => window.signInWithGoogle() }
+                    ]);
+                }
+                customError.message = "AUTH_FAILED: " + customError.message;
+            } else if (response.status === 402 || response.status === 403) {
+                if (typeof trackEvent === 'function') trackEvent('profiling_premium_required');
+                customError.message = "UPGRADE_REQUIRED: " + (errorData.detail || "This is a premium feature.");
+            } else if (response.status === 429) {
+                if (typeof trackEvent === 'function') trackEvent('profiling_rate_limited');
+                customError.message = errorData.detail || 'Daily profiling limit reached.';
+            }
+            throw customError;
+        }
+
+        const data = await response.json();
+        if (typeof trackEvent === 'function') {
+            trackEvent('professional_profiling_success', { 
+                remaining_quota: data.quota?.remaining || 0,
+                work_approach: workApproach,
+                work_values: workValues 
+            });
+        }
+        return data;
+
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            if (typeof trackEvent === 'function') trackEvent('profiling_timeout');
+            throw new Error('Professional profiling request timed out. The analysis takes longer due to its depth. Please try again.');
+        }
+        console.error("Full error in generateProfessionalProfile:", error);
+        throw error;
+    }
+}
+
+/**
+ * Retrieves the user's existing professional profile
+ *
+ * @returns {Promise<Object>} - The user's existing professional profile or null if none exists
+ * @throws {Error} - If the API request fails or user is not authenticated
+ */
+async function getExistingProfile() {
+    const idToken = await getIdToken();
+    if (!idToken) {
+        throw new Error('User not authenticated. Please sign in.');
+    }
+
+    const options = {
+        method: 'GET',
+        headers: { 
+            'Authorization': `Bearer ${idToken}` 
+        }
+    };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), CV_API_CONFIG.timeout);
+    options.signal = controller.signal;
+
+    try {
+        const response = await fetch(`${CV_API_CONFIG.baseUrl}${CV_API_CONFIG.API_V1_STR}/profiling/my_profile`, options);
+        clearTimeout(timeoutId);
+
+        if (response.status === 404) {
+            // No profile exists yet
+            return null;
+        }
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ detail: `API error: ${response.status} ${response.statusText}` }));
+            let customError = new Error(errorData.detail || `API error: ${response.status}`);
+            customError.status = response.status;
+
+            if (response.status === 401) {
+                customError.message = "AUTH_FAILED: " + customError.message;
+            }
+            throw customError;
+        }
+
+        const data = await response.json();
+        return data;
+
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error('Request to fetch existing profile timed out. Please try again.');
+        }
+        console.error("Error in getExistingProfile:", error);
+        throw error;
+    }
+}
+
+// Expose globally
+window.generateProfessionalProfile = generateProfessionalProfile;
+window.getExistingProfile = getExistingProfile;

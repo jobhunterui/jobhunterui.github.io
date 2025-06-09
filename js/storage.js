@@ -7,7 +7,8 @@ const STORAGE_KEYS = {
     HIRING_PHRASES: 'hiringPhrases',
     USER_ID: 'userId',
     LAST_SEARCH: 'lastSearch',
-    CAREER_GOAL: 'careerGoal'
+    CAREER_GOAL: 'careerGoal',
+    PROFESSIONAL_PROFILE: 'professionalProfile'
 };
 
 // Get data from localStorage with error handling
@@ -291,5 +292,143 @@ function importData(jsonData) {
             success: false,
             error: error.message
         };
+    }
+}
+
+// Professional Profiling Storage Functions
+
+// Add to STORAGE_KEYS object
+STORAGE_KEYS.PROFESSIONAL_PROFILE = 'professionalProfile';
+
+/**
+ * Get professional profiling data from local storage
+ * @returns {Object|null} - The stored professional profile or null if none exists
+ */
+function getProfessionalProfile() {
+    return getStorageData(STORAGE_KEYS.PROFESSIONAL_PROFILE, null);
+}
+
+/**
+ * Save professional profiling data to local storage
+ * @param {Object} profileData - The professional profile data to save
+ * @returns {boolean} - Success status
+ */
+function saveProfessionalProfile(profileData) {
+    if (!profileData || typeof profileData !== 'object') {
+        console.error('Invalid profile data provided to saveProfessionalProfile');
+        return false;
+    }
+
+    // Add timestamp when saving
+    const profileWithTimestamp = {
+        ...profileData,
+        savedAt: new Date().toISOString(),
+        locallyStored: true
+    };
+
+    const success = setStorageData(STORAGE_KEYS.PROFESSIONAL_PROFILE, profileWithTimestamp);
+    
+    if (success && typeof trackEvent === 'function') {
+        trackEvent('professional_profile_saved_locally', {
+            has_personality: !!(profileData.personality_analysis),
+            has_skills: !!(profileData.skills_assessment),
+            has_recommendations: !!(profileData.role_recommendations)
+        });
+    }
+    
+    return success;
+}
+
+/**
+ * Clear professional profiling data from local storage
+ * @returns {boolean} - Success status
+ */
+function clearProfessionalProfile() {
+    const existingProfile = getProfessionalProfile();
+    const success = setStorageData(STORAGE_KEYS.PROFESSIONAL_PROFILE, null);
+    
+    if (success && existingProfile && typeof trackEvent === 'function') {
+        trackEvent('professional_profile_cleared', {
+            profile_age_days: existingProfile.savedAt ? 
+                Math.floor((Date.now() - new Date(existingProfile.savedAt)) / (1000 * 60 * 60 * 24)) : 0
+        });
+    }
+    
+    return success;
+}
+
+/**
+ * Get profiling form data (for form persistence)
+ * @returns {Object} - The stored form data or empty object
+ */
+function getProfilingFormData() {
+    return getStorageData('profilingFormData', {
+        nonProfessionalExperience: '',
+        workApproach: '',
+        problemSolvingExample: '',
+        workValues: ''
+    });
+}
+
+/**
+ * Save profiling form data (for form persistence)
+ * @param {Object} formData - The form data to save
+ * @returns {boolean} - Success status
+ */
+function saveProfilingFormData(formData) {
+    return setStorageData('profilingFormData', {
+        ...formData,
+        lastSaved: new Date().toISOString()
+    });
+}
+
+/**
+ * Clear profiling form data
+ * @returns {boolean} - Success status
+ */
+function clearProfilingFormData() {
+    return setStorageData('profilingFormData', null);
+}
+
+/**
+ * Export professional profile data
+ * @returns {Object|null} - The profile data for export or null if none exists
+ */
+function exportProfessionalProfile() {
+    const profile = getProfessionalProfile();
+    if (!profile) return null;
+
+    return {
+        exportType: 'professionalProfile',
+        exportDate: new Date().toISOString(),
+        profileData: profile,
+        version: '1.0.0'
+    };
+}
+
+/**
+ * Import professional profile data
+ * @param {Object} importData - The imported profile data
+ * @returns {boolean} - Success status
+ */
+function importProfessionalProfile(importData) {
+    try {
+        if (!importData || !importData.profileData) {
+            throw new Error('Invalid import data: missing profileData');
+        }
+
+        const success = saveProfessionalProfile(importData.profileData);
+        
+        if (success && typeof trackEvent === 'function') {
+            trackEvent('professional_profile_imported', {
+                import_date: importData.exportDate || 'unknown',
+                import_version: importData.version || 'unknown'
+            });
+        }
+        
+        return success;
+    } catch (error) {
+        console.error('Error importing professional profile:', error);
+        return false;
     }
 }

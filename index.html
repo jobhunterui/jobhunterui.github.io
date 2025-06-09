@@ -473,6 +473,152 @@
                 </p>
             </div>
 
+            <!-- Professional Profiling Section -->
+            <div class="profiling-section">
+                <h3>Professional Profiling & Skills Assessment</h3>
+                <p class="profiling-info">
+                    Discover your professional profile, working style, and career recommendations through AI analysis of your experience and preferences.
+                </p>
+                
+                <!-- Existing Profile Status -->
+                <div id="existing-profile-status" class="existing-profile-status hidden">
+                    <div class="profile-status-card">
+                        <div class="status-header">
+                            <h4>✅ Your Professional Profile</h4>
+                            <p class="profile-date">Generated on: <span id="profile-generated-date">-</span></p>
+                        </div>
+                        <div class="profile-actions">
+                            <button id="view-profile-btn" class="primary-button">View Profile</button>
+                            <button id="regenerate-profile-btn" class="secondary-button">Update Profile</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profiling Form -->
+                <div id="profiling-form" class="profiling-form">
+                    <!-- Non-Professional Experience -->
+                    <div class="form-group">
+                        <label for="non-professional-experience" class="form-label">Non-Professional Experience & Skills:</label>
+                        <p class="form-info">
+                            Tell us about experiences outside formal work - volunteer activities, personal projects, family responsibilities, community leadership, hobbies, or any situation where you've developed skills or overcome challenges.
+                        </p>
+                        <textarea id="non-professional-experience" class="form-textarea" rows="6" 
+                            placeholder="Examples:
+            • Organized events for your community or religious organization
+            • Managed family projects or household responsibilities  
+            • Led volunteer initiatives or charity work
+            • Personal projects, side ventures, or creative pursuits
+            • Mentoring others or teaching skills informally
+            • Any leadership or problem-solving outside of work
+
+            Be specific about what you did, challenges you overcame, and results you achieved."></textarea>
+                    </div>
+
+                    <!-- Question 1: Work Approach -->
+                    <div class="form-group">
+                        <label class="form-label">When working on a challenging project, which approach energizes you most?</label>
+                        <div class="profiling-radio-group">
+                            <div class="profiling-radio-option">
+                                <input type="radio" id="approach-leader" name="work-approach" value="leader">
+                                <label for="approach-leader" class="radio-label">Leading a team and driving results through others</label>
+                            </div>
+                            <div class="profiling-radio-option">
+                                <input type="radio" id="approach-analyst" name="work-approach" value="analyst">
+                                <label for="approach-analyst" class="radio-label">Diving deep into research and analysis before acting</label>
+                            </div>
+                            <div class="profiling-radio-option">
+                                <input type="radio" id="approach-creative" name="work-approach" value="creative">
+                                <label for="approach-creative" class="radio-label">Brainstorming creative solutions with others</label>
+                            </div>
+                            <div class="profiling-radio-option">
+                                <input type="radio" id="approach-independent" name="work-approach" value="independent">
+                                <label for="approach-independent" class="radio-label">Working independently with clear objectives</label>
+                            </div>
+                            <div class="profiling-radio-option">
+                                <input type="radio" id="approach-adaptive" name="work-approach" value="adaptive">
+                                <label for="approach-adaptive" class="radio-label">Adapting and responding quickly as situations change</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Question 2: Problem Solving -->
+                    <div class="form-group">
+                        <label for="problem-solving-example" class="form-label">Describe a recent challenge you faced and how you approached solving it:</label>
+                        <p class="form-info">
+                            This can be from work, personal life, or any situation where you had to solve a problem. Include what the problem was, steps you took, the outcome, and what you learned.
+                        </p>
+                        <textarea id="problem-solving-example" class="form-textarea" rows="4" 
+                            placeholder="Include:
+            • What was the problem or challenge?
+            • What steps did you take to address it?
+            • What was the outcome?
+            • What did you learn from the experience?
+
+            Example: 'When our project timeline was cut by 30%, I analyzed which tasks were most critical, negotiated with stakeholders on priorities, and reorganized the team's work. We delivered the core features on time and learned to build more buffer into future estimates.'"></textarea>
+                    </div>
+
+                    <!-- Question 3: Work Values -->
+                    <div class="form-group">
+                        <label class="form-label">What matters most to you in your ideal work environment?</label>
+                        <div class="profiling-radio-group">
+                            <div class="profiling-radio-option">
+                                <input type="radio" id="values-impact" name="work-values" value="impact">
+                                <label for="values-impact" class="radio-label">High impact and recognition for achievements</label>
+                            </div>
+                            <div class="profiling-radio-option">
+                                <input type="radio" id="values-learning" name="work-values" value="learning">
+                                <label for="values-learning" class="radio-label">Continuous learning and skill development</label>
+                            </div>
+                            <div class="profiling-radio-option">
+                                <input type="radio" id="values-stability" name="work-values" value="stability">
+                                <label for="values-stability" class="radio-label">Stability and clear expectations</label>
+                            </div>
+                            <div class="profiling-radio-option">
+                                <input type="radio" id="values-balance" name="work-values" value="balance">
+                                <label for="values-balance" class="radio-label">Flexibility and work-life balance</label>
+                            </div>
+                            <div class="profiling-radio-option">
+                                <input type="radio" id="values-meaningful" name="work-values" value="meaningful">
+                                <label for="values-meaningful" class="radio-label">Meaningful work that helps others</label>
+                            </div>
+                            <div class="profiling-radio-option">
+                                <input type="radio" id="values-innovation" name="work-values" value="innovation">
+                                <label for="values-innovation" class="radio-label">Innovation and creative freedom</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Generate Buttons -->
+                    <div class="profiling-actions">
+                        <button id="generate-profile-gemini" class="primary-button gemini-button">
+                            🤖 Generate Professional Profile
+                        </button>
+                        <div class="or-separator">OR</div>
+                        <button id="generate-profile-claude" class="secondary-button claude-button">
+                            📋 Generate with Claude (Manual)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Display -->
+                <div id="profile-results" class="profile-results hidden">
+                    <div class="results-header">
+                        <h4>Your Professional Profile</h4>
+                        <p class="results-date">Generated on: <span id="results-date">-</span></p>
+                    </div>
+                    
+                    <div class="profile-content" id="profile-content">
+                        <!-- Results will be populated here -->
+                    </div>
+                    
+                    <div class="profile-actions-footer">
+                        <button id="save-profile-results" class="primary-button">Save Profile</button>
+                        <button id="create-new-profile" class="secondary-button">Create New Profile</button>
+                        <button id="export-profile" class="default-button">Export Profile</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- CV textarea in profile tab -->
             <div class="form-group">
                 <label for="cv" class="form-label">Your CV/Resume:</label>

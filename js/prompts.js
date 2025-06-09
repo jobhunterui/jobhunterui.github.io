@@ -2410,6 +2410,526 @@ Only respond with the JSON structure - no additional text before or after. Make 
     );
 }
 
+// Professional Profiling Functions
+
+/**
+ * Generate professional profile with Gemini API
+ */
+async function generateProfessionalProfileWithGemini() {
+    console.log('generateProfessionalProfileWithGemini function called');
+
+    // Get CV from profile
+    const profileData = getProfileData();
+    const cv = profileData.cv || '';
+
+    if (!cv.trim()) {
+        showModal('CV Missing', 'Please add your CV in the Profile tab first before generating a professional profile.');
+        return;
+    }
+
+    // Get form data
+    const formData = collectProfilingFormData();
+    if (!formData.isValid) {
+        showModal('Incomplete Form', formData.error || 'Please complete all profiling questions before generating your profile.');
+        return;
+    }
+
+    // Show loading modal
+    const loadingModal = showModal('Generating Professional Profile',
+        `<div class="profiling-loading">
+            <p>Please wait while we analyze your professional profile...</p>
+            <div class="loading-spinner"></div>
+            <div class="profiling-loading-steps">
+                <div class="profiling-loading-step current">Analyzing your CV and experiences</div>
+                <div class="profiling-loading-step">Evaluating personality traits</div>
+                <div class="profiling-loading-step">Assessing skills and competencies</div>
+                <div class="profiling-loading-step">Generating role recommendations</div>
+                <div class="profiling-loading-step">Creating development plan</div>
+            </div>
+        </div>`, []);
+
+    let currentStep = 0;
+    const loadingStepsNodeList = loadingModal ? loadingModal.querySelectorAll('.profiling-loading-step') : null;
+    const loadingSteps = loadingStepsNodeList ? Array.from(loadingStepsNodeList) : [];
+
+    const progressInterval = loadingSteps.length > 0 ? setInterval(() => {
+        if (currentStep < loadingSteps.length - 1) {
+            loadingSteps[currentStep].classList.remove('current');
+            currentStep++;
+            loadingSteps[currentStep].classList.add('current');
+        }
+    }, 4000) : null; // Slower progress for profiling
+
+    try {
+        const result = await window.generateProfessionalProfile(
+            cv,
+            formData.nonProfessionalExperience,
+            formData.workApproach,
+            formData.problemSolvingExample,
+            formData.workValues
+        );
+
+        if (progressInterval) clearInterval(progressInterval);
+        if (loadingModal) closeModal(loadingModal);
+
+        if (result && result.profile_data) {
+            // Save to local storage
+            saveProfessionalProfile(result.profile_data);
+            
+            // Display results
+            displayProfessionalProfile(result.profile_data);
+            
+            // Clear form data since profile was generated successfully
+            clearProfilingFormData();
+            
+            showModal('Profile Generated', 'Your professional profile has been generated successfully!');
+        } else {
+            throw new Error('No profile data received from the API');
+        }
+
+    } catch (error) {
+        if (progressInterval) clearInterval(progressInterval);
+        if (loadingModal) closeModal(loadingModal);
+        console.error("Error in generateProfessionalProfileWithGemini:", error);
+
+        if (error.message && error.message.startsWith("UPGRADE_REQUIRED:")) {
+            showModal("Upgrade to Pro", error.message.replace("UPGRADE_REQUIRED:", "").trim() || "This is a Pro feature. Please upgrade.", [
+                {
+                    id: 'upgrade-profiling-btn', text: 'Upgrade Plan', class: 'primary-button', action: () => {
+                        document.querySelector('.tab-button[data-tab="profile"]').click();
+                        setTimeout(() => document.querySelector('.subscription-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
+                    }
+                },
+                { id: 'cancel-profiling-btn', text: 'Close', class: 'default-button' }
+            ]);
+        } else if (error.message && error.message.startsWith("AUTH_FAILED:")) {
+            showModal('Authentication Failed', error.message.replace("AUTH_FAILED:", "").trim() || 'Please sign in again.', [
+                { id: 'sign-in-profiling-error', text: 'Sign In', class: 'primary-button', action: () => window.signInWithGoogle() }
+            ]);
+        } else if (error.message && (error.message.includes("Daily") || error.message.includes("limit"))) {
+            showModal('Rate Limit Reached', error.message, [{ id: 'ok-profiling-rl', text: 'OK' }]);
+        } else {
+            showModal('Error Generating Profile', `Failed: ${error.message}. You could also try the manual Claude generation.`, [
+                { id: 'try-claude-profiling', text: 'Try Claude Instead', action: generateProfessionalProfileWithClaude },
+                { id: 'close-profiling-error', text: 'Close' }
+            ]);
+        }
+    }
+}
+
+/**
+ * Generate professional profile prompt for Claude
+ */
+function generateProfessionalProfileWithClaude() {
+    console.log('generateProfessionalProfileWithClaude function called');
+
+    // Get CV from profile
+    const profileData = getProfileData();
+    const cv = profileData.cv || '';
+
+    if (!cv.trim()) {
+        showModal('CV Missing', 'Please add your CV in the Profile tab first before generating a professional profile.');
+        return;
+    }
+
+    // Get form data
+    const formData = collectProfilingFormData();
+    if (!formData.isValid) {
+        showModal('Incomplete Form', formData.error || 'Please complete all profiling questions before generating your profile.');
+        return;
+    }
+
+    // Create prompt for Claude
+    const prompt = createProfessionalProfilePrompt(cv, formData);
+
+    // Function to handle successful clipboard copy
+    function handleSuccessfulCopy() {
+        // Open Claude in a new tab
+        window.open('https://claude.ai', '_blank');
+
+        // Show instructions
+        showModal('Professional Profile Prompt Copied',
+            'Professional profiling prompt copied to clipboard! Paste it into Claude to generate your comprehensive professional profile.',
+            [
+                {
+                    id: 'ok-profiling-prompt',
+                    text: 'OK'
+                }
+            ]);
+
+        // Track profiling generation
+        if (typeof trackEvent === 'function') {
+            trackEvent('professional_profile_generated', {
+                method: 'claude',
+                work_approach: formData.workApproach,
+                work_values: formData.workValues
+            });
+        }
+    }
+
+    // Try modern clipboard API first
+    copyToClipboard(prompt).then(() => {
+        handleSuccessfulCopy();
+    }).catch(error => {
+        console.error('Error copying to clipboard:', error);
+
+        // Alternative method for clipboard
+        const textArea = document.createElement('textarea');
+        textArea.value = prompt;
+        textArea.style.position = 'fixed';
+        document.body.appendChild(textArea);
+        textArea.select();
+
+        try {
+            const success = document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            if (success) {
+                handleSuccessfulCopy();
+            } else {
+                showModal('Error', 'Could not copy the prompt. Please try again or copy it manually.');
+            }
+        } catch (err) {
+            document.body.removeChild(textArea);
+            showModal('Error', 'Could not copy the prompt. Please try again or copy it manually.');
+        }
+    });
+}
+
+/**
+ * Create comprehensive professional profiling prompt for Claude
+ */
+function createProfessionalProfilePrompt(cv, formData) {
+    return `I need you to create a comprehensive professional profile analysis based on my CV, experiences, and responses to key profiling questions. This analysis should provide deep insights into my personality, working style, skills, and career development opportunities.
+
+MY CV/RESUME:
+${cv}
+
+NON-PROFESSIONAL EXPERIENCE:
+${formData.nonProfessionalExperience}
+
+PROFILING RESPONSES:
+
+1. Work Approach Preference: ${formData.workApproach}
+   (When working on challenging projects, I am energized by: ${getWorkApproachDescription(formData.workApproach)})
+
+2. Problem-Solving Example:
+${formData.problemSolvingExample}
+
+3. Work Values: ${formData.workValues}
+   (What matters most to me in work environments: ${getWorkValuesDescription(formData.workValues)})
+
+Please provide a comprehensive professional profile analysis in the following structured format:
+
+## 🧠 PERSONALITY ANALYSIS & WORKING STYLE
+
+### Core Personality Traits
+Analyze my personality based on the Big Five model (Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism) and working style preferences. For each trait, provide:
+- My likely score (Low/Medium/High)
+- How this manifests in my work behavior
+- Implications for team dynamics and leadership
+
+### Communication & Collaboration Style
+- How I prefer to communicate in professional settings
+- My approach to teamwork and collaboration
+- Leadership tendencies and influence style
+- Conflict resolution approach
+
+### Motivation & Drive
+- What energizes me professionally
+- My approach to goal-setting and achievement
+- How I handle stress and pressure
+- Sources of professional satisfaction
+
+## 💼 COMPREHENSIVE SKILLS ASSESSMENT
+
+### Technical Skills Analysis
+Categorize and rate my technical skills:
+- **Expert Level**: Skills I can teach others and lead projects in
+- **Proficient Level**: Skills I can work independently with
+- **Developing Level**: Skills I have exposure to but need growth
+- **Emerging Areas**: New skills I should consider developing
+
+### Soft Skills Evaluation
+Rate my soft skills based on evidence from my experiences:
+- Communication (written, verbal, presentation)
+- Leadership and influence
+- Problem-solving and critical thinking
+- Adaptability and learning agility
+- Emotional intelligence and interpersonal skills
+- Project management and organization
+
+### Transferable Skills from Non-Professional Experience
+Identify valuable skills gained from non-professional activities that enhance my professional value.
+
+## 🎯 ROLE FIT ANALYSIS & RECOMMENDATIONS
+
+### Ideal Role Characteristics
+Based on my profile, describe:
+- Types of roles where I would excel
+- Work environments that suit my style
+- Team structures I thrive in
+- Types of challenges I enjoy
+
+### Specific Role Recommendations
+Provide 3-5 specific job roles with:
+- **Role Title**: Specific position name
+- **Match Percentage**: How well it fits (and why)
+- **Key Responsibilities**: What I'd be doing day-to-day
+- **Growth Potential**: Career progression opportunities
+- **Why It Fits**: Specific alignment with my profile
+
+### Industries & Sectors
+Industries where my profile would be particularly valuable and why.
+
+## 📈 CAREER DEVELOPMENT STRATEGY
+
+### Immediate Development Priorities (Next 6 months)
+- Top 3 skills to develop for maximum impact
+- Specific learning resources or experiences
+- How to leverage current strengths while growing
+
+### Medium-term Growth Plan (6 months - 2 years)
+- Strategic career moves to consider
+- Leadership development opportunities
+- Network building priorities
+
+### Long-term Career Vision (2-5 years)
+- Potential career trajectories
+- Executive/senior level preparation
+- Industry expertise development
+
+## 🚀 ACTIONABLE RECOMMENDATIONS
+
+### Professional Brand Development
+- How I should position myself professionally
+- Key messages to emphasize in networking/interviews
+- Professional story narrative
+
+### Networking Strategy
+- Types of professionals I should connect with
+- Industry events or communities to join
+- Mentorship opportunities (as mentee or mentor)
+
+### Performance Optimization
+- How to maximize my impact in current/future roles
+- Potential blind spots to address
+- Strategies for continued growth
+
+## 💡 UNIQUE VALUE PROPOSITION
+
+Summarize my distinctive professional value:
+- What makes me uniquely valuable to employers
+- How I differentiate from others with similar backgrounds
+- My "superpower" combination of skills and traits
+- How organizations benefit most from my contributions
+
+---
+
+Please make this analysis specific, actionable, and evidence-based. Use examples from my experience to support your assessments. Focus on insights that will genuinely help me understand myself better and make strategic career decisions.
+
+The goal is to create a comprehensive professional profile that serves as a career development roadmap and helps me articulate my value to potential employers, collaborators, and mentors.`;
+}
+
+/**
+ * Get description for work approach value
+ */
+function getWorkApproachDescription(value) {
+    const descriptions = {
+        'leader': 'Leading a team and driving results through others',
+        'analyst': 'Diving deep into research and analysis before acting',
+        'creative': 'Brainstorming creative solutions with others',
+        'independent': 'Working independently with clear objectives',
+        'adaptive': 'Adapting and responding quickly as situations change'
+    };
+    return descriptions[value] || value;
+}
+
+/**
+ * Get description for work values
+ */
+function getWorkValuesDescription(value) {
+    const descriptions = {
+        'impact': 'High impact and recognition for achievements',
+        'learning': 'Continuous learning and skill development',
+        'stability': 'Stability and clear expectations',
+        'balance': 'Flexibility and work-life balance',
+        'meaningful': 'Meaningful work that helps others',
+        'innovation': 'Innovation and creative freedom'
+    };
+    return descriptions[value] || value;
+}
+
+/**
+ * Collect and validate profiling form data
+ */
+function collectProfilingFormData() {
+    const nonProfessionalExperience = document.getElementById('non-professional-experience')?.value.trim() || '';
+    const problemSolvingExample = document.getElementById('problem-solving-example')?.value.trim() || '';
+    
+    const workApproachElement = document.querySelector('input[name="work-approach"]:checked');
+    const workValuesElement = document.querySelector('input[name="work-values"]:checked');
+    
+    const workApproach = workApproachElement?.value || '';
+    const workValues = workValuesElement?.value || '';
+
+    // Validation
+    const errors = [];
+    if (!nonProfessionalExperience) errors.push('Non-professional experience');
+    if (!workApproach) errors.push('Work approach preference');
+    if (!problemSolvingExample) errors.push('Problem-solving example');
+    if (!workValues) errors.push('Work values preference');
+
+    if (errors.length > 0) {
+        return {
+            isValid: false,
+            error: `Please complete the following fields: ${errors.join(', ')}`
+        };
+    }
+
+    return {
+        isValid: true,
+        nonProfessionalExperience,
+        workApproach,
+        problemSolvingExample,
+        workValues
+    };
+}
+
+/**
+ * Display professional profile results
+ */
+function displayProfessionalProfile(profileData) {
+    const resultsSection = document.getElementById('profile-results');
+    const profileContent = document.getElementById('profile-content');
+    const resultsDate = document.getElementById('results-date');
+    const formSection = document.getElementById('profiling-form');
+    const existingProfileStatus = document.getElementById('existing-profile-status');
+
+    if (!resultsSection || !profileContent) {
+        console.error('Profile results elements not found');
+        return;
+    }
+
+    // Hide form and show results
+    if (formSection) formSection.classList.add('hidden');
+    if (existingProfileStatus) existingProfileStatus.classList.add('hidden');
+    resultsSection.classList.remove('hidden');
+
+    // Set generation date
+    if (resultsDate) {
+        resultsDate.textContent = new Date().toLocaleDateString();
+    }
+
+    // Generate HTML content
+    const htmlContent = generateProfileHTML(profileData);
+    profileContent.innerHTML = htmlContent;
+
+    // Scroll to results
+    resultsSection.scrollIntoView({ behavior: 'smooth' });
+}
+
+/**
+ * Generate HTML for professional profile display
+ */
+function generateProfileHTML(profileData) {
+    let html = '';
+
+    // Personality Analysis
+    if (profileData.personality_analysis) {
+        html += `
+        <div class="profile-section">
+            <h5>🧠 Personality Analysis & Working Style</h5>
+            ${profileData.personality_analysis.core_traits ? `
+                <div class="personality-traits">
+                    ${Object.entries(profileData.personality_analysis.core_traits).map(([trait, data]) => `
+                        <div class="trait-item">
+                            <h6>${trait.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</h6>
+                            <p><strong>Level:</strong> ${data.level}</p>
+                            <p>${data.description}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+            ${profileData.personality_analysis.communication_style ? `
+                <p><strong>Communication Style:</strong> ${profileData.personality_analysis.communication_style}</p>
+            ` : ''}
+            ${profileData.personality_analysis.motivation_drivers ? `
+                <p><strong>Motivation Drivers:</strong> ${profileData.personality_analysis.motivation_drivers}</p>
+            ` : ''}
+        </div>`;
+    }
+
+    // Skills Assessment
+    if (profileData.skills_assessment) {
+        html += `
+        <div class="profile-section">
+            <h5>💼 Skills Assessment</h5>
+            ${profileData.skills_assessment.technical_skills ? `
+                <div class="skills-grid">
+                    ${Object.entries(profileData.skills_assessment.technical_skills).map(([level, skills]) => `
+                        <div class="skill-category">
+                            <h6>${level.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</h6>
+                            <div class="skill-tags">
+                                ${skills.map(skill => `<span class="skill-tag">${skill}</span>`).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+            ${profileData.skills_assessment.soft_skills ? `
+                <p><strong>Soft Skills Strengths:</strong> ${profileData.skills_assessment.soft_skills.join(', ')}</p>
+            ` : ''}
+        </div>`;
+    }
+
+    // Role Recommendations
+    if (profileData.role_recommendations && profileData.role_recommendations.length > 0) {
+        html += `
+        <div class="profile-section">
+            <h5>🎯 Role Recommendations</h5>
+            <div class="role-recommendations">
+                ${profileData.role_recommendations.map(role => `
+                    <div class="role-card">
+                        <h6>${role.role_title}</h6>
+                        <span class="role-match">${role.match_percentage}% Match</span>
+                        <p><strong>Why it fits:</strong> ${role.fit_reasoning}</p>
+                        <p><strong>Growth potential:</strong> ${role.growth_potential}</p>
+                    </div>
+                `).join('')}
+            </div>
+        </div>`;
+    }
+
+    // Career Development
+    if (profileData.career_development) {
+        html += `
+        <div class="profile-section">
+            <h5>📈 Career Development Strategy</h5>
+            ${profileData.career_development.immediate_priorities ? `
+                <p><strong>Immediate Development Priorities:</strong></p>
+                <ul>
+                    ${profileData.career_development.immediate_priorities.map(priority => `<li>${priority}</li>`).join('')}
+                </ul>
+            ` : ''}
+            ${profileData.career_development.long_term_vision ? `
+                <p><strong>Long-term Vision:</strong> ${profileData.career_development.long_term_vision}</p>
+            ` : ''}
+        </div>`;
+    }
+
+    // Unique Value Proposition
+    if (profileData.unique_value_proposition) {
+        html += `
+        <div class="profile-section">
+            <h5>💡 Your Unique Value Proposition</h5>
+            <p>${profileData.unique_value_proposition}</p>
+        </div>`;
+    }
+
+    return html;
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     // CV generation button (Gemini)
     const cvButtonGemini = document.getElementById('generate-cv-gemini');
@@ -2661,6 +3181,69 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             generateCumulativeLearningPlan();
+        });
+    }
+
+    // Professional Profiling Event Listeners
+    const generateProfileGeminiBtn = document.getElementById('generate-profile-gemini');
+    if (generateProfileGeminiBtn) {
+        const newGenerateProfileGeminiBtn = generateProfileGeminiBtn.cloneNode(true);
+        generateProfileGeminiBtn.parentNode.replaceChild(newGenerateProfileGeminiBtn, generateProfileGeminiBtn);
+
+        newGenerateProfileGeminiBtn.addEventListener('click', function () {
+            const formData = collectProfilingFormData();
+            let additionalParams = {
+                method: 'gemini',
+                generation_type: 'professional_profile',
+                form_completed: formData.isValid
+            };
+
+            if (formData.isValid) {
+                additionalParams.work_approach = formData.workApproach;
+                additionalParams.work_values = formData.workValues;
+                additionalParams.has_non_prof_exp = !!formData.nonProfessionalExperience;
+                additionalParams.has_problem_solving = !!formData.problemSolvingExample;
+            }
+
+            // Track feature usage
+            if (typeof trackFeatureUsage === 'function') {
+                trackFeatureUsage('professional_profiling', additionalParams);
+            } else if (typeof trackEvent === 'function') {
+                trackEvent('professional_profiling_gemini_click', additionalParams);
+            }
+
+            generateProfessionalProfileWithGemini();
+        });
+    }
+
+    const generateProfileClaudeBtn = document.getElementById('generate-profile-claude');
+    if (generateProfileClaudeBtn) {
+        const newGenerateProfileClaudeBtn = generateProfileClaudeBtn.cloneNode(true);
+        generateProfileClaudeBtn.parentNode.replaceChild(newGenerateProfileClaudeBtn, generateProfileClaudeBtn);
+
+        newGenerateProfileClaudeBtn.addEventListener('click', function () {
+            const formData = collectProfilingFormData();
+            let additionalParams = {
+                method: 'claude',
+                generation_type: 'professional_profile',
+                form_completed: formData.isValid
+            };
+
+            if (formData.isValid) {
+                additionalParams.work_approach = formData.workApproach;
+                additionalParams.work_values = formData.workValues;
+                additionalParams.has_non_prof_exp = !!formData.nonProfessionalExperience;
+                additionalParams.has_problem_solving = !!formData.problemSolvingExample;
+            }
+
+            // Track feature usage
+            if (typeof trackFeatureUsage === 'function') {
+                trackFeatureUsage('professional_profiling', additionalParams);
+            } else if (typeof trackEvent === 'function') {
+                trackEvent('professional_profiling_claude_click', additionalParams);
+            }
+
+            generateProfessionalProfileWithClaude();
         });
     }
 });

@@ -14,6 +14,7 @@ function initApp() {
     // showExtensionPromo('job-save'); // Consider enabling based on UX preference
     showFirstTimeGuidance();
     setupHeaderProfileClick();
+    initProfiling();
 
     // Initial UI update based on potential pre-existing auth state
     if (window.auth && window.auth.currentUser) {
@@ -990,6 +991,349 @@ function setupHeaderProfileClick() {
         });
         userProfileHeader.style.cursor = 'pointer'; // Make it look clickable
     }
+}
+
+// Professional Profiling Functions for app.js
+
+/**
+ * Initialize profiling functionality
+ */
+function initProfiling() {
+    setupProfilingEventListeners();
+    loadProfilingFormData();
+    checkExistingProfile();
+}
+
+/**
+ * Setup event listeners for profiling features
+ */
+function setupProfilingEventListeners() {
+    // Gemini profile generation button
+    const generateGeminiBtn = document.getElementById('generate-profile-gemini');
+    if (generateGeminiBtn) {
+        generateGeminiBtn.addEventListener('click', function() {
+            if (typeof trackEvent === 'function') {
+                trackEvent('profiling_gemini_clicked', {
+                    has_cv: !!getProfileData().cv,
+                    form_completed: isProfilingFormComplete()
+                });
+            }
+            if (typeof generateProfessionalProfileWithGemini === 'function') {
+                generateProfessionalProfileWithGemini();
+            } else {
+                console.error('generateProfessionalProfileWithGemini function not found');
+            }
+        });
+    }
+
+    // Claude profile generation button
+    const generateClaudeBtn = document.getElementById('generate-profile-claude');
+    if (generateClaudeBtn) {
+        generateClaudeBtn.addEventListener('click', function() {
+            if (typeof trackEvent === 'function') {
+                trackEvent('profiling_claude_clicked', {
+                    has_cv: !!getProfileData().cv,
+                    form_completed: isProfilingFormComplete()
+                });
+            }
+            if (typeof generateProfessionalProfileWithClaude === 'function') {
+                generateProfessionalProfileWithClaude();
+            } else {
+                console.error('generateProfessionalProfileWithClaude function not found');
+            }
+        });
+    }
+
+    // View existing profile button
+    const viewProfileBtn = document.getElementById('view-profile-btn');
+    if (viewProfileBtn) {
+        viewProfileBtn.addEventListener('click', function() {
+            const existingProfile = getProfessionalProfile();
+            if (existingProfile) {
+                displayProfessionalProfile(existingProfile);
+                if (typeof trackEvent === 'function') {
+                    trackEvent('existing_profile_viewed');
+                }
+            }
+        });
+    }
+
+    // Regenerate profile button
+    const regenerateBtn = document.getElementById('regenerate-profile-btn');
+    if (regenerateBtn) {
+        regenerateBtn.addEventListener('click', function() {
+            showProfilingForm();
+            if (typeof trackEvent === 'function') {
+                trackEvent('profile_regenerate_clicked');
+            }
+        });
+    }
+
+    // Save profile results button
+    const saveResultsBtn = document.getElementById('save-profile-results');
+    if (saveResultsBtn) {
+        saveResultsBtn.addEventListener('click', function() {
+            const profileContent = document.getElementById('profile-content');
+            if (profileContent && profileContent.innerHTML.trim()) {
+                showModal('Profile Saved', 'Your professional profile has been saved successfully.');
+                if (typeof trackEvent === 'function') {
+                    trackEvent('profile_results_saved');
+                }
+            }
+        });
+    }
+
+    // Create new profile button
+    const createNewBtn = document.getElementById('create-new-profile');
+    if (createNewBtn) {
+        createNewBtn.addEventListener('click', function() {
+            showModal('Create New Profile', 'Are you sure you want to create a new profile? This will replace your current one.', [
+                {
+                    id: 'confirm-new-profile',
+                    text: 'Yes, Create New',
+                    class: 'primary-button',
+                    action: () => {
+                        clearProfessionalProfile();
+                        showProfilingForm();
+                        if (typeof trackEvent === 'function') {
+                            trackEvent('new_profile_created');
+                        }
+                    }
+                },
+                {
+                    id: 'cancel-new-profile',
+                    text: 'Cancel',
+                    class: 'secondary-button'
+                }
+            ]);
+        });
+    }
+
+    // Export profile button
+    const exportBtn = document.getElementById('export-profile');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function() {
+            exportProfessionalProfileData();
+        });
+    }
+
+    // Form auto-save functionality
+    const formFields = [
+        'non-professional-experience',
+        'problem-solving-example'
+    ];
+
+    formFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', debounce(saveProfilingFormDataFromUI, 1000));
+        }
+    });
+
+    // Radio button change listeners
+    const radioButtons = document.querySelectorAll('input[name="work-approach"], input[name="work-values"]');
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', saveProfilingFormDataFromUI);
+    });
+}
+
+/**
+ * Check if profiling form is complete
+ */
+function isProfilingFormComplete() {
+    const nonProfExp = document.getElementById('non-professional-experience')?.value.trim();
+    const problemSolving = document.getElementById('problem-solving-example')?.value.trim();
+    const workApproach = document.querySelector('input[name="work-approach"]:checked');
+    const workValues = document.querySelector('input[name="work-values"]:checked');
+
+    return !!(nonProfExp && problemSolving && workApproach && workValues);
+}
+
+/**
+ * Load profiling form data from storage
+ */
+function loadProfilingFormData() {
+    const formData = getProfilingFormData();
+    
+    // Load text fields
+    const nonProfField = document.getElementById('non-professional-experience');
+    if (nonProfField && formData.nonProfessionalExperience) {
+        nonProfField.value = formData.nonProfessionalExperience;
+    }
+
+    const problemSolvingField = document.getElementById('problem-solving-example');
+    if (problemSolvingField && formData.problemSolvingExample) {
+        problemSolvingField.value = formData.problemSolvingExample;
+    }
+
+    // Load radio buttons
+    if (formData.workApproach) {
+        const workApproachRadio = document.querySelector(`input[name="work-approach"][value="${formData.workApproach}"]`);
+        if (workApproachRadio) {
+            workApproachRadio.checked = true;
+        }
+    }
+
+    if (formData.workValues) {
+        const workValuesRadio = document.querySelector(`input[name="work-values"][value="${formData.workValues}"]`);
+        if (workValuesRadio) {
+            workValuesRadio.checked = true;
+        }
+    }
+}
+
+/**
+ * Save profiling form data from UI
+ */
+function saveProfilingFormDataFromUI() {
+    const formData = {
+        nonProfessionalExperience: document.getElementById('non-professional-experience')?.value.trim() || '',
+        problemSolvingExample: document.getElementById('problem-solving-example')?.value.trim() || '',
+        workApproach: document.querySelector('input[name="work-approach"]:checked')?.value || '',
+        workValues: document.querySelector('input[name="work-values"]:checked')?.value || ''
+    };
+
+    saveProfilingFormData(formData);
+}
+
+/**
+ * Check for existing professional profile
+ */
+async function checkExistingProfile() {
+    try {
+        // Check local storage first
+        const localProfile = getProfessionalProfile();
+        
+        if (localProfile) {
+            showExistingProfileStatus(localProfile);
+            return;
+        }
+
+        // Check cloud profile if user is signed in
+        if (window.currentUser && typeof getExistingProfile === 'function') {
+            try {
+                const cloudProfile = await getExistingProfile();
+                if (cloudProfile && cloudProfile.profile_data) {
+                    // Save to local storage and show
+                    saveProfessionalProfile(cloudProfile.profile_data);
+                    showExistingProfileStatus(cloudProfile.profile_data);
+                    return;
+                }
+            } catch (error) {
+                console.log('No cloud profile found or error fetching:', error.message);
+            }
+        }
+
+        // No existing profile found - show form
+        showProfilingForm();
+
+    } catch (error) {
+        console.error('Error checking existing profile:', error);
+        showProfilingForm();
+    }
+}
+
+/**
+ * Show existing profile status
+ */
+function showExistingProfileStatus(profileData) {
+    const existingProfileStatus = document.getElementById('existing-profile-status');
+    const profilingForm = document.getElementById('profiling-form');
+    const profileResults = document.getElementById('profile-results');
+    const profileDateElement = document.getElementById('profile-generated-date');
+
+    if (existingProfileStatus) {
+        existingProfileStatus.classList.remove('hidden');
+    }
+    
+    if (profilingForm) {
+        profilingForm.classList.add('hidden');
+    }
+    
+    if (profileResults) {
+        profileResults.classList.add('hidden');
+    }
+
+    // Set profile date
+    if (profileDateElement && profileData.savedAt) {
+        profileDateElement.textContent = new Date(profileData.savedAt).toLocaleDateString();
+    } else if (profileDateElement) {
+        profileDateElement.textContent = 'Recently';
+    }
+}
+
+/**
+ * Show profiling form
+ */
+function showProfilingForm() {
+    const existingProfileStatus = document.getElementById('existing-profile-status');
+    const profilingForm = document.getElementById('profiling-form');
+    const profileResults = document.getElementById('profile-results');
+
+    if (existingProfileStatus) {
+        existingProfileStatus.classList.add('hidden');
+    }
+    
+    if (profilingForm) {
+        profilingForm.classList.remove('hidden');
+    }
+    
+    if (profileResults) {
+        profileResults.classList.add('hidden');
+    }
+}
+
+/**
+ * Export professional profile data
+ */
+function exportProfessionalProfileData() {
+    const profile = getProfessionalProfile();
+    if (!profile) {
+        showModal('No Profile to Export', 'You don\'t have a professional profile to export yet.');
+        return;
+    }
+
+    const exportData = exportProfessionalProfile();
+    if (!exportData) {
+        showModal('Export Failed', 'Failed to prepare profile data for export.');
+        return;
+    }
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+    
+    const date = new Date().toISOString().split('T')[0];
+    const exportFileName = `jobhunter-professional-profile-${date}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileName);
+    linkElement.click();
+
+    if (typeof trackEvent === 'function') {
+        trackEvent('professional_profile_exported', {
+            export_date: date,
+            has_personality: !!(profile.personality_analysis),
+            has_skills: !!(profile.skills_assessment)
+        });
+    }
+
+    showModal('Profile Exported', 'Your professional profile has been exported successfully.');
+}
+
+/**
+ * Debounce function for form auto-save
+ */
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
