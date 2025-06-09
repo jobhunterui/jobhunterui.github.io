@@ -11,10 +11,10 @@ function initApp() {
     loadProfileData();
     setupEventListeners();
     checkStorageUsage();
-    // showExtensionPromo('job-save'); // Consider enabling based on UX preference
     showFirstTimeGuidance();
     setupHeaderProfileClick();
     initProfiling();
+    initAdminDashboard();
 
     // Initial UI update based on potential pre-existing auth state
     if (window.auth && window.auth.currentUser) {
@@ -31,6 +31,59 @@ function initApp() {
     }
 
     console.log('Job Hunter Web App initialized');
+}
+
+/**
+ * Initialize Admin Dashboard
+ */
+function initAdminDashboard() {
+    console.log('Initializing Admin Dashboard...');
+    
+    // Initialize the AdminDashboard object
+    if (typeof AdminDashboard !== 'undefined') {
+        AdminDashboard.init();
+        
+        // Set up tab switching to load admin data
+        const adminTabButton = document.querySelector('.tab-button[data-tab="admin"]');
+        if (adminTabButton) {
+            adminTabButton.addEventListener('click', () => {
+                // Double-check admin access when clicking tab
+                if (!AdminDashboard.checkAdminAccess()) {
+                    // Hide the tab immediately if somehow it was visible but user isn't admin
+                    adminTabButton.classList.remove('show-admin');
+                    
+                    if (window.currentUser) {
+                        showModal('Access Denied', 
+                            'You do not have administrator privileges. If you believe this is an error, please contact support.',
+                            [{ id: 'ok-access-denied', text: 'OK', class: 'default-button' }]
+                        );
+                    } else {
+                        showModal('Sign In Required', 
+                            'Please sign in with an administrator account to access the Admin Dashboard.',
+                            [
+                                { 
+                                    id: 'sign-in-admin', 
+                                    text: 'Sign In', 
+                                    class: 'primary-button', 
+                                    action: () => window.signInWithGoogle() 
+                                }
+                            ]
+                        );
+                    }
+                    return; // Stop execution if not admin
+                }
+                
+                // If user is admin, proceed to load profiles
+                setTimeout(() => {
+                    AdminDashboard.loadProfiles();
+                }, 100);
+            });
+        }
+        
+        console.log('Admin Dashboard initialized successfully');
+    } else {
+        console.warn('AdminDashboard object not found - admin functionality disabled');
+    }
 }
 
 let currentPage = 1;
@@ -1335,6 +1388,950 @@ function debounce(func, wait) {
         timeout = setTimeout(later, wait);
     };
 }
+
+// Admin Dashboard Functionality
+
+/**
+ * Admin Dashboard State Management
+ */
+const AdminDashboard = {
+    profiles: [],
+    filteredProfiles: [],
+    currentPage: 1,
+    profilesPerPage: 12,
+    currentView: 'grid', // 'grid' or 'list'
+    filters: {
+        search: '',
+        personality: '',
+        skillCategory: '',
+        roleType: ''
+    },
+    
+    // Initialize admin dashboard
+    async init() {
+        console.log('Initializing Admin Dashboard...');
+        
+        // Show admin tab if user has admin access
+        this.checkAdminAccess();
+        
+        // Set up event listeners
+        this.setupEventListeners();
+        
+        // Load initial data
+        await this.loadProfiles();
+    },
+    
+    // Check if user should have admin access (using centralized email management)
+    checkAdminAccess() {
+        const adminTabButton = document.getElementById('admin-tab-button');
+        
+        // Use centralized admin checking function
+        const isAdmin = typeof isCurrentUserAdmin === 'function' ? isCurrentUserAdmin() : false;
+        
+        if (adminTabButton) {
+            if (isAdmin) {
+                adminTabButton.classList.add('show-admin');
+                console.log('Admin access granted for user:', window.currentUser.email);
+                
+                // Log admin access for security monitoring
+                if (typeof logAdminAccess === 'function') {
+                    logAdminAccess('admin_dashboard_access', true);
+                }
+            } else {
+                adminTabButton.classList.remove('show-admin');
+                
+                // Log unauthorized access attempts for security
+                if (window.currentUser && typeof logAdminAccess === 'function') {
+                    logAdminAccess('admin_dashboard_access', false);
+                }
+            }
+        }
+        
+        return isAdmin;
+    },
+    
+    // Set up event listeners for admin dashboard
+    setupEventListeners() {
+        // Tab switching
+        const adminTab = document.querySelector('[data-tab="admin"]');
+        if (adminTab) {
+            adminTab.addEventListener('click', () => {
+                // Refresh data when tab is opened
+                this.loadProfiles();
+            });
+        }
+        
+        // Search functionality
+        const searchInput = document.getElementById('admin-search');
+        const searchBtn = document.getElementById('admin-search-btn');
+        const clearSearchBtn = document.getElementById('admin-clear-search');
+        
+        if (searchInput) {
+            searchInput.addEventListener('input', debounce(() => {
+                this.filters.search = searchInput.value;
+                this.applyFilters();
+            }, 300));
+        }
+        
+        if (searchBtn) {
+            searchBtn.addEventListener('click', () => {
+                this.filters.search = searchInput.value;
+                this.applyFilters();
+            });
+        }
+        
+        if (clearSearchBtn) {
+            clearSearchBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                this.clearFilters();
+            });
+        }
+        
+        // Filter dropdowns
+        const personalityFilter = document.getElementById('personality-filter');
+        const skillCategoryFilter = document.getElementById('skill-category-filter');
+        const roleTypeFilter = document.getElementById('role-type-filter');
+        
+        if (personalityFilter) {
+            personalityFilter.addEventListener('change', (e) => {
+                this.filters.personality = e.target.value;
+                this.applyFilters();
+            });
+        }
+        
+        if (skillCategoryFilter) {
+            skillCategoryFilter.addEventListener('change', (e) => {
+                this.filters.skillCategory = e.target.value;
+                this.applyFilters();
+            });
+        }
+        
+        if (roleTypeFilter) {
+            roleTypeFilter.addEventListener('change', (e) => {
+                this.filters.roleType = e.target.value;
+                this.applyFilters();
+            });
+        }
+        
+        // View toggle buttons
+        const gridViewBtn = document.getElementById('grid-view-btn');
+        const listViewBtn = document.getElementById('list-view-btn');
+        
+        if (gridViewBtn) {
+            gridViewBtn.addEventListener('click', () => {
+                this.switchView('grid');
+            });
+        }
+        
+        if (listViewBtn) {
+            listViewBtn.addEventListener('click', () => {
+                this.switchView('list');
+            });
+        }
+        
+        // Action buttons
+        const exportBtn = document.getElementById('export-profiles-btn');
+        const refreshBtn = document.getElementById('refresh-profiles-btn');
+        
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => {
+                this.exportProfiles();
+            });
+        }
+        
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                this.loadProfiles();
+            });
+        }
+        
+        // Pagination
+        const prevPageBtn = document.getElementById('admin-prev-page');
+        const nextPageBtn = document.getElementById('admin-next-page');
+        
+        if (prevPageBtn) {
+            prevPageBtn.addEventListener('click', () => {
+                if (this.currentPage > 1) {
+                    this.currentPage--;
+                    this.renderProfiles();
+                }
+            });
+        }
+        
+        if (nextPageBtn) {
+            nextPageBtn.addEventListener('click', () => {
+                const totalPages = Math.ceil(this.filteredProfiles.length / this.profilesPerPage);
+                if (this.currentPage < totalPages) {
+                    this.currentPage++;
+                    this.renderProfiles();
+                }
+            });
+        }
+        
+        // Modal close functionality
+        const profileDetailModal = document.getElementById('profile-detail-modal');
+        const closeModalBtn = profileDetailModal?.querySelector('.close-modal');
+        const closeDetailBtn = document.getElementById('close-profile-detail');
+        
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => {
+                this.closeProfileModal();
+            });
+        }
+        
+        if (closeDetailBtn) {
+            closeDetailBtn.addEventListener('click', () => {
+                this.closeProfileModal();
+            });
+        }
+        
+        // Export single profile
+        const exportSingleBtn = document.getElementById('export-single-profile');
+        if (exportSingleBtn) {
+            exportSingleBtn.addEventListener('click', () => {
+                this.exportSingleProfile();
+            });
+        }
+    },
+    
+    // Load all profiles from the API
+    async loadProfiles() {
+        const loadingElement = document.getElementById('admin-loading');
+        const emptyStateElement = document.getElementById('admin-empty-state');
+        const profilesContainer = document.getElementById('admin-profiles-container');
+        
+        if (loadingElement) loadingElement.classList.remove('hidden');
+        if (emptyStateElement) emptyStateElement.classList.add('hidden');
+        if (profilesContainer) profilesContainer.classList.add('hidden');
+        
+        try {
+            if (typeof trackEvent === 'function') {
+                trackEvent('admin_dashboard_load_started');
+            }
+            
+            const data = await window.getAllProfiles();
+            this.profiles = data.profiles || [];
+            this.filteredProfiles = [...this.profiles];
+            
+            console.log(`Loaded ${this.profiles.length} profiles for admin dashboard`);
+            
+            // Update dashboard statistics
+            this.updateDashboardStats(data.summary || {});
+            
+            // Render the profiles
+            this.renderProfiles();
+            
+            if (typeof trackEvent === 'function') {
+                trackEvent('admin_dashboard_load_success', {
+                    total_profiles: this.profiles.length
+                });
+            }
+            
+        } catch (error) {
+            console.error('Error loading admin profiles:', error);
+            this.showError('Failed to load community profiles. ' + error.message);
+            
+            if (typeof trackEvent === 'function') {
+                trackEvent('admin_dashboard_load_error', {
+                    error_message: error.message
+                });
+            }
+        } finally {
+            if (loadingElement) loadingElement.classList.add('hidden');
+        }
+    },
+    
+    // Update dashboard statistics
+    updateDashboardStats(summary) {
+        const totalProfilesEl = document.getElementById('total-profiles-count');
+        const activeUsersEl = document.getElementById('active-users-count');
+        const skillDiversityEl = document.getElementById('skill-diversity-count');
+        const personalityDistributionEl = document.getElementById('personality-distribution');
+        
+        if (totalProfilesEl) {
+            totalProfilesEl.textContent = this.profiles.length;
+        }
+        
+        if (activeUsersEl) {
+            // Count profiles created in last 30 days
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            const activeUsers = this.profiles.filter(profile => 
+                new Date(profile.created_at) > thirtyDaysAgo
+            ).length;
+            activeUsersEl.textContent = activeUsers;
+        }
+        
+        if (skillDiversityEl) {
+            // Count unique skills across all profiles
+            const allSkills = new Set();
+            this.profiles.forEach(profile => {
+                const skills = profile.profile_data?.skills_assessment;
+                if (skills?.technical_skills) {
+                    Object.values(skills.technical_skills).forEach(skillArray => {
+                        if (Array.isArray(skillArray)) {
+                            skillArray.forEach(skill => allSkills.add(skill.toLowerCase()));
+                        }
+                    });
+                }
+            });
+            skillDiversityEl.textContent = allSkills.size;
+        }
+        
+        if (personalityDistributionEl) {
+            // Count different personality types
+            const personalityTypes = new Set();
+            this.profiles.forEach(profile => {
+                const personality = profile.profile_data?.personality_analysis?.core_traits;
+                if (personality) {
+                    // Create a simple personality signature
+                    const traits = Object.entries(personality)
+                        .filter(([trait, data]) => data.level === 'High')
+                        .map(([trait]) => trait);
+                    if (traits.length > 0) {
+                        personalityTypes.add(traits.sort().join('-'));
+                    }
+                }
+            });
+            personalityDistributionEl.textContent = personalityTypes.size;
+        }
+    },
+    
+    // Apply filters to profiles
+    applyFilters() {
+        this.filteredProfiles = this.profiles.filter(profile => {
+            // Search filter
+            if (this.filters.search) {
+                const searchTerm = this.filters.search.toLowerCase();
+                const profileText = [
+                    profile.user_email,
+                    JSON.stringify(profile.profile_data?.skills_assessment || {}),
+                    JSON.stringify(profile.profile_data?.role_recommendations || [])
+                ].join(' ').toLowerCase();
+                
+                if (!profileText.includes(searchTerm)) {
+                    return false;
+                }
+            }
+            
+            // Personality filter
+            if (this.filters.personality) {
+                const personality = profile.profile_data?.personality_analysis?.core_traits;
+                if (!personality) return false;
+                
+                const filterType = this.filters.personality.replace('high-', '').replace('low-', '');
+                const isHigh = this.filters.personality.startsWith('high-');
+                const expectedLevel = isHigh ? 'High' : 'Low';
+                
+                const trait = personality[filterType];
+                if (!trait || trait.level !== expectedLevel) {
+                    return false;
+                }
+            }
+            
+            // Skill category filter
+            if (this.filters.skillCategory) {
+                const skills = profile.profile_data?.skills_assessment;
+                if (!skills) return false;
+                
+                const hasSkillCategory = this.hasSkillInCategory(skills, this.filters.skillCategory);
+                if (!hasSkillCategory) {
+                    return false;
+                }
+            }
+            
+            // Role type filter
+            if (this.filters.roleType) {
+                const roles = profile.profile_data?.role_recommendations || [];
+                const hasRoleType = roles.some(role => 
+                    role.role_title.toLowerCase().includes(this.filters.roleType.toLowerCase())
+                );
+                if (!hasRoleType) {
+                    return false;
+                }
+            }
+            
+            return true;
+        });
+        
+        this.currentPage = 1; // Reset to first page
+        this.renderProfiles();
+    },
+    
+    // Helper to check if profile has skills in category
+    hasSkillInCategory(skills, category) {
+        const categoryMap = {
+            'technical': ['technical_skills', 'software_and_tools'],
+            'leadership': ['soft_skills'],
+            'communication': ['soft_skills'],
+            'analytical': ['technical_skills', 'methodologies_and_frameworks'],
+            'creative': ['soft_skills', 'industry_knowledge']
+        };
+        
+        const relevantCategories = categoryMap[category] || [];
+        
+        for (const skillCategory of relevantCategories) {
+            const skillData = skills[skillCategory];
+            if (skillData) {
+                if (Array.isArray(skillData)) {
+                    const hasMatch = skillData.some(skill => 
+                        skill.toLowerCase().includes(category.toLowerCase())
+                    );
+                    if (hasMatch) return true;
+                } else if (typeof skillData === 'object') {
+                    const hasMatch = Object.values(skillData).some(skillArray => 
+                        Array.isArray(skillArray) && skillArray.some(skill => 
+                            skill.toLowerCase().includes(category.toLowerCase())
+                        )
+                    );
+                    if (hasMatch) return true;
+                }
+            }
+        }
+        
+        return false;
+    },
+    
+    // Clear all filters
+    clearFilters() {
+        this.filters = {
+            search: '',
+            personality: '',
+            skillCategory: '',
+            roleType: ''
+        };
+        
+        // Reset UI elements
+        const searchInput = document.getElementById('admin-search');
+        const personalityFilter = document.getElementById('personality-filter');
+        const skillCategoryFilter = document.getElementById('skill-category-filter');
+        const roleTypeFilter = document.getElementById('role-type-filter');
+        
+        if (searchInput) searchInput.value = '';
+        if (personalityFilter) personalityFilter.value = '';
+        if (skillCategoryFilter) skillCategoryFilter.value = '';
+        if (roleTypeFilter) roleTypeFilter.value = '';
+        
+        this.filteredProfiles = [...this.profiles];
+        this.currentPage = 1;
+        this.renderProfiles();
+    },
+    
+    // Switch between grid and list view
+    switchView(viewType) {
+        this.currentView = viewType;
+        
+        const gridBtn = document.getElementById('grid-view-btn');
+        const listBtn = document.getElementById('list-view-btn');
+        const container = document.getElementById('admin-profiles-container');
+        
+        if (gridBtn && listBtn) {
+            gridBtn.classList.toggle('active', viewType === 'grid');
+            listBtn.classList.toggle('active', viewType === 'list');
+        }
+        
+        if (container) {
+            container.className = viewType === 'grid' ? 'admin-profiles-grid' : 'admin-profiles-list';
+        }
+        
+        this.renderProfiles();
+    },
+    
+    // Render profiles based on current filters and pagination
+    renderProfiles() {
+        const container = document.getElementById('admin-profiles-container');
+        const emptyState = document.getElementById('admin-empty-state');
+        const pagination = document.getElementById('admin-pagination');
+        const filteredCount = document.getElementById('filtered-count');
+        
+        if (!container) return;
+        
+        // Update filtered count
+        if (filteredCount) {
+            filteredCount.textContent = `(${this.filteredProfiles.length})`;
+        }
+        
+        if (this.filteredProfiles.length === 0) {
+            container.classList.add('hidden');
+            if (emptyState) emptyState.classList.remove('hidden');
+            if (pagination) pagination.classList.add('hidden');
+            return;
+        }
+        
+        // Show container and hide empty state
+        container.classList.remove('hidden');
+        if (emptyState) emptyState.classList.add('hidden');
+        
+        // Calculate pagination
+        const totalPages = Math.ceil(this.filteredProfiles.length / this.profilesPerPage);
+        const startIndex = (this.currentPage - 1) * this.profilesPerPage;
+        const endIndex = Math.min(startIndex + this.profilesPerPage, this.filteredProfiles.length);
+        const currentProfiles = this.filteredProfiles.slice(startIndex, endIndex);
+        
+        // Render profile cards
+        container.innerHTML = '';
+        currentProfiles.forEach(profile => {
+            const profileCard = this.createProfileCard(profile);
+            container.appendChild(profileCard);
+        });
+        
+        // Update pagination
+        this.updatePagination(totalPages);
+    },
+    
+    // Create individual profile card
+    createProfileCard(profile) {
+        const card = document.createElement('div');
+        card.className = `admin-profile-card ${this.currentView === 'list' ? 'list-view' : ''}`;
+        
+        const profileData = profile.profile_data || {};
+        const personality = profileData.personality_analysis || {};
+        const skills = profileData.skills_assessment || {};
+        const roles = profileData.role_recommendations || [];
+        
+        // Extract preview data
+        const personalityTraits = this.extractPersonalityTraits(personality);
+        const topSkills = this.extractTopSkills(skills);
+        const topRoles = roles.slice(0, 3);
+        
+        card.innerHTML = `
+            <div class="profile-card-header">
+                <div class="profile-basic-info">
+                    <h4>${profile.user_email || 'Unknown User'}</h4>
+                    <div class="profile-timestamp">${this.formatDate(profile.created_at)}</div>
+                </div>
+                <div class="profile-actions">
+                    <button class="profile-action-btn" onclick="AdminDashboard.viewProfileDetail('${profile.user_id}')">View</button>
+                    <button class="profile-action-btn" onclick="AdminDashboard.exportSingleProfileById('${profile.user_id}')">Export</button>
+                </div>
+            </div>
+            
+            <div class="profile-personality-preview">
+                <h5>🧠 Personality</h5>
+                <div class="personality-traits-mini">
+                    ${personalityTraits.map(trait => 
+                        `<span class="personality-trait-tag">${trait}</span>`
+                    ).join('')}
+                </div>
+            </div>
+            
+            <div class="profile-skills-preview">
+                <h5>💼 Top Skills</h5>
+                <div class="skills-preview-list">
+                    ${topSkills.join(', ') || 'No skills identified'}
+                </div>
+            </div>
+            
+            <div class="profile-roles-preview">
+                <h5>🎯 Role Recommendations</h5>
+                <div class="role-recommendations-mini">
+                    ${topRoles.map(role => `
+                        <div class="role-recommendation-item">
+                            <span class="role-title-mini">${role.role_title}</span>
+                            <span class="role-match-mini">${role.match_percentage}%</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        
+        // Add click handler for the card (excluding action buttons)
+        card.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('profile-action-btn')) {
+                this.viewProfileDetail(profile.user_id);
+            }
+        });
+        
+        return card;
+    },
+    
+    // Extract personality traits for preview
+    extractPersonalityTraits(personality) {
+        const traits = [];
+        if (personality.core_traits) {
+            Object.entries(personality.core_traits).forEach(([trait, data]) => {
+                if (data.level === 'High') {
+                    traits.push(trait.replace(/_/g, ' '));
+                }
+            });
+        }
+        return traits.slice(0, 3); // Show top 3 traits
+    },
+    
+    // Extract top skills for preview
+    extractTopSkills(skills) {
+        const topSkills = [];
+        
+        // Get expert level technical skills
+        if (skills.technical_skills?.expert_level) {
+            topSkills.push(...skills.technical_skills.expert_level.slice(0, 3));
+        }
+        
+        // Get top soft skills
+        if (skills.soft_skills) {
+            topSkills.push(...skills.soft_skills.slice(0, 2));
+        }
+        
+        return topSkills.slice(0, 5);
+    },
+    
+    // Format date for display
+    formatDate(dateString) {
+        if (!dateString) return 'Unknown';
+        return new Date(dateString).toLocaleDateString();
+    },
+    
+    // Update pagination controls
+    updatePagination(totalPages) {
+        const pagination = document.getElementById('admin-pagination');
+        const pageInfo = document.getElementById('admin-page-info');
+        const prevBtn = document.getElementById('admin-prev-page');
+        const nextBtn = document.getElementById('admin-next-page');
+        
+        if (totalPages <= 1) {
+            if (pagination) pagination.classList.add('hidden');
+            return;
+        }
+        
+        if (pagination) pagination.classList.remove('hidden');
+        if (pageInfo) pageInfo.textContent = `Page ${this.currentPage} of ${totalPages}`;
+        if (prevBtn) prevBtn.disabled = this.currentPage <= 1;
+        if (nextBtn) nextBtn.disabled = this.currentPage >= totalPages;
+    },
+    
+    // View detailed profile in modal
+    viewProfileDetail(userId) {
+        const profile = this.profiles.find(p => p.user_id === userId);
+        if (!profile) {
+            this.showError('Profile not found');
+            return;
+        }
+        
+        this.currentProfileForModal = profile;
+        this.renderProfileDetailModal(profile);
+        
+        if (typeof trackEvent === 'function') {
+            trackEvent('admin_profile_detail_viewed', {
+                user_id: userId,
+                has_personality: !!(profile.profile_data?.personality_analysis),
+                has_skills: !!(profile.profile_data?.skills_assessment)
+            });
+        }
+    },
+    
+    // Render profile detail modal
+    renderProfileDetailModal(profile) {
+        const modal = document.getElementById('profile-detail-modal');
+        const content = document.getElementById('profile-detail-content');
+        
+        if (!modal || !content) return;
+        
+        const profileData = profile.profile_data || {};
+        const personality = profileData.personality_analysis || {};
+        const skills = profileData.skills_assessment || {};
+        const roles = profileData.role_recommendations || [];
+        const careerDev = profileData.career_development || {};
+        
+        content.innerHTML = `
+            <div class="profile-detail-header">
+                <div class="profile-detail-basic">
+                    <h2>${profile.user_email || 'Unknown User'}</h2>
+                    <div class="profile-detail-timestamp">Profile created: ${this.formatDate(profile.created_at)}</div>
+                </div>
+            </div>
+            
+            ${personality.core_traits ? `
+                <div class="profile-detail-section">
+                    <h3>🧠 Personality Analysis</h3>
+                    <div class="personality-traits-detail">
+                        ${Object.entries(personality.core_traits).map(([trait, data]) => `
+                            <div class="trait-detail-item">
+                                <h4>${trait.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</h4>
+                                <div class="trait-level">Level: ${data.level}</div>
+                                <div class="trait-description">${data.description || 'No description available'}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ${personality.communication_style ? `
+                        <p><strong>Communication Style:</strong> ${personality.communication_style}</p>
+                    ` : ''}
+                    ${personality.motivation_drivers ? `
+                        <p><strong>Motivation Drivers:</strong> ${personality.motivation_drivers}</p>
+                    ` : ''}
+                </div>
+            ` : ''}
+            
+            ${Object.keys(skills).length > 0 ? `
+                <div class="profile-detail-section">
+                    <h3>💼 Skills Assessment</h3>
+                    <div class="skills-detail-grid">
+                        ${Object.entries(skills).map(([category, skillData]) => {
+                            if (typeof skillData === 'object' && !Array.isArray(skillData)) {
+                                // Handle nested skill categories (like technical_skills)
+                                return Object.entries(skillData).map(([subCategory, skillArray]) => `
+                                    <div class="skill-category-detail">
+                                        <h4>${subCategory.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</h4>
+                                        <div class="skill-items-detail">
+                                            ${Array.isArray(skillArray) ? skillArray.map(skill => 
+                                                `<span class="skill-item-detail">${skill}</span>`
+                                            ).join('') : ''}
+                                        </div>
+                                    </div>
+                                `).join('');
+                            } else if (Array.isArray(skillData)) {
+                                // Handle direct skill arrays
+                                return `
+                                    <div class="skill-category-detail">
+                                        <h4>${category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</h4>
+                                        <div class="skill-items-detail">
+                                            ${skillData.map(skill => 
+                                                `<span class="skill-item-detail">${skill}</span>`
+                                            ).join('')}
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                            return '';
+                        }).join('')}
+                    </div>
+                </div>
+            ` : ''}
+            
+            ${roles.length > 0 ? `
+                <div class="profile-detail-section">
+                    <h3>🎯 Role Recommendations</h3>
+                    <div class="role-recommendations-detail">
+                        ${roles.map(role => `
+                            <div class="role-detail-card">
+                                <h4>${role.role_title}</h4>
+                                <span class="role-match-detail">${role.match_percentage}% Match</span>
+                                <p><strong>Why it fits:</strong> ${role.fit_reasoning || 'No reasoning provided'}</p>
+                                ${role.growth_potential ? `
+                                    <p><strong>Growth potential:</strong> ${role.growth_potential}</p>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : ''}
+            
+            ${careerDev.immediate_priorities || careerDev.long_term_vision ? `
+                <div class="profile-detail-section">
+                    <h3>📈 Career Development</h3>
+                    ${careerDev.immediate_priorities ? `
+                        <p><strong>Immediate Priorities:</strong></p>
+                        <ul>
+                            ${Array.isArray(careerDev.immediate_priorities) ? 
+                                careerDev.immediate_priorities.map(priority => `<li>${priority}</li>`).join('') :
+                                `<li>${careerDev.immediate_priorities}</li>`
+                            }
+                        </ul>
+                    ` : ''}
+                    ${careerDev.long_term_vision ? `
+                        <p><strong>Long-term Vision:</strong> ${careerDev.long_term_vision}</p>
+                    ` : ''}
+                </div>
+            ` : ''}
+            
+            ${profileData.unique_value_proposition ? `
+                <div class="profile-detail-section">
+                    <h3>💡 Unique Value Proposition</h3>
+                    <p>${profileData.unique_value_proposition}</p>
+                </div>
+            ` : ''}
+        `;
+        
+        // Show modal
+        modal.classList.remove('hidden');
+        modal.classList.add('active');
+    },
+    
+    // Close profile detail modal
+    closeProfileModal() {
+        const modal = document.getElementById('profile-detail-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('active');
+        }
+        this.currentProfileForModal = null;
+    },
+    
+    // Export all profiles
+    async exportProfiles() {
+        try {
+            const exportBtn = document.getElementById('export-profiles-btn');
+            if (exportBtn) {
+                exportBtn.textContent = 'Exporting...';
+                exportBtn.disabled = true;
+            }
+            
+            // Show export format selection
+            this.showExportFormatModal();
+            
+        } catch (error) {
+            console.error('Error exporting profiles:', error);
+            this.showError('Failed to export profiles: ' + error.message);
+        } finally {
+            const exportBtn = document.getElementById('export-profiles-btn');
+            if (exportBtn) {
+                exportBtn.textContent = 'Export All Profiles';
+                exportBtn.disabled = false;
+            }
+        }
+    },
+    
+    // Show export format selection modal
+    showExportFormatModal() {
+        if (typeof showModal === 'function') {
+            showModal('Export Community Profiles', 
+                'Choose the export format for the community profiles data:',
+                [
+                    {
+                        id: 'export-json',
+                        text: 'Export as JSON',
+                        class: 'primary-button',
+                        action: () => this.performExport('json')
+                    },
+                    {
+                        id: 'export-csv',
+                        text: 'Export as CSV',
+                        class: 'secondary-button',
+                        action: () => this.performExport('csv')
+                    },
+                    {
+                        id: 'cancel-export',
+                        text: 'Cancel',
+                        class: 'default-button'
+                    }
+                ]
+            );
+        }
+    },
+    
+    // Perform actual export
+    async performExport(format) {
+        try {
+            const blob = await window.exportAllProfiles(format);
+            const date = new Date().toISOString().split('T')[0];
+            const filename = `jobhunter-community-profiles-${date}.${format}`;
+            
+            if (typeof window.downloadBlob === 'function') {
+                window.downloadBlob(blob, filename);
+            }
+            
+            if (typeof trackEvent === 'function') {
+                trackEvent('admin_profiles_exported', {
+                    format: format,
+                    total_profiles: this.profiles.length,
+                    admin_user: window.currentUser?.email || 'unknown'
+                });
+            }
+            
+            if (typeof showModal === 'function') {
+                showModal('Export Complete', `Successfully exported ${this.profiles.length} profiles as ${format.toUpperCase()}.`);
+            }
+            
+        } catch (error) {
+            console.error('Export error:', error);
+            this.showError('Export failed: ' + error.message);
+        }
+    },
+    
+    // Export single profile by ID
+    exportSingleProfileById(userId) {
+        const profile = this.profiles.find(p => p.user_id === userId);
+        if (profile) {
+            this.exportSingleProfileData(profile);
+        }
+    },
+    
+    // Export single profile (for modal)
+    exportSingleProfile() {
+        if (this.currentProfileForModal) {
+            this.exportSingleProfileData(this.currentProfileForModal);
+        }
+    },
+    
+    // Export single profile data
+    exportSingleProfileData(profile) {
+        try {
+            const exportData = {
+                exportType: 'single_profile_export',
+                exportDate: new Date().toISOString(),
+                profile: profile,
+                version: '1.0.0'
+            };
+            
+            const jsonString = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            
+            const date = new Date().toISOString().split('T')[0];
+            const filename = `profile-${profile.user_email || 'unknown'}-${date}.json`;
+            
+            if (typeof window.downloadBlob === 'function') {
+                window.downloadBlob(blob, filename);
+            }
+            
+            if (typeof trackEvent === 'function') {
+                trackEvent('admin_single_profile_exported', {
+                    user_id: profile.user_id,
+                    admin_user: window.currentUser?.email || 'unknown'
+                });
+            }
+            
+        } catch (error) {
+            console.error('Error exporting single profile:', error);
+            this.showError('Failed to export profile: ' + error.message);
+        }
+    },
+    
+    // Show error message
+    showError(message) {
+        if (typeof showModal === 'function') {
+            showModal('Error', message);
+        } else {
+            alert(message);
+        }
+    }
+};
+
+// Utility function for debouncing search input
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Initialize admin dashboard when auth state changes
+const originalHandleAuthStateChange = window.handleAuthStateChange;
+window.handleAuthStateChange = function(user) {
+    // Call original function
+    if (originalHandleAuthStateChange) {
+        originalHandleAuthStateChange(user);
+    }
+    
+    // Initialize admin dashboard for signed-in users
+    if (user) {
+        setTimeout(() => {
+            AdminDashboard.checkAdminAccess();
+        }, 100);
+    } else {
+        // Hide admin tab when user signs out
+        const adminTabButton = document.getElementById('admin-tab-button');
+        if (adminTabButton) {
+            adminTabButton.classList.remove('show-admin');
+        }
+    }
+};
+
+// Expose AdminDashboard globally for event handlers
+window.AdminDashboard = AdminDashboard;
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("DOM fully loaded and parsed for app.js");

@@ -279,9 +279,9 @@ async function generateProfessionalProfile(cvText, nonProfessionalExperience, wo
 
     const options = {
         method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json', 
-            'Authorization': `Bearer ${idToken}` 
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
         },
         body: JSON.stringify({
             cv_text: cvText,
@@ -298,9 +298,9 @@ async function generateProfessionalProfile(cvText, nonProfessionalExperience, wo
 
     try {
         if (typeof trackEvent === 'function') {
-            trackEvent('professional_profiling_started', { 
+            trackEvent('professional_profiling_started', {
                 work_approach: workApproach,
-                work_values: workValues 
+                work_values: workValues
             });
         }
 
@@ -331,10 +331,10 @@ async function generateProfessionalProfile(cvText, nonProfessionalExperience, wo
 
         const data = await response.json();
         if (typeof trackEvent === 'function') {
-            trackEvent('professional_profiling_success', { 
+            trackEvent('professional_profiling_success', {
                 remaining_quota: data.quota?.remaining || 0,
                 work_approach: workApproach,
-                work_values: workValues 
+                work_values: workValues
             });
         }
         return data;
@@ -364,8 +364,8 @@ async function getExistingProfile() {
 
     const options = {
         method: 'GET',
-        headers: { 
-            'Authorization': `Bearer ${idToken}` 
+        headers: {
+            'Authorization': `Bearer ${idToken}`
         }
     };
 
@@ -405,6 +405,301 @@ async function getExistingProfile() {
         throw error;
     }
 }
+
+/**
+ * Check if current user has admin access based on email
+ * @returns {boolean} - Whether user has admin access
+ */
+function hasAdminAccess() {
+    // Define admin email addresses - KEEP THIS IN SYNC WITH app.js
+    const ADMIN_EMAILS = [
+        'osiokeitseuwa@gmail.com',
+        // 'another-admin@example.com',  // Add more admin emails here
+    ];
+
+    const isAdmin = window.currentUser &&
+        window.currentUser.email &&
+        ADMIN_EMAILS.includes(window.currentUser.email.toLowerCase());
+
+    if (!isAdmin && window.currentUser) {
+        console.warn('Admin API access denied for user:', window.currentUser.email);
+
+        if (typeof trackEvent === 'function') {
+            trackEvent('admin_api_access_denied', {
+                user_email: window.currentUser.email,
+                timestamp: new Date().toISOString()
+            });
+        }
+    }
+
+    return isAdmin;
+}
+
+/**
+ * Admin API Functions for fetching all user profiles
+ */
+
+/**
+ * Fetches all user profiles for admin dashboard
+ * @returns {Promise<Object>} - Array of all user profiles with pagination info
+ * @throws {Error} - If the API request fails or user is not authenticated
+ */
+async function getAllProfiles() {
+    // Check admin access before making API call
+    if (!hasAdminAccess()) {
+        throw new Error('ACCESS_DENIED: Admin access required. Contact administrator if you need access.');
+    }
+    
+    const idToken = await getIdToken();
+    if (!idToken) {
+        throw new Error('User not authenticated. Please sign in.');
+    }
+
+    const options = {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${idToken}`
+        }
+    };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), CV_API_CONFIG.timeout);
+    options.signal = controller.signal;
+
+    try {
+        const response = await fetch(`${CV_API_CONFIG.baseUrl}${CV_API_CONFIG.API_V1_STR}/profiling/admin/all_profiles`, options);
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ detail: `API error: ${response.status} ${response.statusText}` }));
+            let customError = new Error(errorData.detail || `API error: ${response.status}`);
+            customError.status = response.status;
+
+            if (response.status === 401) {
+                customError.message = "AUTH_FAILED: " + customError.message;
+            } else if (response.status === 403) {
+                customError.message = "ACCESS_DENIED: Admin access required.";
+            }
+            throw customError;
+        }
+
+        const data = await response.json();
+
+        // Track admin dashboard usage
+        if (typeof trackEvent === 'function') {
+            trackEvent('admin_profiles_fetched', {
+                total_profiles: data.profiles?.length || 0,
+                admin_user: window.currentUser?.email || 'unknown'
+            });
+        }
+
+        return data;
+
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error('Request to fetch profiles timed out. Please try again.');
+        }
+        console.error("Error in getAllProfiles:", error);
+        throw error;
+    }
+}
+
+/**
+ * Fetches paginated user profiles for admin dashboard
+ * @param {number} page - Page number (1-based)
+ * @param {number} limit - Number of profiles per page
+ * @param {Object} filters - Filter criteria (optional)
+ * @returns {Promise<Object>} - Paginated profiles with metadata
+ * @throws {Error} - If the API request fails
+ */
+async function getProfilesPaginated(page = 1, limit = 20, filters = {}) {
+    const idToken = await getIdToken();
+    if (!idToken) {
+        throw new Error('User not authenticated. Please sign in.');
+    }
+
+    // Build query parameters
+    const queryParams = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString()
+    });
+
+    // Add filters to query params
+    Object.entries(filters).forEach(([key, value]) => {
+        if (value && value.trim()) {
+            queryParams.append(key, value);
+        }
+    });
+
+    const options = {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${idToken}`
+        }
+    };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), CV_API_CONFIG.timeout);
+    options.signal = controller.signal;
+
+    try {
+        const url = `${CV_API_CONFIG.baseUrl}${CV_API_CONFIG.API_V1_STR}/profiling/admin/all_profiles?${queryParams}`;
+        const response = await fetch(url, options);
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ detail: `API error: ${response.status} ${response.statusText}` }));
+            throw new Error(errorData.detail || `API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error('Request timed out. Please try again.');
+        }
+        console.error("Error in getProfilesPaginated:", error);
+        throw error;
+    }
+}
+
+/**
+ * Export all profiles data for admin purposes
+ * @param {string} format - Export format ('json' or 'csv')
+ * @returns {Promise<Blob>} - Export data as blob
+ * @throws {Error} - If the API request fails
+ */
+async function exportAllProfiles(format = 'json') {
+    try {
+        const profilesData = await getAllProfiles();
+
+        if (format === 'csv') {
+            return exportProfilesToCSV(profilesData.profiles);
+        } else {
+            return exportProfilesToJSON(profilesData);
+        }
+    } catch (error) {
+        console.error("Error in exportAllProfiles:", error);
+        throw error;
+    }
+}
+
+/**
+ * Helper function to export profiles to JSON format
+ * @param {Object} profilesData - Complete profiles data
+ * @returns {Blob} - JSON blob for download
+ */
+function exportProfilesToJSON(profilesData) {
+    const exportData = {
+        exportType: 'admin_profiles_export',
+        exportDate: new Date().toISOString(),
+        totalProfiles: profilesData.profiles?.length || 0,
+        profiles: profilesData.profiles || [],
+        summary: profilesData.summary || {},
+        version: '1.0.0'
+    };
+
+    const jsonString = JSON.stringify(exportData, null, 2);
+    return new Blob([jsonString], { type: 'application/json' });
+}
+
+/**
+ * Helper function to export profiles to CSV format
+ * @param {Array} profiles - Array of profile objects
+ * @returns {Blob} - CSV blob for download
+ */
+function exportProfilesToCSV(profiles) {
+    if (!profiles || profiles.length === 0) {
+        return new Blob(['No profiles available for export'], { type: 'text/csv' });
+    }
+
+    // Define CSV headers
+    const headers = [
+        'User Email',
+        'Profile Created',
+        'Communication Style',
+        'Motivation Drivers',
+        'Top Skills',
+        'Recommended Roles',
+        'Match Percentages',
+        'Personality Traits',
+        'Work Approach',
+        'Work Values'
+    ];
+
+    // Convert profiles to CSV rows
+    const rows = profiles.map(profile => {
+        const personality = profile.profile_data?.personality_analysis || {};
+        const skills = profile.profile_data?.skills_assessment || {};
+        const roles = profile.profile_data?.role_recommendations || [];
+
+        // Extract top skills from different categories
+        const topSkills = [];
+        if (skills.technical_skills?.expert_level) {
+            topSkills.push(...skills.technical_skills.expert_level.slice(0, 5));
+        }
+        if (skills.soft_skills) {
+            topSkills.push(...skills.soft_skills.slice(0, 3));
+        }
+
+        // Extract role recommendations
+        const roleNames = roles.map(role => role.role_title).slice(0, 3);
+        const matchPercentages = roles.map(role => `${role.role_title}: ${role.match_percentage}%`).slice(0, 3);
+
+        // Extract personality traits
+        const personalityTraits = [];
+        if (personality.core_traits) {
+            Object.entries(personality.core_traits).forEach(([trait, data]) => {
+                personalityTraits.push(`${trait}: ${data.level}`);
+            });
+        }
+
+        return [
+            profile.user_email || 'Unknown',
+            profile.created_at ? new Date(profile.created_at).toLocaleDateString() : 'Unknown',
+            personality.communication_style || 'Not specified',
+            personality.motivation_drivers || 'Not specified',
+            topSkills.join('; ') || 'Not specified',
+            roleNames.join('; ') || 'Not specified',
+            matchPercentages.join('; ') || 'Not specified',
+            personalityTraits.join('; ') || 'Not specified',
+            profile.user_inputs?.work_approach || 'Not specified',
+            profile.user_inputs?.work_values || 'Not specified'
+        ];
+    });
+
+    // Combine headers and rows
+    const csvContent = [headers, ...rows]
+        .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+
+    return new Blob([csvContent], { type: 'text/csv' });
+}
+
+/**
+ * Download blob as file
+ * @param {Blob} blob - The blob to download
+ * @param {string} filename - Filename for download
+ */
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+// Expose globally for admin dashboard
+window.getAllProfiles = getAllProfiles;
+window.getProfilesPaginated = getProfilesPaginated;
+window.exportAllProfiles = exportAllProfiles;
+window.downloadBlob = downloadBlob;
 
 // Expose globally
 window.generateProfessionalProfile = generateProfessionalProfile;

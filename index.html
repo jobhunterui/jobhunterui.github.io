@@ -84,6 +84,7 @@
                 data-feature-display-name="Career Insights">Career Insights</button>
             <button class="tab-button" data-tab="learning" data-pro-feature="learning_dashboard_tab"
                 data-feature-display-name="Learning Dashboard">Learning</button>
+            <button class="tab-button hidden" data-tab="admin" id="admin-tab-button">Admin Dashboard</button>
         </div>
 
         <!-- Find Jobs Tab -->
@@ -952,6 +953,133 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+
+        <!-- Admin Dashboard Tab -->
+        <div id="admin" class="tab-content">
+            <h2>Admin Dashboard</h2>
+            
+            <!-- Dashboard Overview -->
+            <div class="admin-overview">
+                <div class="admin-stats-grid">
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="total-profiles-count">-</div>
+                        <div class="admin-stat-label">Total Profiles</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="active-users-count">-</div>
+                        <div class="admin-stat-label">Active Users</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="skill-diversity-count">-</div>
+                        <div class="admin-stat-label">Unique Skills</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="personality-distribution">-</div>
+                        <div class="admin-stat-label">Personality Types</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="admin-controls">
+                <div class="admin-search-section">
+                    <input type="text" id="admin-search" class="admin-search-input" placeholder="Search by name, skills, or role recommendations...">
+                    <button id="admin-search-btn" class="primary-button">Search</button>
+                    <button id="admin-clear-search" class="secondary-button">Clear</button>
+                </div>
+                
+                <div class="admin-filters">
+                    <div class="admin-filter-group">
+                        <label for="personality-filter">Personality Trait:</label>
+                        <select id="personality-filter" class="admin-filter-select">
+                            <option value="">All Personalities</option>
+                            <option value="high-openness">High Openness</option>
+                            <option value="high-conscientiousness">High Conscientiousness</option>
+                            <option value="high-extraversion">High Extraversion</option>
+                            <option value="high-agreeableness">High Agreeableness</option>
+                            <option value="low-neuroticism">Low Neuroticism</option>
+                        </select>
+                    </div>
+                    
+                    <div class="admin-filter-group">
+                        <label for="skill-category-filter">Skill Category:</label>
+                        <select id="skill-category-filter" class="admin-filter-select">
+                            <option value="">All Skills</option>
+                            <option value="technical">Technical Skills</option>
+                            <option value="leadership">Leadership</option>
+                            <option value="communication">Communication</option>
+                            <option value="analytical">Analytical</option>
+                            <option value="creative">Creative</option>
+                        </select>
+                    </div>
+                    
+                    <div class="admin-filter-group">
+                        <label for="role-type-filter">Role Type:</label>
+                        <select id="role-type-filter" class="admin-filter-select">
+                            <option value="">All Roles</option>
+                            <option value="management">Management</option>
+                            <option value="technical">Technical</option>
+                            <option value="creative">Creative</option>
+                            <option value="analytical">Analytical</option>
+                            <option value="sales">Sales</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="admin-actions">
+                    <button id="export-profiles-btn" class="secondary-button">Export All Profiles</button>
+                    <button id="refresh-profiles-btn" class="default-button">Refresh Data</button>
+                </div>
+            </div>
+
+            <!-- Profiles List -->
+            <div class="admin-profiles-section">
+                <div class="admin-section-header">
+                    <h3>Community Profiles <span id="filtered-count">(0)</span></h3>
+                    <div class="admin-view-toggle">
+                        <button id="grid-view-btn" class="view-toggle-btn active">Grid</button>
+                        <button id="list-view-btn" class="view-toggle-btn">List</button>
+                    </div>
+                </div>
+                
+                <!-- Loading State -->
+                <div id="admin-loading" class="admin-loading hidden">
+                    <div class="loading-spinner"></div>
+                    <p>Loading community profiles...</p>
+                </div>
+                
+                <!-- Empty State -->
+                <div id="admin-empty-state" class="admin-empty-state hidden">
+                    <p>No profiles found matching your criteria.</p>
+                </div>
+                
+                <!-- Profiles Grid/List -->
+                <div id="admin-profiles-container" class="admin-profiles-grid">
+                    <!-- Profile cards will be inserted here dynamically -->
+                </div>
+                
+                <!-- Pagination -->
+                <div class="admin-pagination hidden" id="admin-pagination">
+                    <button id="admin-prev-page" class="pagination-btn">← Previous</button>
+                    <span id="admin-page-info">Page 1 of 1</span>
+                    <button id="admin-next-page" class="pagination-btn">Next →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Individual Profile Modal -->
+        <div id="profile-detail-modal" class="modal hidden">
+            <div class="modal-content admin-profile-modal">
+                <span class="close-modal">&times;</span>
+                <div id="profile-detail-content">
+                    <!-- Detailed profile content will be inserted here -->
+                </div>
+                <div class="modal-buttons">
+                    <button id="export-single-profile" class="secondary-button">Export Profile</button>
+                    <button id="close-profile-detail" class="default-button">Close</button>
+                </div>
             </div>
         </div>
     </main>
