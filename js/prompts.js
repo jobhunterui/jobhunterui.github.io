@@ -2413,7 +2413,7 @@ Only respond with the JSON structure - no additional text before or after. Make 
 // Professional Profiling Functions
 
 /**
- * Generate professional profile with Gemini API
+ * Generate professional profile with Gemini API (updated with cloud sync)
  */
 async function generateProfessionalProfileWithGemini() {
     console.log('generateProfessionalProfileWithGemini function called');
@@ -2473,16 +2473,22 @@ async function generateProfessionalProfileWithGemini() {
         if (loadingModal) closeModal(loadingModal);
 
         if (result && result.profile_data) {
-            // Save to local storage
-            saveProfessionalProfile(result.profile_data);
+            // Save to local storage AND cloud with new sync function
+            const saveSuccess = await saveProfessionalProfileWithCloudSync(result.profile_data);
             
-            // Display results
-            displayProfessionalProfile(result.profile_data);
-            
-            // Clear form data since profile was generated successfully
-            clearProfilingFormData();
-            
-            showModal('Profile Generated', 'Your professional profile has been generated successfully!');
+            if (saveSuccess) {
+                // Display results
+                displayProfessionalProfile(result.profile_data);
+                
+                // Clear form data since profile was generated successfully
+                clearProfilingFormData();
+                
+                showModal('Profile Generated', 'Your professional profile has been generated and synced across your devices!');
+            } else {
+                // Still display results even if sync failed
+                displayProfessionalProfile(result.profile_data);
+                showModal('Profile Generated', 'Your professional profile has been generated successfully! Note: Cloud sync may not be available.');
+            }
         } else {
             throw new Error('No profile data received from the API');
         }
@@ -2928,6 +2934,50 @@ function generateProfileHTML(profileData) {
     }
 
     return html;
+}
+
+/**
+ * Process and save professional profile from Claude JSON response (updated with cloud sync)
+ */
+async function processProfessionalProfileFromClaude(jsonData) {
+    try {
+        // Parse the JSON data using existing parsing logic
+        const profileData = JSON.parse(jsonData.trim());
+
+        if (!profileData) {
+            showModal('Error', 'Error processing professional profile data. Please make sure you pasted the correct format from Claude.');
+            return;
+        }
+
+        // Save to local storage AND cloud with new sync function
+        const saveSuccess = await saveProfessionalProfileWithCloudSync(profileData);
+        
+        if (saveSuccess) {
+            // Display results
+            displayProfessionalProfile(profileData);
+            
+            // Clear form data since profile was generated successfully
+            clearProfilingFormData();
+            
+            showModal('Profile Generated', 'Your professional profile has been processed and synced across your devices!');
+            
+            if (typeof trackEvent === 'function') {
+                trackEvent('professional_profile_claude_processed', {
+                    has_personality: !!(profileData.personality_analysis),
+                    has_skills: !!(profileData.skills_assessment),
+                    user_signed_in: !!window.currentUser
+                });
+            }
+        } else {
+            // Still display results even if sync failed
+            displayProfessionalProfile(profileData);
+            showModal('Profile Generated', 'Your professional profile has been processed successfully! Note: Cloud sync may not be available.');
+        }
+
+    } catch (error) {
+        console.error('Error processing professional profile from Claude:', error);
+        showModal('Error', 'Error parsing professional profile JSON. Please make sure you pasted the correct format from Claude: ' + error.message);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function () {

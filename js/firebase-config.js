@@ -228,7 +228,11 @@ onAuthStateChanged(auth, async (user) => {
         updateAuthHeaderUIForSignedInUser(user); // Update header UI elements
         
         // Notify other parts of the app (e.g., app.js for profile tab UI)
-        if (window.handleAuthStateChange) {
+        if (window.handleAuthStateChangeWithProfileSync) {
+            // Use the enhanced handler that includes professional profile sync
+            await window.handleAuthStateChangeWithProfileSync(user);
+        } else if (window.handleAuthStateChange) {
+            // Fallback to original handler
             window.handleAuthStateChange(user);
         }
         
@@ -252,7 +256,11 @@ onAuthStateChanged(auth, async (user) => {
         updateAuthHeaderUIForSignedOutUser(); // Update header UI elements
         
         // Notify other parts of the app
-        if (window.handleAuthStateChange) {
+        if (window.handleAuthStateChangeWithProfileSync) {
+            // Use the enhanced handler
+            await window.handleAuthStateChangeWithProfileSync(null);
+        } else if (window.handleAuthStateChange) {
+            // Fallback to original handler
             window.handleAuthStateChange(null);
         }
     }

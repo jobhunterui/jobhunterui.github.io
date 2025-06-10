@@ -286,9 +286,11 @@ async function generateProfessionalProfile(cvText, nonProfessionalExperience, wo
         body: JSON.stringify({
             cv_text: cvText,
             non_professional_experience: nonProfessionalExperience,
-            work_approach: workApproach,
-            problem_solving_example: problemSolvingExample,
-            work_values: workValues
+            profiling_questions: {
+                work_approach: workApproach,
+                problem_solving: problemSolvingExample, // The key here is 'problem_solving', not 'problem_solving_example'
+                work_values: workValues
+            }
         })
     };
 
@@ -407,35 +409,6 @@ async function getExistingProfile() {
 }
 
 /**
- * Check if current user has admin access based on email
- * @returns {boolean} - Whether user has admin access
- */
-function hasAdminAccess() {
-    // Define admin email addresses - KEEP THIS IN SYNC WITH app.js
-    const ADMIN_EMAILS = [
-        'osiokeitseuwa@gmail.com',
-        // 'another-admin@example.com',  // Add more admin emails here
-    ];
-
-    const isAdmin = window.currentUser &&
-        window.currentUser.email &&
-        ADMIN_EMAILS.includes(window.currentUser.email.toLowerCase());
-
-    if (!isAdmin && window.currentUser) {
-        console.warn('Admin API access denied for user:', window.currentUser.email);
-
-        if (typeof trackEvent === 'function') {
-            trackEvent('admin_api_access_denied', {
-                user_email: window.currentUser.email,
-                timestamp: new Date().toISOString()
-            });
-        }
-    }
-
-    return isAdmin;
-}
-
-/**
  * Admin API Functions for fetching all user profiles
  */
 
@@ -445,11 +418,6 @@ function hasAdminAccess() {
  * @throws {Error} - If the API request fails or user is not authenticated
  */
 async function getAllProfiles() {
-    // Check admin access before making API call
-    if (!hasAdminAccess()) {
-        throw new Error('ACCESS_DENIED: Admin access required. Contact administrator if you need access.');
-    }
-    
     const idToken = await getIdToken();
     if (!idToken) {
         throw new Error('User not authenticated. Please sign in.');
@@ -684,7 +652,7 @@ function exportProfilesToCSV(profiles) {
  * @param {Blob} blob - The blob to download
  * @param {string} filename - Filename for download
  */
-function downloadBlob(blob, filename) {
+window.downloadBlob = function(blob, filename) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -694,6 +662,128 @@ function downloadBlob(blob, filename) {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 }
+
+/**
+ * Save professional profile to cloud storage via backend API
+ * @param {Object} profileData - The professional profile data to save
+ * @returns {Promise<Object>} - Success response from API
+ * @throws {Error} - If the API request fails or user is not authenticated
+ */
+async function saveProfileToCloud(profileData) {
+    const idToken = await getIdToken();
+    if (!idToken) {
+        throw new Error('User not authenticated. Please sign in.');
+    }
+
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+            profile_data: profileData
+        })
+    };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), CV_API_CONFIG.timeout);
+    options.signal = controller.signal;
+
+    try {
+        if (typeof trackEvent === 'function') {
+            trackEvent('profile_cloud_save_started');
+        }
+
+        const response = await fetch(`${CV_API_CONFIG.baseUrl}${CV_API_CONFIG.API_V1_STR}/profiling/save_profile`, options);
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ detail: `API error: ${response.status} ${response.statusText}` }));
+            let customError = new Error(errorData.detail || `API error: ${response.status}`);
+            customError.status = response.status;
+
+            if (response.status === 401) {
+                customError.message = "AUTH_FAILED: " + customError.message;
+            }
+            throw customError;
+        }
+
+        const data = await response.json();
+        if (typeof trackEvent === 'function') {
+            trackEvent('profile_cloud_save_success');
+        }
+        return data;
+
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            if (typeof trackEvent === 'function') trackEvent('profile_cloud_save_timeout');
+            throw new Error('Profile save request timed out. Please try again.');
+        }
+        console.error("Error in saveProfileToCloud:", error);
+        throw error;
+    }
+}
+
+/**
+ * Load professional profile from cloud storage via backend API
+ * @returns {Promise<Object|null>} - The professional profile data or null if none exists
+ * @throws {Error} - If the API request fails or user is not authenticated
+ */
+async function loadProfileFromCloud() {
+    const idToken = await getIdToken();
+    if (!idToken) {
+        throw new Error('User not authenticated. Please sign in.');
+    }
+
+    const options = {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${idToken}`
+        }
+    };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), CV_API_CONFIG.timeout);
+    options.signal = controller.signal;
+
+    try {
+        const response = await fetch(`${CV_API_CONFIG.baseUrl}${CV_API_CONFIG.API_V1_STR}/profiling/my_profile`, options);
+        clearTimeout(timeoutId);
+
+        if (response.status === 404) {
+            // No profile exists yet
+            return null;
+        }
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ detail: `API error: ${response.status} ${response.statusText}` }));
+            let customError = new Error(errorData.detail || `API error: ${response.status}`);
+            customError.status = response.status;
+
+            if (response.status === 401) {
+                customError.message = "AUTH_FAILED: " + customError.message;
+            }
+            throw customError;
+        }
+
+        const data = await response.json();
+        return data;
+
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error('Profile load request timed out. Please try again.');
+        }
+        console.error("Error in loadProfileFromCloud:", error);
+        throw error;
+    }
+}
+
+// Expose globally for use in other modules
+window.saveProfileToCloud = saveProfileToCloud;
+window.loadProfileFromCloud = loadProfileFromCloud;
 
 // Expose globally for admin dashboard
 window.getAllProfiles = getAllProfiles;

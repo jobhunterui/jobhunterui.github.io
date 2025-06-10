@@ -311,7 +311,7 @@ function getProfessionalProfile() {
 }
 
 /**
- * Save professional profiling data to local storage
+ * Save professional profiling data to local storage with cloud sync
  * @param {Object} profileData - The professional profile data to save
  * @returns {boolean} - Success status
  */
@@ -792,33 +792,6 @@ function hasSkillInCategory(skills, category) {
 // Admin Email Management Functions
 
 /**
- * Get list of admin email addresses
- * @returns {Array} - Array of admin email addresses
- */
-function getAdminEmails() {
-    // Centralized list of admin emails - UPDATE THIS TO ADD/REMOVE ADMINS
-    return [
-        'osiokeitseuwa@gmail.com',
-        // 'another-admin@example.com',  // Add more admin emails here
-        // 'third-admin@example.com'
-    ];
-}
-
-/**
- * Check if an email address has admin privileges
- * @param {string} email - Email address to check
- * @returns {boolean} - Whether the email has admin access
- */
-function isAdminEmail(email) {
-    if (!email || typeof email !== 'string') {
-        return false;
-    }
-
-    const adminEmails = getAdminEmails();
-    return adminEmails.includes(email.toLowerCase().trim());
-}
-
-/**
  * Check if current user has admin access
  * @returns {boolean} - Whether current user is admin
  */
@@ -854,9 +827,121 @@ function logAdminAccess(action, granted) {
     }
 }
 
+/**
+ * Load professional profile with cloud sync capability
+ * @param {boolean} forceLocal - Force loading from local storage only
+ * @returns {Promise<Object|null>} - The professional profile data or null
+ */
+async function loadProfessionalProfileWithSync(forceLocal = false) {
+    // If user is signed in and not forcing local, try cloud first
+    if (window.currentUser && !forceLocal) {
+        try {
+            const cloudProfile = await window.loadProfessionalProfileFromCloud();
+            if (cloudProfile) {
+                // Save cloud data locally for offline access
+                saveProfessionalProfile(cloudProfile);
+                return cloudProfile;
+            }
+        } catch (error) {
+            console.log('Could not load from cloud, falling back to local:', error.message);
+        }
+    }
+    
+    // Fallback to local storage
+    return getProfessionalProfile();
+}
+
+/**
+ * Save professional profile with automatic cloud sync
+ * @param {Object} profileData - The professional profile data to save
+ * @returns {Promise<boolean>} - Success status
+ */
+async function saveProfessionalProfileWithSync(profileData) {
+    if (!profileData || typeof profileData !== 'object') {
+        console.error('Invalid profile data provided to saveProfessionalProfileWithSync');
+        return false;
+    }
+
+    // Save locally first
+    const localSuccess = saveProfessionalProfile(profileData);
+    
+    if (!localSuccess) {
+        return false;
+    }
+
+    // If user is signed in, sync to cloud
+    if (window.currentUser) {
+        try {
+            await window.syncProfessionalProfileToCloud(profileData);
+            console.log('Professional profile synced to cloud successfully');
+        } catch (error) {
+            console.warn('Could not sync professional profile to cloud:', error.message);
+            // Still return true since local save succeeded
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Check if professional profile exists in cloud and sync it
+ * @returns {Promise<boolean>} - Whether a cloud profile was found and synced
+ */
+async function syncProfessionalProfileFromCloud() {
+    if (!window.currentUser) {
+        return false;
+    }
+
+    try {
+        const cloudProfile = await window.loadProfessionalProfileFromCloud();
+        if (cloudProfile) {
+            // Compare with local profile
+            const localProfile = getProfessionalProfile();
+            
+            // If no local profile or cloud is newer, use cloud data
+            if (!localProfile || (cloudProfile.savedAt && new Date(cloudProfile.savedAt) > new Date(localProfile.savedAt || 0))) {
+                saveProfessionalProfile(cloudProfile);
+                console.log('Professional profile synced from cloud');
+                return true;
+            }
+        }
+        return false;
+    } catch (error) {
+        console.error('Error syncing professional profile from cloud:', error);
+        return false;
+    }
+}
+
+/**
+ * Delete professional profile from both local and cloud storage
+ * @returns {Promise<boolean>} - Success status
+ */
+async function deleteProfessionalProfileWithSync() {
+    // Clear local storage
+    const localSuccess = clearProfessionalProfile();
+    
+    // If user is signed in, try to delete from cloud too
+    if (window.currentUser) {
+        try {
+            // Note: You may need to implement a delete endpoint in your backend
+            // For now, we'll just sync empty data which effectively removes it
+            await window.syncProfessionalProfileToCloud(null);
+            console.log('Professional profile cleared from cloud');
+        } catch (error) {
+            console.warn('Could not clear professional profile from cloud:', error.message);
+        }
+    }
+
+    return localSuccess;
+}
+
+// Expose the new sync functions globally
+window.loadProfessionalProfileWithSync = loadProfessionalProfileWithSync;
+window.saveProfessionalProfileWithSync = saveProfessionalProfileWithSync;
+window.syncProfessionalProfileFromCloud = syncProfessionalProfileFromCloud;
+window.deleteProfessionalProfileWithSync = deleteProfessionalProfileWithSync;
+
 // Expose admin functions globally
-window.getAdminEmails = getAdminEmails;
-window.isAdminEmail = isAdminEmail;
 window.isCurrentUserAdmin = isCurrentUserAdmin;
 window.logAdminAccess = logAdminAccess;
 

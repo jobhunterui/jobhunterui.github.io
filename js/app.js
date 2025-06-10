@@ -153,7 +153,73 @@ async function handleAuthStateChange(user) {
 }
 
 window.handleAuthStateChange = handleAuthStateChange;
+window.handleAuthStateChangeWithProfileSync = handleAuthStateChangeWithProfileSync;
 window.firestoreUnsubscribeUser = {};
+
+/**
+ * Save professional profile with cloud sync
+ */
+async function saveProfessionalProfileWithCloudSync(profileData) {
+    try {
+        const success = await saveProfessionalProfileWithSync(profileData);
+        
+        if (success && typeof trackEvent === 'function') {
+            trackEvent('professional_profile_saved_with_sync', {
+                has_personality: !!(profileData.personality_analysis),
+                has_skills: !!(profileData.skills_assessment),
+                has_recommendations: !!(profileData.role_recommendations),
+                user_signed_in: !!window.currentUser
+            });
+        }
+        
+        return success;
+    } catch (error) {
+        console.error('Error saving professional profile with sync:', error);
+        return false;
+    }
+}
+
+/**
+ * Load professional profile with cloud sync preference
+ */
+async function loadProfessionalProfileWithCloudSync() {
+    try {
+        return await loadProfessionalProfileWithSync();
+    } catch (error) {
+        console.error('Error loading professional profile with sync:', error);
+        return getProfessionalProfile(); // Fallback to local only
+    }
+}
+
+/**
+ * Enhanced auth state change handler that includes professional profile sync
+ */
+async function handleAuthStateChangeWithProfileSync(user) {
+    // Call the original auth state change handler
+    if (window.handleAuthStateChange) {
+        await window.handleAuthStateChange(user);
+    }
+
+    if (user) {
+        console.log('User signed in - syncing professional profile data');
+        
+        // Sync professional profile from cloud
+        try {
+            const cloudSynced = await syncProfessionalProfileFromCloud();
+            if (cloudSynced) {
+                // Refresh the profile UI if we're on the profile tab
+                const profileTab = document.querySelector('.tab-button[data-tab="profile"]');
+                if (profileTab && profileTab.classList.contains('active')) {
+                    await checkExistingProfile();
+                }
+            }
+        } catch (error) {
+            console.log('Could not sync professional profile from cloud:', error.message);
+        }
+    } else {
+        console.log('User signed out - professional profile remains in local storage');
+    }
+}
 
 // Fetch user profile from backend /users/me
 async function fetchAndStoreUserProfile() {
@@ -1250,31 +1316,33 @@ function saveProfilingFormDataFromUI() {
 }
 
 /**
- * Check for existing professional profile
+ * Check for existing professional profile with cloud sync and enhanced UI
  */
 async function checkExistingProfile() {
     try {
-        // Check local storage first
-        const localProfile = getProfessionalProfile();
+        // Show loading state
+        const existingProfileStatus = document.getElementById('existing-profile-status');
+        const profilingForm = document.getElementById('profiling-form');
+        const profileResults = document.getElementById('profile-results');
         
-        if (localProfile) {
-            showExistingProfileStatus(localProfile);
-            return;
-        }
-
-        // Check cloud profile if user is signed in
-        if (window.currentUser && typeof getExistingProfile === 'function') {
-            try {
-                const cloudProfile = await getExistingProfile();
-                if (cloudProfile && cloudProfile.profile_data) {
-                    // Save to local storage and show
-                    saveProfessionalProfile(cloudProfile.profile_data);
-                    showExistingProfileStatus(cloudProfile.profile_data);
-                    return;
-                }
-            } catch (error) {
-                console.log('No cloud profile found or error fetching:', error.message);
+        // Hide all sections initially
+        if (existingProfileStatus) existingProfileStatus.classList.add('hidden');
+        if (profilingForm) profilingForm.classList.add('hidden');
+        if (profileResults) profileResults.classList.add('hidden');
+        
+        // Check cloud first if user is signed in, then local storage
+        const profile = await loadProfessionalProfileWithSync();
+        
+        if (profile) {
+            // Show sync status based on user state
+            if (window.currentUser) {
+                showProfileSyncStatus('synced', 'Profile synced across devices');
+            } else {
+                showProfileSyncStatus('local_only', 'Profile saved locally. Sign in to sync across devices.');
             }
+            
+            showExistingProfileStatus(profile);
+            return;
         }
 
         // No existing profile found - show form
@@ -1282,6 +1350,7 @@ async function checkExistingProfile() {
 
     } catch (error) {
         console.error('Error checking existing profile:', error);
+        showProfileSyncStatus('error', 'Error loading profile');
         showProfilingForm();
     }
 }
@@ -2333,16 +2402,165 @@ window.handleAuthStateChange = function(user) {
 // Expose AdminDashboard globally for event handlers
 window.AdminDashboard = AdminDashboard;
 
+/**
+ * Show sync status for professional profile
+ */
+function showProfileSyncStatus(status, message = '') {
+    // Try to find a profile sync status element, or create one
+    let statusElement = document.getElementById('profile-sync-status');
+    
+    if (!statusElement) {
+        // Create status element if it doesn't exist
+        const profileResultsSection = document.getElementById('profile-results');
+        if (profileResultsSection) {
+            statusElement = document.createElement('div');
+            statusElement.id = 'profile-sync-status';
+            statusElement.className = 'profile-sync-status';
+            profileResultsSection.insertBefore(statusElement, profileResultsSection.firstChild);
+        }
+    }
+    
+    if (statusElement) {
+        let icon, color, text;
+        
+        switch(status) {
+            case 'syncing':
+                icon = '🔄';
+                color = '#f39c12';
+                text = 'Syncing profile to cloud...';
+                break;
+            case 'synced':
+                icon = '✅';
+                color = '#27ae60';
+                text = message || 'Profile synced across devices';
+                break;
+            case 'local_only':
+                icon = '📱';
+                color = '#95a5a6';
+                text = message || 'Profile saved locally (sign in to sync)';
+                break;
+            case 'error':
+                icon = '⚠️';
+                color = '#e74c3c';
+                text = message || 'Sync failed - profile saved locally';
+                break;
+            default:
+                statusElement.style.display = 'none';
+                return;
+        }
+        
+        statusElement.innerHTML = `
+            <span style="color: ${color};">
+                ${icon} ${text}
+            </span>
+        `;
+        statusElement.style.display = 'block';
+        
+        // Auto-hide success/error messages after 5 seconds
+        if (status === 'synced' || status === 'error') {
+            setTimeout(() => {
+                if (statusElement) {
+                    statusElement.style.display = 'none';
+                }
+            }, 5000);
+        }
+    }
+}
+
+/**
+ * Display professional profile results with sync status
+ */
+function displayProfessionalProfile(profileData) {
+    const resultsSection = document.getElementById('profile-results');
+    const profileContent = document.getElementById('profile-content');
+    const resultsDate = document.getElementById('results-date');
+    const formSection = document.getElementById('profiling-form');
+    const existingProfileStatus = document.getElementById('existing-profile-status');
+
+    if (!resultsSection || !profileContent) {
+        console.error('Profile results elements not found');
+        return;
+    }
+
+    // Hide form and show results
+    if (formSection) formSection.classList.add('hidden');
+    if (existingProfileStatus) existingProfileStatus.classList.add('hidden');
+    resultsSection.classList.remove('hidden');
+
+    // Set generation date
+    if (resultsDate) {
+        resultsDate.textContent = new Date().toLocaleDateString();
+    }
+
+    // Generate HTML content
+    const htmlContent = generateProfileHTML(profileData);
+    profileContent.innerHTML = htmlContent;
+
+    // Show sync status
+    if (window.currentUser) {
+        showProfileSyncStatus('synced', 'Profile synced across devices');
+    } else {
+        showProfileSyncStatus('local_only', 'Profile saved locally. Sign in to sync across devices.');
+    }
+
+    // Scroll to results
+    resultsSection.scrollIntoView({ behavior: 'smooth' });
+}
+
+/**
+ * Enhanced save function that provides UI feedback
+ */
+async function saveProfessionalProfileWithUIFeedback(profileData) {
+    showProfileSyncStatus('syncing');
+    
+    try {
+        const success = await saveProfessionalProfileWithSync(profileData);
+        
+        if (success) {
+            if (window.currentUser) {
+                showProfileSyncStatus('synced');
+            } else {
+                showProfileSyncStatus('local_only');
+            }
+        } else {
+            showProfileSyncStatus('error', 'Failed to save profile');
+        }
+        
+        return success;
+    } catch (error) {
+        console.error('Error saving professional profile:', error);
+        showProfileSyncStatus('error', 'Sync failed - profile saved locally');
+        return false;
+    }
+}
+
+// Expose the UI functions globally
+window.showProfileSyncStatus = showProfileSyncStatus;
+window.displayProfessionalProfile = displayProfessionalProfile;
+window.saveProfessionalProfileWithUIFeedback = saveProfessionalProfileWithUIFeedback;
+
+// Enhanced initialization that checks for cloud profile sync
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("DOM fully loaded and parsed for app.js");
+    
     if (typeof window.fetchAppConfig === 'function') {
         console.log("Attempting to fetch app config from app.js...");
-        await window.fetchAppConfig(); // Ensure config is loaded before initializing the rest
+        await window.fetchAppConfig();
         console.log("App config fetch attempt complete from app.js.");
     } else {
         console.warn("fetchAppConfig function not found on window when app.js loaded.");
     }
     
-    // Your existing initApp function or other initializations
-    initApp(); 
+    // Initialize the app
+    initApp();
+    
+    // If user is already signed in, sync professional profile
+    if (window.currentUser) {
+        try {
+            console.log('User already signed in on page load - checking for profile sync');
+            await syncProfessionalProfileFromCloud();
+        } catch (error) {
+            console.log('Could not sync professional profile on page load:', error.message);
+        }
+    }
 });
